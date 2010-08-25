@@ -1,0 +1,6 @@
+General purpose "readability" like page cleaner, as an API.  Intended to make
+consuming RSS feeds which provide links to other sites, rather than their own
+content, more streamlined.
+
+Inspired by Andrew Trusty's "Readable Feeds":
+http://andrewtrusty.appspot.com/readability/
