@@ -30,7 +30,7 @@ import HTMLParser
 import logging
 import re
 import sys
-import urllib
+import urllib2
 import urlparse
 
 # Packaged third-party imports.
@@ -85,7 +85,7 @@ STRIP_TAG_NAMES = set((
 def CleanUrl(url):
   url = url.encode('utf-8')
   try:
-    html = urllib.urlopen(url).read()
+    html = urllib2.urlopen(url).read()
     return CleanContent(url, html)
   except IOError:
     return ''
