@@ -103,7 +103,7 @@ class FeedCleaner(object):
     for entry in self.feed.entries:
       if self._UrlsMatch(entry.link, url, trim_query):
         return entry
-      if entry.feedburner_origlink:
+      if 'feedburner_origlink' in entry:
         if self._UrlsMatch(entry.feedburner_origlink, url, trim_query):
           return entry
 
