@@ -35,6 +35,7 @@ import urlparse
 # Packaged third-party imports.
 from third_party import BeautifulSoup
 
+import util
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -44,7 +45,21 @@ BLOCK_TAG_NAMES = set((
     ))
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
 RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
-RE_NEGATIVE = re.compile(r'\bcomment|\bfoot|\bhead|\bhide\b|\bside|widget', re.I)
+RE_NEGATIVE = re.compile(
+    r'(_|\b)comment'
+    r'|disqus_thread|dsq-brlink'
+    r'|(_|\b)foot'
+    r'|(_|\b)(sub)?head'
+    r'|(_|\b)hide(_|\b)'
+    r'|(_|\b)nav'
+    r'|(_|\b)neighbor'
+    r'|(_|\b)read-more'
+    r'|(_|\b)shar(e|ing)'
+    r'|(_|\b)side'
+    r'|sponsor'
+    r'|twitter'
+    r'|widget',
+    re.I)
 RE_POSITIVE = re.compile(r'article|body|content|entry|post|text', re.I)
 STRIP_ATTRS = set((
     'form',
@@ -66,7 +81,7 @@ STRIP_ATTRS = set((
     'onselect',
     'onsubmit',
     'onunload',
-    'score',
+    #'score',
     'style',
     ))
 STRIP_TAG_NAMES = set((
@@ -126,8 +141,9 @@ def CleanContent(url, html):
   # Count score for all ancestors-of-paragraphs.
   parents = []
   parent_scores = {
-      'p': 2.5,
-      'div': 1.0,
+      'p': 5.0,
+      'div': 1.5,
+      'td': 1.0,
       }
   for paragraph in soup.findAll(parent_scores):
     parent = paragraph.parent
@@ -135,18 +151,12 @@ def CleanContent(url, html):
     if parent not in parents:
       parents.append(parent)
       base_score = parent_scores[paragraph.name]
-
       if parent.has_key('class'):
-        if RE_NEGATIVE.search(parent['class']):
-          score -= base_score * 50
         if RE_POSITIVE.search(parent['class']):
-          score += base_score* 25
-
+          score += base_score * 10
       if parent.has_key('id'):
-        if RE_NEGATIVE.search(parent['id']):
-          score -= base_score * 50
         if RE_POSITIVE.search(parent['id']):
-          score += base_score * 25
+          score += base_score * 10
 
       _ApplyScore(parent, score)
 
@@ -158,6 +168,11 @@ def CleanContent(url, html):
   for parent in soup.findAll(attrs={'score': True}):
     if (not top_parent) or (parent['score'] > top_parent['score']):
       top_parent = parent
+
+#  for parent in sorted(soup.findAll(attrs={'score': True}),
+#                       key=lambda x: x['score'])[-5:]:
+#    logging.info('%-10s %s>', parent['score'], str(parent).split('>')[0])
+#    #logging.info(parent.text[0:59])
 
   if not top_parent:
     return ''
@@ -172,14 +187,15 @@ def CleanContent(url, html):
   return top_parent.renderContents()
 
 
-def _ApplyScore(tag, score):
+def _ApplyScore(tag, score, depth=0):
   """Recursively apply a decaying score to each parent up the tree."""
-  if (not tag) or (not score):
+  decayed_score = score * ( ( 1 - (depth / float(5)) ) ** 2.5 )
+  if (not tag) or decayed_score <= 1:
     return
   if not tag.has_key('score'):
     tag['score'] = 0
-  tag['score'] = float(tag['score']) + score
-  _ApplyScore(tag.parent, score * 0.75)  # TODO: Remove magic number.
+  tag['score'] = float(tag['score']) + decayed_score
+  _ApplyScore(tag.parent, score, depth + 1)  # TODO: Remove magic number.
 
 
 def _FixUrls(parent, base_url):
