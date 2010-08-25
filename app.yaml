@@ -1,5 +1,5 @@
 application: readability-api
-version: 2
+version: default
 runtime: python
 api_version: 1
 
