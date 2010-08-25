@@ -28,7 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # Standard library imports.
 import HTMLParser
 import logging
-import os
 import re
 import sys
 import urllib
@@ -68,6 +67,7 @@ STRIP_ATTRS = set((
     'onselect',
     'onsubmit',
     'onunload',
+    'score',
     'style',
     ))
 STRIP_TAG_NAMES = set((
@@ -122,7 +122,7 @@ def CleanContent(url, html):
     if not tag.find(BLOCK_TAG_NAMES):
       tag.name = 'p'
 
-  # Count score for all parents-of-paragraphs.
+  # Count score for all ancestors-of-paragraphs.
   parents = []
   parent_scores = {
       'p': 2.5,
@@ -130,35 +130,32 @@ def CleanContent(url, html):
       }
   for paragraph in soup.findAll(parent_scores):
     parent = paragraph.parent
+    score = 0
     if parent not in parents:
       parents.append(parent)
-      parent.score = 0
       base_score = parent_scores[paragraph.name]
 
       if parent.has_key('class'):
         if RE_NEGATIVE.search(parent['class']):
-          parent.score -= base_score * 50
+          score -= base_score * 50
         if RE_POSITIVE.search(parent['class']):
-          parent.score += base_score* 25
+          score += base_score* 25
 
       if parent.has_key('id'):
         if RE_NEGATIVE.search(parent['id']):
-          parent.score -= base_score * 50
+          score -= base_score * 50
         if RE_POSITIVE.search(parent['id']):
-          parent.score += base_score * 25
+          score += base_score * 25
 
-    if len(paragraph.text) > 100:
-      parent.score += base_score
-    parent.score += paragraph.text.count(',') * base_score
+      _ApplyScore(parent, score)
 
-  if 'Development' in os.environ.get('SERVER_SOFTWARE', ''):
-    for parent in sorted(parents, key=lambda x: x.score):
-      logging.info('%-10s %s>', parent.score, str(parent).split('>')[0])
-      logging.info(parent.text[0:159])
+    if len(paragraph.text) > 20:
+      _ApplyScore(parent, base_score)
+    _ApplyScore(parent, paragraph.text.count(',') * base_score)
 
   top_parent = None
-  for parent in parents:
-    if (not top_parent) or (parent.score > top_parent.score):
+  for parent in soup.findAll(attrs={'score': True}):
+    if (not top_parent) or (parent['score'] > top_parent['score']):
       top_parent = parent
 
   if not top_parent:
@@ -169,17 +166,27 @@ def CleanContent(url, html):
     for attr in STRIP_ATTRS:
       del tag[attr]
 
-  _Fixurls(top_parent, url)
+  _FixUrls(top_parent, url)
 
   return top_parent.renderContents()
 
 
-def _Fixurls(parent, url):
+def _ApplyScore(tag, score):
+  """Recursively apply a decaying score to each parent up the tree."""
+  if (not tag) or (not score):
+    return
+  if not tag.has_key('score'):
+    tag['score'] = 0
+  tag['score'] = float(tag['score']) + score
+  _ApplyScore(tag.parent, score * 0.75)  # TODO: Remove magic number.
+
+
+def _FixUrls(parent, base_url):
   for tag in parent.findAll():
     if tag.has_key('href'):
-      tag['href'] = urlparse.urljoin(url, tag['href'])
+      tag['href'] = urlparse.urljoin(base_url, tag['href'])
     if tag.has_key('src'):
-      tag['src'] = urlparse.urljoin(url, tag['src'])
+      tag['src'] = urlparse.urljoin(base_url, tag['src'])
 
 
 if __name__ == '__main__':

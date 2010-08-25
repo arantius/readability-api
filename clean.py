@@ -47,5 +47,5 @@ def Clean(url):
     feed_cleaner = clean_feed.FeedCleaner(url=url)
     return '<!-- cleaned from feed -->\n' + feed_cleaner.content
   except clean_feed.RssError:
-    return 'fail'
+    #return 'fail'
     return '<!-- cleaned from content -->\n' + clean_content.CleanUrl(url)
