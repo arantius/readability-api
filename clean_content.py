@@ -45,7 +45,7 @@ BLOCK_TAG_NAMES = set((
     ))
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
 RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
-RE_NEGATIVE = re.compile(r'\bcomment|\bfoot|\bhead|\bhide\b|widget', re.I)
+RE_NEGATIVE = re.compile(r'\bcomment|\bfoot|\bhead|\bhide\b|\bside|widget', re.I)
 RE_POSITIVE = re.compile(r'article|body|content|entry|post|text', re.I)
 STRIP_ATTRS = set((
     'form',
