@@ -87,7 +87,8 @@ def CleanUrl(url):
   try:
     html = urllib2.urlopen(url).read()
     return CleanContent(url, html)
-  except IOError:
+  except IOError, e:
+    logging.exception(e)
     return ''
 
 
@@ -100,7 +101,8 @@ def CleanContent(url, html):
 
   try:
     soup = BeautifulSoup.BeautifulSoup(html)
-  except HTMLParser.HTMLParseError:
+  except HTMLParser.HTMLParseError, e:
+    logging.exception(e)
     return ''
 
   # Strip all these tags before any other processing.
