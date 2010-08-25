@@ -20,11 +20,11 @@ provided, the "final" URL (after possible redirects) should also be provided.
 """
 
 import logging
-import urllib2
 
 from third_party import autorss
 from third_party import feedparser
 
+import util
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -64,12 +64,11 @@ class FeedCleaner(object):
       self.final_url = final_url
       self.html = html
     else:
-      response = urllib2.urlopen(url)
-      self.final_url = response.geturl()
-      self.html = response.read()
+      self.html, self.final_url = util.Fetch(url)
 
     feed_url = self._DetectFeed()
-    self.feed = feedparser.parse(feed_url)
+    feed_source, _ = util.Fetch(feed_url)
+    self.feed = feedparser.parse(feed_source)
     self._FindEntry()
 
     self.content = self._EntryBestContent()
@@ -110,7 +109,6 @@ class FeedCleaner(object):
   def _UrlsMatch(self, url1, url2, trim_query):
     if trim_query:
       url1 = TrimQuery(url1)
-    logging.info('match? %s %s', url1, url2)
     return url1 == url2
 
   def _EntryBestContent(self):

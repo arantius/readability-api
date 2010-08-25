@@ -4,7 +4,7 @@
 __author__ = 'Anthony Lieuallen'
 __copyright__ = 'Copyright 2010, Anthony Lieuallen'
 __credits__ = ''
-__license__ = 'Apache'
+__license__ = 'GPLv3'
 __version__ = '0.1'
 __maintainer__ = __author__
 __email__ = 'arantius@gmail.com'
@@ -17,6 +17,7 @@ from google.appengine.ext.webapp import template
 
 import clean_content
 import clean_feed
+import util
 
 
 def Clean(url):
@@ -43,9 +44,9 @@ def Clean(url):
     return template.render(os.path.join(template_base, '/image.html'),
                            {'url': url})
 
+  html, final_url = util.Fetch(url)
   try:
-    feed_cleaner = clean_feed.FeedCleaner(url=url)
-    return '<!-- cleaned from feed -->\n' + feed_cleaner.content
+    cleaner = clean_feed.FeedCleaner(url=url, final_url=final_url, html=html)
+    return '<!-- cleaned feed -->\n' + cleaner.content
   except clean_feed.RssError:
-    #return 'fail'
-    return '<!-- cleaned from content -->\n' + clean_content.CleanUrl(url)
+    return '<!-- cleaned content -->\n' + clean_content.CleanContent(url, html)
