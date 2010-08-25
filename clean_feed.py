@@ -53,8 +53,6 @@ class FeedCleaner(object):
   """Clean a page to its readable part by extracting from the site's feed."""
 
   def __init__(self, url=None, final_url=None, html=None):
-    self.clean_content = None
-
     assert url, 'URL must be provided.'
     self.url = url
 
@@ -116,13 +114,13 @@ class FeedCleaner(object):
     # Prefer "content".  Use it if there's only one, or ..
     if 'content' in self.entry:
       if len(self.entry.content) == 1:
-        return self.entry.content[0]
+        return self.entry.content[0]['value']
       # .. use the text/html type if there's more than one.
       for content in self.entry.content:
         if 'text/html' == content.type:
-          return content.value
+          return content['value']
     # Otherwise try "summary_detail" and "summary".
     if 'summary_detail' in self.entry:
-      return self.entry.summary_detail.value
+      return self.entry.summary_detail['value']
     if 'summary' in self.entry:
       return self.entry.summary
