@@ -11,6 +11,7 @@ __email__ = 'arantius@gmail.com'
 __status__ = 'Prototype'  # 'Development'  # 'Production'
 
 import logging
+import os
 import re
 
 import clean_content
@@ -51,3 +52,6 @@ def Clean(url):
     return '<!-- cleaned feed -->\n' + cleaner.content
   except clean_feed.RssError:
     return '<!-- cleaned content -->\n' + clean_content.CleanContent(url, html)
+
+if not ('Development' in os.environ.get('SERVER_SOFTWARE', '')):
+  Clean = util.Memoize('Clean_%s', 3600*24)(Clean)
