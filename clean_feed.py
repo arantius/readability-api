@@ -77,7 +77,7 @@ class FeedCleaner(object):
     self.feed = feedparser.parse(feed_source)
     self._FindEntry()
 
-    self.content = self._EntryBestContent()
+    self.content = self._GetContent()
 
 #    # Now, we've found content.  Check if it's legit.
 #    soup = BeautifulSoup(content)
@@ -117,13 +117,14 @@ class FeedCleaner(object):
       url1 = TrimQuery(url1)
     return url1 == url2
 
-  def _EntryBestContent(self):
+  def _GetContent(self):
     """Figure out the best content for this entry."""
-    # Prefer "content".  Use it if there's only one, or ..
+    # Prefer "content".
     if 'content' in self.entry:
+      # If there's only one, use it.
       if len(self.entry.content) == 1:
         return self.entry.content[0]['value']
-      # .. use the text/html type if there's more than one.
+      # Or, use the text/html type if there's more than one.
       for content in self.entry.content:
         if 'text/html' == content.type:
           return content['value']
