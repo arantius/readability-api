@@ -10,14 +10,14 @@ __maintainer__ = __author__
 __email__ = 'arantius@gmail.com'
 __status__ = 'Prototype'  # 'Development'  # 'Production'
 
-import os
+import logging
 import re
-
-from google.appengine.ext.webapp import template
 
 import clean_content
 import clean_feed
 import util
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 def Clean(url):
@@ -39,6 +39,11 @@ def Clean(url):
     return util.RenderTemplate('pdf.html', {'url': url})
   elif re.search(r'\.(gif|jpe?g|png)(\?|$)', url, re.I):
     return util.RenderTemplate('image.html', {'url': url})
+
+  match = re.search(r'^https?://docs.google.com.*docid=(.*?)(&|$)', url, re.I)
+  if match:
+    return util.RenderTemplate('google-docs.html', {'docid': match.group(1),
+                                                    'url': url})
 
   html, final_url = util.Fetch(url)
   try:
