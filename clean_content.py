@@ -50,10 +50,11 @@ RE_NEGATIVE = re.compile(
     r'|disqus_thread|dsq-brlink'
     r'|(_|\b)foot'
     r'|(_|\b)(sub)?head'
-    r'|(_|\b)hide(_|\b)'
+    r'|(_|\b)hid(den|e)(_|\b)'
     r'|(_|\b)nav'
     r'|(_|\b)neighbor'
     r'|(_|\b)read-more'
+    r'|(_|\b)related'
     r'|(_|\b)shar(e|ing)'
     r'|(_|\b)side'
     r'|sponsor'
@@ -62,7 +63,6 @@ RE_NEGATIVE = re.compile(
     re.I)
 RE_POSITIVE = re.compile(r'article|body|content|entry|post|text', re.I)
 STRIP_ATTRS = set((
-    'form',
     'onblur',
     'onchange ',
     'onclick',
@@ -81,14 +81,12 @@ STRIP_ATTRS = set((
     'onselect',
     'onsubmit',
     'onunload',
-    #'score',
     'style',
     ))
 STRIP_TAG_NAMES = set((
-    'form',
     'head',
     'iframe',
-    'url',
+    'link',
     'meta',
     'noscript',
     'script',
@@ -121,6 +119,12 @@ def CleanContent(url, html):
 
   # Strip all these tags before any other processing.
   def UnwantedTag(tag):
+    if tag.name == 'form':
+      if tag.has_key('id') and (tag['id'] == 'aspnetForm'):
+        return False
+      if tag.has_key('name') and (tag['name'] == 'aspnetForm'):
+        return False
+      return True
     if tag.name in STRIP_TAG_NAMES:
       return True
     if tag.has_key('class') and RE_NEGATIVE.search(tag['class']):
@@ -145,24 +149,24 @@ def CleanContent(url, html):
       'div': 1.5,
       'td': 1.0,
       }
-  for paragraph in soup.findAll(parent_scores):
-    parent = paragraph.parent
+  for container in soup.findAll(parent_scores):
+    # Skip e.g. divs with nested divs.  We'll consider the nested one directly,
+    # so skip to avoid double-counting.
+    if container.find(container.name):
+      continue
+    parent = container.parent
     score = 0
     if parent not in parents:
       parents.append(parent)
-      base_score = parent_scores[paragraph.name]
-      if parent.has_key('class'):
-        if RE_POSITIVE.search(parent['class']):
-          score += base_score * 10
-      if parent.has_key('id'):
-        if RE_POSITIVE.search(parent['id']):
-          score += base_score * 10
-
+      base_score = parent_scores[container.name]
+      id_class = parent.get('id', '') + ' ' + parent.get('class', '')
+      if RE_POSITIVE.search(id_class):
+        score += base_score * 10
       _ApplyScore(parent, score)
 
-    if len(paragraph.text) > 20:
+    if len(container.text) > 20:
       _ApplyScore(parent, base_score)
-    _ApplyScore(parent, paragraph.text.count(',') * base_score)
+    _ApplyScore(parent, container.text.count(',') * base_score)
 
   top_parent = None
   for parent in soup.findAll(attrs={'score': True}):
@@ -171,7 +175,7 @@ def CleanContent(url, html):
 
 #  for parent in sorted(soup.findAll(attrs={'score': True}),
 #                       key=lambda x: x['score'])[-5:]:
-#    logging.info('%-10s %s>', parent['score'], str(parent).split('>')[0])
+#    logging.info('%10.2f %s', parent['score'], util.SoupTagOnly(parent))
 #    #logging.info(parent.text[0:59])
 
   if not top_parent:
@@ -189,8 +193,12 @@ def CleanContent(url, html):
 
 def _ApplyScore(tag, score, depth=0):
   """Recursively apply a decaying score to each parent up the tree."""
+  if not tag:
+    return
+  if (tag.name == 'body') and (depth > 0):
+    return
   decayed_score = score * ( ( 1 - (depth / float(5)) ) ** 2.5 )
-  if (not tag) or decayed_score <= 1:
+  if decayed_score < 1:
     return
   if not tag.has_key('score'):
     tag['score'] = 0

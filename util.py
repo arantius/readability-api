@@ -37,3 +37,6 @@ def Fetch(url):
   """Fetch a URL, return its contents and any final-after-redirects URL."""
   response = urllib2.urlopen(url)
   return (response.read(), response.geturl())
+
+def SoupTagOnly(tag):
+  return str(tag).split('>')[0] + '>'
