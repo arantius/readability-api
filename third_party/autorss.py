@@ -21,7 +21,8 @@ class LinkParser(SGMLParser):
         
     def do_link(self, attrs):
         if not ('rel', 'alternate') in attrs: return
-        if not ('type', 'application/rss+xml') in attrs: return
+        if ((not ('type', 'application/rss+xml') in attrs)
+            and (not ('type', 'application/atom+xml') in attrs)): return
         hreflist = [e[1] for e in attrs if e[0]=='href']
         if hreflist:
             self.href = hreflist[0]
