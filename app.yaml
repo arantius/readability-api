@@ -4,5 +4,8 @@ runtime: python
 api_version: 1
 
 handlers:
+- url: /admin.*
+  script: $PYTHON_LIB/google/appengine/ext/admin
+  login: admin
 - url: /.*
   script: main.py
