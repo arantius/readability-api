@@ -63,6 +63,8 @@ RE_NEGATIVE = re.compile(
     re.I)
 RE_POSITIVE = re.compile(r'article|body|content|entry|post|text', re.I)
 STRIP_ATTRS = set((
+    'class',
+    'id',
     'onblur',
     'onchange ',
     'onclick',
