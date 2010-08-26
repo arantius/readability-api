@@ -20,6 +20,7 @@ provided, the "final" URL (after possible redirects) should also be provided.
 """
 
 import logging
+import re
 
 from third_party import autorss
 from third_party import feedparser
@@ -30,6 +31,10 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class RssError(Exception):
+  pass
+
+
+class UnsupportedRssError(RssError):
   pass
 
 
@@ -55,6 +60,9 @@ class FeedCleaner(object):
   def __init__(self, url=None, final_url=None, html=None):
     assert url, 'URL must be provided.'
     self.url = url
+
+    if re.search(r'^https?://(docs|spreadsheets)\.google\.', url, re.I):
+      raise UnsupportedRssError()
 
     if final_url or html:
       assert (final_url and html), ('If either is, both final_url and '
