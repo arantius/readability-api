@@ -10,10 +10,14 @@ __maintainer__ = __author__
 __email__ = 'arantius@gmail.com'
 __status__ = 'Prototype'  # 'Development'  # 'Production'
 
-
+import logging
+import os
 import urllib2
 
 from google.appengine.api import memcache
+from google.appengine.ext.webapp import template
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 def Memoize(formatted_key, time=3600):
@@ -37,6 +41,13 @@ def Fetch(url):
   """Fetch a URL, return its contents and any final-after-redirects URL."""
   response = urllib2.urlopen(url)
   return (response.read(), response.geturl())
+
+
+def RenderTemplate(template_name, template_values):
+  template_base = os.path.join(os.path.dirname(__file__), 'templates')
+  return template.render(os.path.join(template_base, template_name),
+                         template_values)
+
 
 def SoupTagOnly(tag):
   return str(tag).split('>')[0] + '>'

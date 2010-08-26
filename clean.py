@@ -32,17 +32,13 @@ def Clean(url):
   Returns:
     String: HTML representing the "readable part".
   """
-  template_base = os.path.join(os.path.dirname(__file__), 'templates')
   if re.search(r'^http://www.youtube.com/watch', url, re.I):
     video_id = url.split('v=')[1]
-    return template.render(os.path.join(template_base, '/youtube-embed.html'),
-                           {'video_id': video_id})
+    return util.RenderTemplate('youtube.html', {'video_id': video_id})
   elif re.search(r'\.pdf(\?|$)', url, re.I):
-    return template.render(os.path.join(template_base, '/pdf.html'),
-                           {'url': url})
+    return util.RenderTemplate('pdf.html', {'url': url})
   elif re.search(r'\.(gif|jpe?g|png)(\?|$)', url, re.I):
-    return template.render(os.path.join(template_base, '/image.html'),
-                           {'url': url})
+    return util.RenderTemplate('image.html', {'url': url})
 
   html, final_url = util.Fetch(url)
   try:
