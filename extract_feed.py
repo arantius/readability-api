@@ -54,7 +54,7 @@ def TrimQuery(url):
   return url.split('?')[0]
 
 
-class FeedCleaner(object):
+class FeedExtractor(object):
   """Clean a page to its readable part by extracting from the site's feed."""
 
   def __init__(self, url=None, final_url=None, html=None):

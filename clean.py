@@ -14,8 +14,8 @@ import logging
 import os
 import re
 
-import clean_content
-import clean_feed
+import extract_content
+import extract_feed
 import util
 
 logging.basicConfig(level=logging.DEBUG)
@@ -47,11 +47,18 @@ def Clean(url):
                                                     'url': url})
 
   html, final_url = util.Fetch(url)
+  note = ''
+  content = ''
   try:
-    cleaner = clean_feed.FeedCleaner(url=url, final_url=final_url, html=html)
-    return '<!-- cleaned feed -->\n' + cleaner.content
-  except clean_feed.RssError:
-    return '<!-- cleaned content -->\n' + clean_content.CleanContent(url, html)
+    extractor = extract_feed.FeedExtractor(
+        url=url, final_url=final_url, html=html)
+    note = '<!-- cleaned feed -->\n'
+    content = extractor.content
+  except extract_feed.RssError:
+    note = '<!-- cleaned content -->\n'
+    content = extract_content.ExtractFromHtml(url, html)
+
+  return note + content
 
 if not 'Development' in os.environ.get('SERVER_SOFTWARE', ''):
   Clean = util.Memoize('Clean_%s', 3600*24)(Clean)  # pylint: disable-msg=C6409

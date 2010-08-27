@@ -96,17 +96,17 @@ STRIP_TAG_NAMES = set((
     ))
 
 
-def CleanUrl(url):
+def ExtractFromUrl(url):
   url = url.encode('utf-8')
   try:
     html, _ = util.Fetch(url)
-    return CleanContent(url, html)
+    return ExtractFromHtml(url, html)
   except IOError, e:
     logging.exception(e)
     return ''
 
 
-def CleanContent(url, html):
+def ExtractFromHtml(url, html):
   """Given a string of HTML, remove nasty bits, score and pick bit to keep."""
   # Remove all HTML comments.
   html = re.sub(r'<!--.*?-->', '', html)
@@ -218,4 +218,4 @@ def _FixUrls(parent, base_url):
 
 if __name__ == '__main__':
   # For debugging, assume file on command line.
-  print CleanContent('http://www.example.com', open(sys.argv[1]).read())
+  print ExtractFromHtml('http://www.example.com', open(sys.argv[1]).read())
