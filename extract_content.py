@@ -40,7 +40,8 @@ BLOCK_TAG_NAMES = set((
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
 RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
 RE_CLASS_ID_STRIP = re.compile(
-    r'(_|\b)comment'
+    r'addtoany'
+    r'|(_|\b)comment'
     r'|disqus_thread|dsq-brlink'
     r'|fb-like'
     r'|(_|\b)foot'
@@ -62,7 +63,6 @@ RE_CLASS_ID_STRIP = re.compile(
     re.I)
 RE_CLASS_ID_POSITIVE = re.compile(r'article|body|content|entry|post|text', re.I)
 STRIP_TAG_NAMES = set((
-    'head',
     'iframe',
     'link',
     'meta',
@@ -189,12 +189,15 @@ def _ScoreForParent(parent, base_score):
 
 def _ApplyScore(tag, score, depth=0):
   """Recursively apply a decaying score to each parent up the tree."""
+  MAX_DEPTH = 5
   if not tag:
     return
   if (tag.name == 'body') and (depth > 0):
     return
+  if depth > MAX_DEPTH:
+    return
   # Let me put spaces where I want them: pylint: disable-msg=C6007
-  decayed_score = score * ( ( 1 - (depth / float(5)) ) ** 3 )
+  decayed_score = score * ( ( 1 - (depth / float(MAX_DEPTH)) ) ** 2.5 )
   if not tag.has_key('score'):
     tag['score'] = 0
   tag['score'] = float(tag['score']) + decayed_score
