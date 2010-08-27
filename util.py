@@ -43,6 +43,16 @@ def Fetch(url):
   return (response.read(), response.geturl())
 
 
+def IdOrClassMatches(tag, re):
+  if not tag:
+    return False
+  if tag.has_key('class') and re.search(tag['class']):
+    return True
+  if tag.has_key('id') and re.search(tag['id']):
+    return True
+  return False
+
+
 def RenderTemplate(template_name, template_values):
   template_base = os.path.join(os.path.dirname(__file__), 'templates')
   return template.render(os.path.join(template_base, template_name),

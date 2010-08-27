@@ -21,18 +21,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Use default membership test instead of 'has_key'
-# pylint: disable-msg=C6401
-# -- this doesn't work with BeautifulSoup objects.  Disable check.
-
-# Standard library imports.
 import HTMLParser
 import logging
 import re
 import sys
 import urlparse
 
-# Packaged third-party imports.
 from third_party import BeautifulSoup
 
 import util
@@ -45,46 +39,28 @@ BLOCK_TAG_NAMES = set((
     ))
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
 RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
-RE_NEGATIVE = re.compile(
+RE_CLASS_ID_STRIP = re.compile(
     r'(_|\b)comment'
     r'|disqus_thread|dsq-brlink'
+    r'|fb-like'
     r'|(_|\b)foot'
     r'|(_|\b)(sub)?head'
     r'|(_|\b)hid(den|e)(_|\b)'
     r'|(_|\b)nav'
     r'|(_|\b)neighbor'
     r'|(_|\b)read-more'
+    r'|(_|\b)recent-post'
     r'|(_|\b)related'
     r'|(_|\b)shar(e|ing)'
     r'|(_|\b)side'
+    r'|share'
+    r'|social'
     r'|sponsor'
+    r'|tool(box)?s?\d?(_|\b)'
     r'|twitter'
     r'|widget',
     re.I)
-RE_POSITIVE = re.compile(r'article|body|content|entry|post|text', re.I)
-STRIP_ATTRS = set((
-    'class',
-    'id',
-    'onblur',
-    'onchange ',
-    'onclick',
-    'ondblclick',
-    'onfocus',
-    'onkeydown',
-    'onkeypress',
-    'onkeyup',
-    'onload',
-    'onmousedown',
-    'onmousemove',
-    'onmouseout',
-    'onmouseover',
-    'onmouseup',
-    'onreset',
-    'onselect',
-    'onsubmit',
-    'onunload',
-    'style',
-    ))
+RE_CLASS_ID_POSITIVE = re.compile(r'article|body|content|entry|post|text', re.I)
 STRIP_TAG_NAMES = set((
     'head',
     'iframe',
@@ -94,6 +70,12 @@ STRIP_TAG_NAMES = set((
     'script',
     'style',
     ))
+TAG_BASE_SCORES = {
+    'p': 5.0,
+    'div': 1.5,
+    'td': 1.0,
+    }
+TAG_BASE_SCORE_MAX = max(TAG_BASE_SCORES.values())
 
 
 def ExtractFromUrl(url):
@@ -121,6 +103,7 @@ def ExtractFromHtml(url, html):
 
   # Strip all these tags before any other processing.
   def UnwantedTag(tag):
+    """Given a soup tag, filter out (return False for) tags to be stripped."""
     if tag.name == 'form':
       if tag.has_key('id') and (tag['id'] == 'aspnetForm'):
         return False
@@ -129,9 +112,7 @@ def ExtractFromHtml(url, html):
       return True
     if tag.name in STRIP_TAG_NAMES:
       return True
-    if tag.has_key('class') and RE_NEGATIVE.search(tag['class']):
-      return True
-    if tag.has_key('id') and RE_NEGATIVE.search(tag['id']):
+    if util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP):
       return True
     if tag.has_key('style') and RE_DISPLAY_NONE.search(tag['style']):
       return True
@@ -146,51 +127,64 @@ def ExtractFromHtml(url, html):
 
   # Count score for all ancestors-of-paragraphs.
   parents = []
-  parent_scores = {
-      'p': 5.0,
-      'div': 1.5,
-      'td': 1.0,
-      }
-  for container in soup.findAll(parent_scores):
+  for container in soup.findAll(TAG_BASE_SCORES):
     # Skip e.g. divs with nested divs.  We'll consider the nested one directly,
     # so skip to avoid double-counting.
     if container.find(container.name):
       continue
+
+    # Score each parent-of-containers once.
     parent = container.parent
-    score = 0
     if parent not in parents:
       parents.append(parent)
-      base_score = parent_scores[container.name]
-      id_class = parent.get('id', '') + ' ' + parent.get('class', '')
-      if RE_POSITIVE.search(id_class):
-        score += base_score * 10
-      _ApplyScore(parent, score)
+      base_score = TAG_BASE_SCORES[container.name]
+      _ApplyScore(parent, _ScoreForParent(parent, base_score))
 
-    if len(container.text) > 20:
-      _ApplyScore(parent, base_score)
-    _ApplyScore(parent, container.text.count(',') * base_score)
+    _ApplyScore(parent, container.text.count(',') * 3)
 
   top_parent = None
   for parent in soup.findAll(attrs={'score': True}):
     if (not top_parent) or (parent['score'] > top_parent['score']):
       top_parent = parent
 
-#  for parent in sorted(soup.findAll(attrs={'score': True}),
-#                       key=lambda x: x['score'])[-5:]:
-#    logging.info('%10.2f %s', parent['score'], util.SoupTagOnly(parent))
-#    #logging.info(parent.text[0:59])
+  if False:  # manually enabled for debugging
+    for parent in sorted(soup.findAll(attrs={'score': True}),
+                         key=lambda x: x['score']):
+      logging.info('%10.2f %s', parent['score'], util.SoupTagOnly(parent))
 
   if not top_parent:
     return ''
 
-  # Remove unwanted attributes from all tags (e.g. events, styles).
-  for tag in soup.findAll(True):
-    for attr in STRIP_ATTRS:
-      del tag[attr]
-
   _FixUrls(top_parent, url)
 
   return top_parent.renderContents()
+
+
+def _ScoreForParent(parent, base_score):
+  score = 0
+  # Add points for certain id and class values.
+  if util.IdOrClassMatches(parent, RE_CLASS_ID_POSITIVE):
+    # If this parent's siblings also have an interesting id/class,
+    # don't score it well because of the match -- it's probably a false
+    # positive among a group of them.
+    siblings = (parent.findPreviousSiblings(name=True, limit=1)
+                + parent.findNextSiblings(name=True, limit=1))
+    sibling_matches = [util.IdOrClassMatches(s, RE_CLASS_ID_POSITIVE)
+                       for s in siblings]
+    if not any(sibling_matches):
+      score += base_score * 10
+
+  # Remove points for links, especially those in lists.
+  for link in parent.findAll('a'):
+    score -= TAG_BASE_SCORE_MAX / base_score
+    try:
+      if link.findParents('li')[0].findParents('ul')[0]:
+        score -= TAG_BASE_SCORE_MAX
+    except IndexError:
+      # Item did not exist.
+      pass
+
+  return score
 
 
 def _ApplyScore(tag, score, depth=0):
@@ -199,13 +193,12 @@ def _ApplyScore(tag, score, depth=0):
     return
   if (tag.name == 'body') and (depth > 0):
     return
-  decayed_score = score * ( ( 1 - (depth / float(5)) ) ** 2.5 )
-  if decayed_score < 1:
-    return
+  # Let me put spaces where I want them: pylint: disable-msg=C6007
+  decayed_score = score * ( ( 1 - (depth / float(5)) ) ** 3 )
   if not tag.has_key('score'):
     tag['score'] = 0
   tag['score'] = float(tag['score']) + decayed_score
-  _ApplyScore(tag.parent, score, depth + 1)  # TODO: Remove magic number.
+  _ApplyScore(tag.parent, score, depth + 1)
 
 
 def _FixUrls(parent, base_url):
