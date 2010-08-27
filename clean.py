@@ -53,5 +53,5 @@ def Clean(url):
   except clean_feed.RssError:
     return '<!-- cleaned content -->\n' + clean_content.CleanContent(url, html)
 
-if not ('Development' in os.environ.get('SERVER_SOFTWARE', '')):
-  Clean = util.Memoize('Clean_%s', 3600*24)(Clean)
+if not 'Development' in os.environ.get('SERVER_SOFTWARE', ''):
+  Clean = util.Memoize('Clean_%s', 3600*24)(Clean)  # pylint: disable-msg=C6409
