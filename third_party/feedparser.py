@@ -1602,7 +1602,10 @@ class _HTMLSanitizer(_BaseHTMLProcessor):
       'ins', 'kbd', 'label', 'legend', 'li', 'map', 'menu', 'ol', 'optgroup',
       'option', 'p', 'pre', 'q', 's', 'samp', 'select', 'small', 'span', 'strike',
       'strong', 'sub', 'sup', 'table', 'tbody', 'td', 'textarea', 'tfoot', 'th',
-      'thead', 'tr', 'tt', 'u', 'ul', 'var']
+      'thead', 'tr', 'tt', 'u', 'ul', 'var',
+      # Custom added!!!
+      'embed', 'object',
+      ]
 
     acceptable_attributes = ['abbr', 'accept', 'accept-charset', 'accesskey',
       'action', 'align', 'alt', 'axis', 'border', 'cellpadding', 'cellspacing',

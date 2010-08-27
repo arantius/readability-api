@@ -123,8 +123,7 @@ def Munge(html):
 
   # Remove empty divs/paragraphs.
   for tag in soup.findAll(('div', 'p')):
-    if not tag.findAll('img') and not tag.text.strip():
-      logging.info('extract!')
+    if not tag.find(('embed', 'img', 'object')) and not tag.text.strip():
       tag.extract()
 
   # Remove feedburner noise links.
