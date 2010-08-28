@@ -121,8 +121,8 @@ def Munge(html):
     for attr in STRIP_ATTRS:
       del tag[attr]
 
-  # Remove empty divs/paragraphs.
-  for tag in soup.findAll(('div', 'p')):
+  # Remove empty cells/divs/paragraphs.
+  for tag in soup.findAll(('div', 'p', 'td')):
     if not tag.find(('embed', 'img', 'object')) and not tag.text.strip():
       tag.extract()
 
