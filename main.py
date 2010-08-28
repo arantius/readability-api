@@ -28,7 +28,7 @@ class MainPage(webapp.RequestHandler):
 
 class CleanUrl(webapp.RequestHandler):
   def get(self):
-    self.response.headers['Content-Type'] = 'text/html'
+    self.response.headers['Content-Type'] = 'text/html; charset=UTF-8'
     url = self.request.get('url') or self.request.get('link')
     self.response.out.write(clean.Clean(url))
 
