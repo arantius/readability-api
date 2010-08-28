@@ -37,6 +37,7 @@ BLOCK_TAG_NAMES = set((
     'blockquote', 'dl', 'div', 'ol', 'p', 'pre', 'table', 'ul',
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
     ))
+DEV_FLAG = True
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
 RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
 RE_CLASS_ID_STRIP = re.compile(
@@ -61,7 +62,8 @@ RE_CLASS_ID_STRIP = re.compile(
     r'|twitter'
     r'|widget',
     re.I)
-RE_CLASS_ID_POSITIVE = re.compile(r'article|body|content|entry|post|text', re.I)
+RE_CLASS_ID_POSITIVE = re.compile(
+    r'article|body|content|entry|post|story|text', re.I)
 STRIP_TAG_NAMES = set((
     'iframe',
     'link',
@@ -118,6 +120,8 @@ def ExtractFromHtml(url, html):
       return True
     return False
   for tag in soup.findAll(UnwantedTag):
+    if DEV_FLAG:
+      logging.info('Unwanted tag: %s', util.SoupTagOnly(tag))
     tag.extract()
 
   # Transform "text-only" (doesn't contain blocks) <div>s to <p>s.
@@ -147,13 +151,15 @@ def ExtractFromHtml(url, html):
     if (not top_parent) or (parent['score'] > top_parent['score']):
       top_parent = parent
 
-  if False:  # manually enabled for debugging
+  if DEV_FLAG:
     for parent in sorted(soup.findAll(attrs={'score': True}),
                          key=lambda x: x['score']):
       logging.info('%10.2f %s', parent['score'], util.SoupTagOnly(parent))
 
   if not top_parent:
     return ''
+
+  # Strip pieces with negative scores here?
 
   _FixUrls(top_parent, url)
 
@@ -172,7 +178,7 @@ def _ScoreForParent(parent, base_score):
     sibling_matches = [util.IdOrClassMatches(s, RE_CLASS_ID_POSITIVE)
                        for s in siblings]
     if not any(sibling_matches):
-      score += base_score * 10
+      score += base_score * 20
 
   # Remove points for links, especially those in lists.
   for link in parent.findAll('a'):
@@ -183,6 +189,9 @@ def _ScoreForParent(parent, base_score):
     except IndexError:
       # Item did not exist.
       pass
+
+  # Remove points for previous nodes, earlier = lose fewer points; break ties.
+  score -= len(parent.findAllPrevious(True)) / 2
 
   return score
 
