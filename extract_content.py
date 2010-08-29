@@ -63,7 +63,7 @@ RE_CLASS_ID_STRIP = re.compile(
     r'|widget',
     re.I)
 RE_CLASS_ID_POSITIVE = re.compile(
-    r'article|body|content|entry|post|story|text', re.I)
+    r'article|artTe?xt|body|content|entry|post|story|text', re.I)
 STRIP_TAG_NAMES = set((
     'iframe',
     'link',
