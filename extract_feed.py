@@ -63,7 +63,7 @@ class FeedExtractor(object):
     self.url = url
 
     if re.search(r'^https?://(docs|spreadsheets)\.google\.', url, re.I):
-      raise UnsupportedRssError()
+      raise UnsupportedRssError('skip google docs')
 
     if final_url or html:
       assert (final_url and html), ('If either is, both final_url and '
@@ -86,13 +86,13 @@ class FeedExtractor(object):
       tag.extract()
     text = soup.text
     if re.search(r'\[?\.\.\.\]?\s*$', text):
-      raise NoRssContentError()
+      raise NoRssContentError('trailing ellipsis')
 
   def _DetectFeed(self):
     """Find the URL to a feed for this page."""
     rss_link = autorss.getRSSLinkFromHTMLSource(self.html)
     if not rss_link:
-      raise NoRssError()
+      raise NoRssError('no feed link')
     return rss_link
 
   def _FindEntry(self):
@@ -103,7 +103,7 @@ class FeedExtractor(object):
              or self._FindEntryMatching(TrimQuery(self.final_url), True)
             )
     if not entry:
-      raise NoRssItemError()
+      raise NoRssItemError('found no matching item')
     self.entry = entry
 
   def _FindEntryMatching(self, url, trim_query=False):

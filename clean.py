@@ -86,8 +86,8 @@ def Clean(url):
         url=url, final_url=final_url, html=html)
     note = '<!-- cleaned feed -->\n'
     content = extractor.content
-  except extract_feed.RssError:
-    note = '<!-- cleaned content -->\n'
+  except extract_feed.RssError, e:
+    note = '<!-- cleaned content, %s, %s -->\n' % (e.__class__.__name__, e)
     content = extract_content.ExtractFromHtml(url, html)
 
   return note + Munge(content)
