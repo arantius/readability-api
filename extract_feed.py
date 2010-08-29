@@ -22,6 +22,7 @@ provided, the "final" URL (after possible redirects) should also be provided.
 import logging
 import re
 
+from third_party import BeautifulSoup
 from third_party import autorss
 from third_party import feedparser
 
@@ -79,12 +80,13 @@ class FeedExtractor(object):
 
     self.content = self._GetContent()
 
-#    # Now, we've found content.  Check if it's legit.
-#    soup = BeautifulSoup(content)
-#    for tag in soup.findAll(('a', 'script', 'noscript')):
-#      tag.extract()
-#    logging.info('found content html: %s', soup)
-#    logging.info('found content text: %s', soup.text)
+    # Now, we've found content.  Check if it's legit.
+    soup = BeautifulSoup.BeautifulSoup(self.content)
+    for tag in soup.findAll(('a', 'script', 'noscript')):
+      tag.extract()
+    text = soup.text
+    if re.search(r'\[?\.\.\.\]?\s*$', text):
+      raise NoRssContentError()
 
   def _DetectFeed(self):
     """Find the URL to a feed for this page."""
