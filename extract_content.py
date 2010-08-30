@@ -167,7 +167,7 @@ def _ScoreForParent(parent, base_score):
                 + parent.findNextSiblings(name=True, limit=1))
     sibling_matches = [util.IdOrClassMatches(s, RE_CLASS_ID_POSITIVE)
                        for s in siblings]
-    if not any(sibling_matches):
+    if not filter(None, sibling_matches):
       score += base_score * 20
 
   # Remove points for links, especially those in lists.
