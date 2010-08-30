@@ -10,14 +10,11 @@ __maintainer__ = __author__
 __email__ = 'arantius@gmail.com'
 __status__ = 'Prototype'  # 'Development'  # 'Production'
 
-import logging
 import os
 import urllib2
 
 from google.appengine.api import memcache
 from google.appengine.ext.webapp import template
-
-logging.basicConfig(level=logging.DEBUG)
 
 
 def Memoize(formatted_key, time=3600):

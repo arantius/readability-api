@@ -10,6 +10,7 @@ __maintainer__ = __author__
 __email__ = 'arantius@gmail.com'
 __status__ = 'Prototype'  # 'Development'  # 'Production'
 
+import logging
 import os
 
 from google.appengine.ext import webapp
@@ -17,6 +18,10 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 
 import clean
+
+IS_DEV_APPSERVER = 'Development' in os.environ.get('SERVER_SOFTWARE', '')
+if IS_DEV_APPSERVER:
+  logging.getLogger().setLevel(logging.DEBUG)
 
 
 class MainPage(webapp.RequestHandler):
@@ -36,7 +41,7 @@ class CleanUrl(webapp.RequestHandler):
 def main():
   application = webapp.WSGIApplication(
       [('/', MainPage), ('/clean', CleanUrl)],
-      debug='Development' in os.environ.get('SERVER_SOFTWARE', ''))
+      debug=IS_DEV_APPSERVER)
   run_wsgi_app(application)
 
 

@@ -19,7 +19,6 @@ to avoid a second URL fetch in the case that it is already known.  If it is
 provided, the "final" URL (after possible redirects) should also be provided.
 """
 
-import logging
 import re
 
 from third_party import BeautifulSoup
@@ -28,7 +27,6 @@ from third_party import feedparser
 
 import util
 
-logging.basicConfig(level=logging.DEBUG)
 
 # Minimum length of text in feed entry content to accept.
 MIN_FEED_TEXT_LEN = 512

@@ -31,13 +31,10 @@ from third_party import BeautifulSoup
 
 import util
 
-logging.basicConfig(level=logging.DEBUG)
-
 BLOCK_TAG_NAMES = set((
     'blockquote', 'dl', 'div', 'ol', 'p', 'pre', 'table', 'ul',
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
     ))
-DEV_FLAG = True
 MAX_SCORE_DEPTH = 5
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
 RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
@@ -117,8 +114,7 @@ def ExtractFromHtml(url, html):
     # Skip e.g. divs with nested divs.  We'll consider the nested one directly,
     # so skip to avoid double-counting.
     if container.find(container.name):
-      if DEV_FLAG:
-        logging.info('Skip nested container: %s', util.SoupTagOnly(container))
+      logging.debug('Skip nested container: %s', util.SoupTagOnly(container))
       continue
 
     # Score each parent-of-containers once.
@@ -135,10 +131,9 @@ def ExtractFromHtml(url, html):
     if (not top_parent) or (parent['score'] > top_parent['score']):
       top_parent = parent
 
-  if DEV_FLAG:
-    for parent in sorted(soup.findAll(attrs={'score': True}),
-                         key=lambda x: x['score']):
-      logging.info('%10.2f %s', parent['score'], util.SoupTagOnly(parent))
+  for parent in sorted(soup.findAll(attrs={'score': True}),
+                       key=lambda x: x['score']):
+    logging.debug('%10.2f %s', parent['score'], util.SoupTagOnly(parent))
 
   if not top_parent:
     return ''
@@ -186,8 +181,7 @@ def _ScoreForParent(parent, base_score):
   # Remove points for previous nodes, earlier = lose fewer points; break ties.
   score -= len(parent.findAllPrevious(True)) / 10
 
-  if DEV_FLAG:
-    logging.info('Parent base score: %4.2f %s', score, util.SoupTagOnly(parent))
+  logging.debug('Parent base score: %4.2f %s', score, util.SoupTagOnly(parent))
 
   return score
 
@@ -222,8 +216,7 @@ def _ApplyScore(tag, score, depth=0):
 def _UnwantedTagPost(tag):
   """Filter soup tags, after parent scoring."""
   if util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP_POST):
-    if DEV_FLAG:
-      logging.info('Unwanted tag by class/id: %s', util.SoupTagOnly(tag))
+    logging.debug('Unwanted tag by class/id: %s', util.SoupTagOnly(tag))
     return True
   return False
 
@@ -239,8 +232,7 @@ def _UnwantedTagPre(tag):
   if tag.name in STRIP_TAG_NAMES:
     return True
   if util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP_PRE):
-    if DEV_FLAG:
-      logging.info('Unwanted tag by class/id: %s', util.SoupTagOnly(tag))
+    logging.debug('Unwanted tag by class/id: %s', util.SoupTagOnly(tag))
     return True
   if tag.has_key('style') and RE_DISPLAY_NONE.search(tag['style']):
     return True

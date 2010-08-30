@@ -24,8 +24,6 @@ import extract_content
 import extract_feed
 import util
 
-logging.basicConfig(level=logging.DEBUG)
-
 RE_ALIGNED = re.compile(r'(?:_|\b)(?:align)?(left|right)(?:_|\b)', re.I)
 RE_FEEDBURNER_LINK = re.compile(r'https?://[^/]+/~.+/', re.I)
 STRIP_ATTRS = set((
