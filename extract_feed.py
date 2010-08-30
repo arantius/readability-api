@@ -30,6 +30,9 @@ import util
 
 logging.basicConfig(level=logging.DEBUG)
 
+# Minimum length of text in feed entry content to accept.
+MIN_FEED_TEXT_LEN = 512
+
 
 class RssError(Exception):
   pass
@@ -87,6 +90,8 @@ class FeedExtractor(object):
     text = soup.text
     if re.search(r'\[?\.\.\.\]?\s*$', text):
       raise NoRssContentError('trailing ellipsis')
+    if len(text) < MIN_FEED_TEXT_LEN:
+      raise NoRssContentError('text too short (%d)' % len(text))
 
   def _DetectFeed(self):
     """Find the URL to a feed for this page."""
