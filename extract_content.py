@@ -38,6 +38,7 @@ BLOCK_TAG_NAMES = set((
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
     ))
 DEV_FLAG = True
+MAX_SCORE_DEPTH = 5
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
 RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
 RE_CLASS_ID_STRIP = re.compile(
@@ -103,26 +104,7 @@ def ExtractFromHtml(url, html):
     logging.exception(e)
     return ''
 
-  # Strip all these tags before any other processing.
-  def UnwantedTag(tag):
-    """Given a soup tag, filter out (return False for) tags to be stripped."""
-    if tag.name == 'form':
-      if tag.has_key('id') and (tag['id'] == 'aspnetForm'):
-        return False
-      if tag.has_key('name') and (tag['name'] == 'aspnetForm'):
-        return False
-      return True
-    if tag.name in STRIP_TAG_NAMES:
-      return True
-    if util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP):
-      return True
-    if tag.has_key('style') and RE_DISPLAY_NONE.search(tag['style']):
-      return True
-    return False
-  for tag in soup.findAll(UnwantedTag):
-    if DEV_FLAG:
-      logging.info('Unwanted tag: %s', util.SoupTagOnly(tag))
-    tag.extract()
+  _StripUnwanted(soup)
 
   # Transform "text-only" (doesn't contain blocks) <div>s to <p>s.
   for tag in soup.findAll('div'):
@@ -166,6 +148,14 @@ def ExtractFromHtml(url, html):
   return top_parent.renderContents()
 
 
+def _FixUrls(parent, base_url):
+  for tag in parent.findAll():
+    if tag.has_key('href'):
+      tag['href'] = urlparse.urljoin(base_url, tag['href'])
+    if tag.has_key('src'):
+      tag['src'] = urlparse.urljoin(base_url, tag['src'])
+
+
 def _ScoreForParent(parent, base_score):
   score = 0
   # Add points for certain id and class values.
@@ -196,29 +186,47 @@ def _ScoreForParent(parent, base_score):
   return score
 
 
+def _StripUnwanted(soup):
+  """Breadth-first recursively strip unwanted tags out of the soup."""
+  for tag in soup.findAll(_UnwantedTag, recursive=False):
+    if DEV_FLAG:
+      logging.info('Stripped unwanted tag: %s', util.SoupTagOnly(tag))
+    tag.extract()
+  for tag in soup.findAll(recursive=False):
+    _StripUnwanted(tag)
+
+
 def _ApplyScore(tag, score, depth=0):
   """Recursively apply a decaying score to each parent up the tree."""
-  MAX_DEPTH = 5
   if not tag:
     return
   if (tag.name == 'body') and (depth > 0):
     return
-  if depth > MAX_DEPTH:
+  if depth > MAX_SCORE_DEPTH:
     return
   # Let me put spaces where I want them: pylint: disable-msg=C6007
-  decayed_score = score * ( ( 1 - (depth / float(MAX_DEPTH)) ) ** 2.5 )
+  decayed_score = score * ( ( 1 - (depth / float(MAX_SCORE_DEPTH)) ) ** 2.5 )
   if not tag.has_key('score'):
     tag['score'] = 0
   tag['score'] = float(tag['score']) + decayed_score
   _ApplyScore(tag.parent, score, depth + 1)
 
 
-def _FixUrls(parent, base_url):
-  for tag in parent.findAll():
-    if tag.has_key('href'):
-      tag['href'] = urlparse.urljoin(base_url, tag['href'])
-    if tag.has_key('src'):
-      tag['src'] = urlparse.urljoin(base_url, tag['src'])
+def _UnwantedTag(tag):
+  """Given a soup tag, filter out (return False for) tags to be stripped."""
+  if tag.name == 'form':
+    if tag.has_key('id') and (tag['id'] == 'aspnetForm'):
+      return False
+    if tag.has_key('name') and (tag['name'] == 'aspnetForm'):
+      return False
+    return True
+  if tag.name in STRIP_TAG_NAMES:
+    return True
+  if util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP):
+    return True
+  if tag.has_key('style') and RE_DISPLAY_NONE.search(tag['style']):
+    return True
+  return False
 
 
 if __name__ == '__main__':
