@@ -38,13 +38,16 @@ BLOCK_TAG_NAMES = set((
 MAX_SCORE_DEPTH = 5
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
 RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
-RE_CLASS_ID_STRIP = re.compile(
+RE_CLASS_ID_STRIP_POST = re.compile(
+    r'|(_|\b)foot'
+    r'|(_|\b)(sub)?head'
+    r'|(_|\b)side',
+    re.I)
+RE_CLASS_ID_STRIP_PRE = re.compile(
     r'addtoany'
     r'|(_|\b)comment'
     r'|disqus_thread|dsq-brlink'
     r'|fb-like'
-    r'|(_|\b)foot'
-    r'|(_|\b)(sub)?head'
     r'|(_|\b)hid(den|e)(_|\b)'
     r'|(_|\b)nav'
     r'|(_|\b)neighbor'
@@ -52,7 +55,6 @@ RE_CLASS_ID_STRIP = re.compile(
     r'|(_|\b)recent-post'
     r'|(_|\b)related'
     r'|(_|\b)shar(e|ing)'
-    r'|(_|\b)side'
     r'|share'
     r'|social'
     r'|sponsor'
@@ -61,7 +63,18 @@ RE_CLASS_ID_STRIP = re.compile(
     r'|widget',
     re.I)
 RE_CLASS_ID_POSITIVE = re.compile(
-    r'article|artTe?xt|body|content|entry|post|snap_preview|story|text', re.I)
+    r'(_|\b)('
+    r'article'
+    r'|artTe?xt'
+    r'|body'
+    r'|content'
+    r'|entry'
+    r'|post'
+    r'|snap_preview'
+    r'|story'
+    r'|text'
+    r')(_|\b)',
+    re.I)
 STRIP_TAG_NAMES = set((
     'iframe',
     'link',
