@@ -104,7 +104,7 @@ def ExtractFromHtml(url, html):
     logging.exception(e)
     return ''
 
-  _StripUnwanted(soup)
+  _Strip(soup, _UnwantedTagPre)
 
   # Transform "text-only" (doesn't contain blocks) <div>s to <p>s.
   for tag in soup.findAll('div'):
@@ -143,6 +143,7 @@ def ExtractFromHtml(url, html):
 
   # Strip pieces with negative scores here?
 
+  _Strip(soup, _UnwantedTagPost)
   _FixUrls(top_parent, url)
 
   return top_parent.renderContents()
@@ -186,14 +187,15 @@ def _ScoreForParent(parent, base_score):
   return score
 
 
-def _StripUnwanted(soup):
+def _Strip(soup, filter_func, mark=False):
   """Breadth-first recursively strip unwanted tags out of the soup."""
-  for tag in soup.findAll(_UnwantedTag, recursive=False):
-    if DEV_FLAG:
-      logging.info('Stripped unwanted tag: %s', util.SoupTagOnly(tag))
-    tag.extract()
+  for tag in soup.findAll(filter_func, recursive=False):
+    if mark:
+      tag['style'] = 'border: 2px solid red;'
+    else:
+      tag.extract()
   for tag in soup.findAll(recursive=False):
-    _StripUnwanted(tag)
+    _Strip(tag, filter_func)
 
 
 def _ApplyScore(tag, score, depth=0):
@@ -212,8 +214,15 @@ def _ApplyScore(tag, score, depth=0):
   _ApplyScore(tag.parent, score, depth + 1)
 
 
-def _UnwantedTag(tag):
-  """Given a soup tag, filter out (return False for) tags to be stripped."""
+def _UnwantedTagPost(tag):
+  """Filter soup tags, after parent scoring."""
+  if util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP_POST):
+    return True
+  return False
+
+
+def _UnwantedTagPre(tag):
+  """Filter soup tags, before parent scoring."""
   if tag.name == 'form':
     if tag.has_key('id') and (tag['id'] == 'aspnetForm'):
       return False
@@ -222,7 +231,7 @@ def _UnwantedTag(tag):
     return True
   if tag.name in STRIP_TAG_NAMES:
     return True
-  if util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP):
+  if util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP_PRE):
     return True
   if tag.has_key('style') and RE_DISPLAY_NONE.search(tag['style']):
     return True
