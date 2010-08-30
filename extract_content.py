@@ -181,7 +181,7 @@ def _ScoreForParent(parent, base_score):
       pass
 
   # Remove points for previous nodes, earlier = lose fewer points; break ties.
-  score -= len(parent.findAllPrevious(True)) / 2
+  score -= len(parent.findAllPrevious(True)) / 10
 
   return score
 
