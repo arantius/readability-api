@@ -102,9 +102,11 @@ def CleanUrl(url):
   Returns:
     String: HTML representing the "readable part".
   """
-  if re.search(r'^http://www.youtube.com/watch', url, re.I):
+  if re.search(r'^http://www\.youtube\.com/watch', url, re.I):
     video_id = url.split('v=')[1]
     return util.RenderTemplate('youtube.html', {'video_id': video_id})
+  if re.search(r'^http://(www\.)?reddit\.com', url, re.I):
+    return u''
   elif re.search(r'\.pdf(\?|$)', url, re.I):
     return util.RenderTemplate('pdf.html', {'url': url})
   elif re.search(r'\.(gif|jpe?g|png)(\?|$)', url, re.I):
