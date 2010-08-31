@@ -60,8 +60,11 @@ class Clean(webapp.RequestHandler):
         self.redirect('/clean?feed=' + urllib.quote(feed))
     else:
       url = self.request.get('url') or self.request.get('link')
+      html_wrap = self.request.get('html_wrap', 'False') == 'True'
       if url:
         output = clean.CleanUrl(url)
+        if html_wrap:
+          output = u'<html><body>\n%s\n</body></html>' % output
       else:
         output = 'Provide either "url" or "feed" parameters!'
 
