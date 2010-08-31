@@ -23,6 +23,7 @@ import os
 import urllib2
 
 from google.appengine.api import memcache
+from google.appengine.api import urlfetch
 from google.appengine.ext.webapp import template
 
 
@@ -59,12 +60,13 @@ def EntryContent(entry):
   if 'summary' in entry:
     return unicode(entry.summary)
 
+
 @Memoize('Fetch_%s')
 def Fetch(url):
   """Fetch a URL, return its contents and any final-after-redirects URL."""
   try:
     response = urllib2.urlopen(url)
-  except urllib2.HTTPError, e:
+  except (urlfetch.DownloadError, urllib2.HTTPError), e:
     return (repr(e), url)
   else:
     return (response.read(), response.geturl())

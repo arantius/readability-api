@@ -34,6 +34,8 @@ import util
 IS_DEV_APPSERVER = 'Development' in os.environ.get('SERVER_SOFTWARE', '')
 if IS_DEV_APPSERVER:
   logging.getLogger().setLevel(logging.DEBUG)
+else:
+  logging.getLogger().setLevel(logging.WARNING)
 
 
 class MainPage(webapp.RequestHandler):
