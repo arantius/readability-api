@@ -21,12 +21,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import os
-import urllib
 
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
-from google.appengine import runtime
 
 import clean
 import util
@@ -46,30 +44,18 @@ class MainPage(webapp.RequestHandler):
 
 class Clean(webapp.RequestHandler):
   def get(self):
-    feed = self.request.get('feed')
-    if feed:
-      try:
-        keep_contents = self.request.get('keep_contents', 'False') == 'True'
-        clean_feed = clean.CleanFeed(feed, keep_contents)
-        output = util.RenderTemplate('feed.xml', clean_feed)
-      except runtime.DeadlineExceededError:
-        # If we run out of time, we've probably processed (and cached) at least
-        # one item.  Tell the client to redirect back here again, to resume
-        # processing, and pick up after the cached items.
-        self.response.clear()
-        self.redirect('/clean?feed=' + urllib.quote(feed))
+    url = self.request.get('url') or self.request.get('link')
+    html_wrap = self.request.get('html_wrap', 'False') == 'True'
+    if url:
+      output = clean.Clean(url)
+      if html_wrap:
+        output = u'<html><body>\n%s\n</body></html>' % output
     else:
-      url = self.request.get('url') or self.request.get('link')
-      html_wrap = self.request.get('html_wrap', 'False') == 'True'
-      if url:
-        output = clean.CleanUrl(url)
-        if html_wrap:
-          output = u'<html><body>\n%s\n</body></html>' % output
-      else:
-        output = 'Provide either "url" or "feed" parameters!'
+      output = 'Provide either "url" or "feed" parameters!'
 
     self.response.headers['Content-Type'] = 'text/html; charset=UTF-8'
     self.response.out.write(output)
+
 
 
 def main():

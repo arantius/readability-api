@@ -98,7 +98,7 @@ class FeedExtractor(object):
     self.feed = feedparser.parse(feed_source)
     self._FindEntry()
 
-    self.content = util.EntryContent(self.entry)
+    self.content = self._GetContent()
 
     # Now, we've found content.  Check if it's legit.
     soup = BeautifulSoup.BeautifulSoup(self.content)
@@ -140,3 +140,20 @@ class FeedExtractor(object):
     if trim_query:
       url1 = TrimQuery(url1)
     return url1 == url2
+
+  def _GetContent(self):
+    """Figure out the best content for this entry."""
+    # Prefer "content".
+    if 'content' in self.entry:
+      # If there's only one, use it.
+      if len(self.entry.content) == 1:
+        return self.entry.content[0]['value']
+      # Or, use the text/html type if there's more than one.
+      for content in self.entry.content:
+        if 'text/html' == content.type:
+          return content['value']
+    # Otherwise try "summary_detail" and "summary".
+    if 'summary_detail' in self.entry:
+      return self.entry.summary_detail['value']
+    if 'summary' in self.entry:
+      return self.entry.summary

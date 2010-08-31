@@ -46,24 +46,6 @@ def Memoize(formatted_key, time=3600):
   return Decorator
 
 
-def EntryContent(entry):
-  """Figure out the best content for this (feedparser) entry."""
-  # Prefer "content".
-  if 'content' in entry:
-    # If there's only one, use it.
-    if len(entry.content) == 1:
-      return unicode(entry.content[0]['value'])
-    # Or, use the text/html type if there's more than one.
-    for content in entry.content:
-      if 'text/html' == content.type:
-        return unicode(content['value'])
-  # Otherwise try "summary_detail" and "summary".
-  if 'summary_detail' in entry:
-    return unicode(entry.summary_detail['value'])
-  if 'summary' in entry:
-    return unicode(entry.summary)
-
-
 @Memoize('Fetch_%s')
 def Fetch(url):
   """Fetch a URL, return its contents and any final-after-redirects URL."""

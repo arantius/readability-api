@@ -27,10 +27,7 @@ import logging
 import os
 import re
 
-from google.appengine.ext import deferred
-
 from third_party import BeautifulSoup
-from third_party import feedparser
 
 import extract_content
 import extract_feed
@@ -63,34 +60,7 @@ STRIP_ATTRS = set((
     ))
 
 
-def CleanFeed(feed_url, keep_contents):
-  feed_source, _ = util.Fetch(feed_url)
-  feed = feedparser.parse(feed_source)
-
-  # Sort and limit maximum number of entries.
-  feed.entries = sorted(feed.entries, key=lambda e: e.updated_parsed)[0:15]
-
-  # Pre-clean (and cache) entries in parallel, via deferred.
-  # (This will be slightly wasteful, we might double up calls here that
-  # start but don't finish in deferred.
-  if not util.IS_DEV_APPSERVER:
-    for entry in feed.entries:
-      deferred.defer(_CleanUrlDeferred, entry.link)
-
-  # For those left, clean up the contents.
-  for entry in feed.entries:
-    clean_content = CleanUrl(entry.link)
-    if keep_contents:
-      entry.content = u'%s<hr>%s' % (util.EntryContent(entry), clean_content)
-    else:
-      entry.content = clean_content
-
-  return feed
-if not util.IS_DEV_APPSERVER:
-  CleanFeed = util.Memoize('Clean_%s_%d', 1800)(CleanFeed)
-
-
-def CleanUrl(url):
+def Clean(url):
   """Clean the contents of a given URL to only the "readable part".
 
   Handle special cases like YouTube, PDF, images directly.  Delegate out to
@@ -131,15 +101,7 @@ def CleanUrl(url):
 
   return note + Munge(content)
 if not util.IS_DEV_APPSERVER:
-  CleanUrl = util.Memoize('Clean_%s', 3600*24)(CleanUrl)
-
-
-def _CleanUrlDeferred(url):
-  """Call CleanUrl() but catch any possible exception, to avoid retry loops."""
-  try:
-    CleanUrl(url)
-  except:
-    pass  # pylint: disable-msg=W0702
+  Clean = util.Memoize('Clean_%s', 3600*24)(Clean)  # pylint: disable-msg=C6409
 
 
 def Munge(html):
@@ -178,4 +140,6 @@ def Munge(html):
   for tag in soup.findAll(name='img', attrs={'src': RE_FEEDBURNER_LINK}):
     tag.extract()
 
-  return unicode(soup)
+  content = soup.renderContents()
+
+  return content
