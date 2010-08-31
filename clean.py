@@ -27,6 +27,8 @@ import logging
 import os
 import re
 
+from google.appengine.ext import deferred
+
 from third_party import BeautifulSoup
 from third_party import feedparser
 
@@ -67,6 +69,13 @@ def CleanFeed(feed_url, keep_contents):
 
   # Sort and limit maximum number of entries.
   feed.entries = sorted(feed.entries, key=lambda e: e.updated_parsed)[0:15]
+
+  # Pre-clean (and cache) entries in parallel, via deferred.
+  # (This will be slightly wasteful, we might double up calls here that
+  # start but don't finish in deferred.
+  if not util.IS_DEV_APPSERVER:
+    for entry in feed.entries:
+      deferred.defer(_CleanUrlDeferred, entry.link)
 
   # For those left, clean up the contents.
   for entry in feed.entries:
@@ -121,6 +130,14 @@ def CleanUrl(url):
   return note + Munge(content)
 if not util.IS_DEV_APPSERVER:
   CleanUrl = util.Memoize('Clean_%s', 3600*24)(CleanUrl)
+
+
+def _CleanUrlDeferred(url):
+  """Call CleanUrl() but catch any possible exception, to avoid retry loops."""
+  try:
+    CleanUrl(url)
+  except:
+    pass  # pylint: disable-msg=W0702
 
 
 def Munge(html):
