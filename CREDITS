@@ -1,3 +1,7 @@
-Includes "Hacker News" feed cleaning code, originally by Nirmal Patel.
+Partially derived from "hn.py", originally by Nirmal Patel.
 http://nirmalpatel.com/fcgi/hn.py
+Reused under terms of the GPLv3 license.
+
+Partially derived from "Readable Feeds" by Andrew Trusty.
+http://github.com/scyclops/Readable-Feeds
 Reused under terms of the GPLv3 license.

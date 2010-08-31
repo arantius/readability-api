@@ -115,7 +115,7 @@ def ExtractFromHtml(url, html):
     soup = BeautifulSoup.BeautifulSoup(html)
   except HTMLParser.HTMLParseError, e:
     logging.exception(e)
-    return ''
+    return u''
 
   _Strip(soup, _UnwantedTagPre)
 
@@ -152,14 +152,14 @@ def ExtractFromHtml(url, html):
     logging.debug('%10.2f %s', parent['score'], util.SoupTagOnly(parent))
 
   if not top_parent:
-    return ''
+    return u''
 
   # Strip pieces with negative scores here?
 
   _Strip(soup, _UnwantedTagPost)
   _FixUrls(top_parent, url)
 
-  return top_parent.renderContents()
+  return unicode(top_parent)
 
 
 def _FixUrls(parent, base_url):

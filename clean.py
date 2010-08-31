@@ -28,6 +28,7 @@ import os
 import re
 
 from third_party import BeautifulSoup
+from third_party import feedparser
 
 import extract_content
 import extract_feed
@@ -60,7 +61,27 @@ STRIP_ATTRS = set((
     ))
 
 
-def Clean(url):
+def CleanFeed(feed_url, keep_contents):
+  feed_source, _ = util.Fetch(feed_url)
+  feed = feedparser.parse(feed_source)
+
+  # Sort and limit maximum number of entries.
+  feed.entries = sorted(feed.entries, key=lambda e: e.updated_parsed)[0:15]
+
+  # For those left, clean up the contents.
+  for entry in feed.entries:
+    clean_content = CleanUrl(entry.link)
+    if keep_contents:
+      entry.content = u'%s<hr>%s' % (util.EntryContent(entry), clean_content)
+    else:
+      entry.content = clean_content
+
+  return feed
+if not 'Development' in os.environ.get('SERVER_SOFTWARE', ''):
+  CleanFeed = util.Memoize('Clean_%s_%d', 1800)(CleanFeed)
+
+
+def CleanUrl(url):
   """Clean the contents of a given URL to only the "readable part".
 
   Handle special cases like YouTube, PDF, images directly.  Delegate out to
@@ -91,16 +112,17 @@ def Clean(url):
   try:
     extractor = extract_feed.FeedExtractor(
         url=url, final_url=final_url, html=html)
-    note = '<!-- cleaned feed -->\n'
+    note = u'<!-- cleaned feed -->\n'
     content = extractor.content
   except extract_feed.RssError, e:
-    note = '<!-- cleaned content, %s, %s -->\n' % (e.__class__.__name__, e)
+    note = u'<!-- cleaned content, %s, %s -->\n' % (e.__class__.__name__, e)
     content = extract_content.ExtractFromHtml(url, html)
 
+  logging.debug('%s %s', type(note), note[0:50])
+  logging.debug('%s %s', type(content), content[0:50])
   return note + Munge(content)
-
 if not 'Development' in os.environ.get('SERVER_SOFTWARE', ''):
-  Clean = util.Memoize('Clean_%s', 3600*24)(Clean)  # pylint: disable-msg=C6409
+  CleanUrl = util.Memoize('Clean_%s', 3600*24)(CleanUrl)
 
 
 def Munge(html):
@@ -139,6 +161,4 @@ def Munge(html):
   for tag in soup.findAll(name='img', attrs={'src': RE_FEEDBURNER_LINK}):
     tag.extract()
 
-  content = soup.renderContents()
-
-  return content
+  return unicode(soup)
