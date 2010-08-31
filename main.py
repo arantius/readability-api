@@ -68,6 +68,7 @@ class Clean(webapp.RequestHandler):
     self.response.headers['Content-Type'] = 'text/html; charset=UTF-8'
     self.response.out.write(output)
 
+
 def main():
   application = webapp.WSGIApplication(
       [('/', MainPage), ('/clean', Clean)],

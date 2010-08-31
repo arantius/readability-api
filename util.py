@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import logging
 import os
 import urllib2
 
@@ -67,6 +68,7 @@ def EntryContent(entry):
 def Fetch(url):
   """Fetch a URL, return its contents and any final-after-redirects URL."""
   try:
+    logging.debug('Fetching: %s', url)
     response = urllib2.urlopen(url)
   except (urlfetch.DownloadError, urllib2.HTTPError), e:
     return (repr(e), url)
