@@ -26,6 +26,8 @@ from google.appengine.api import memcache
 from google.appengine.api import urlfetch
 from google.appengine.ext.webapp import template
 
+IS_DEV_APPSERVER = 'Development' in os.environ.get('SERVER_SOFTWARE', '')
+
 
 def Memoize(formatted_key, time=3600):
   """Decorator to store a function call result in App Engine memcache."""

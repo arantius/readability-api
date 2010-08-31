@@ -77,7 +77,7 @@ def CleanFeed(feed_url, keep_contents):
       entry.content = clean_content
 
   return feed
-if 'Development' not in os.environ.get('SERVER_SOFTWARE', ''):
+if not util.IS_DEV_APPSERVER:
   CleanFeed = util.Memoize('Clean_%s_%d', 1800)(CleanFeed)
 
 
@@ -119,7 +119,7 @@ def CleanUrl(url):
     content = extract_content.ExtractFromHtml(url, html)
 
   return note + Munge(content)
-if 'Development' not in os.environ.get('SERVER_SOFTWARE', ''):
+if not util.IS_DEV_APPSERVER:
   CleanUrl = util.Memoize('Clean_%s', 3600*24)(CleanUrl)
 
 

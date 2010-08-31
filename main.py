@@ -31,8 +31,7 @@ from google.appengine import runtime
 import clean
 import util
 
-IS_DEV_APPSERVER = 'Development' in os.environ.get('SERVER_SOFTWARE', '')
-if IS_DEV_APPSERVER:
+if util.IS_DEV_APPSERVER:
   logging.getLogger().setLevel(logging.DEBUG)
 else:
   logging.getLogger().setLevel(logging.WARNING)
@@ -72,7 +71,7 @@ class Clean(webapp.RequestHandler):
 def main():
   application = webapp.WSGIApplication(
       [('/', MainPage), ('/clean', Clean)],
-      debug=IS_DEV_APPSERVER)
+      debug=util.IS_DEV_APPSERVER)
   run_wsgi_app(application)
 
 
