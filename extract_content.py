@@ -42,7 +42,7 @@ MAX_SCORE_DEPTH = 5
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
 RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
 RE_CLASS_ID_STRIP_POST = re.compile(
-    r'|(_|\b)foot'
+    r'(_|\b)foot'
     r'|(_|\b)(sub)?head'
     r'|(_|\b)side',
     re.I)
@@ -218,6 +218,8 @@ def _ApplyScore(tag, score, depth=0):
   if not tag:
     return
   if (tag.name == 'body') and (depth > 0):
+    return
+  if tag.name == 'html':
     return
   if depth > MAX_SCORE_DEPTH:
     return

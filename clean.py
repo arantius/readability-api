@@ -35,7 +35,7 @@ import extract_feed
 import util
 
 RE_ALIGNED = re.compile(r'(?:_|\b)(?:align)?(left|right)(?:_|\b)', re.I)
-RE_FEEDBURNER_LINK = re.compile(r'https?://[^/]+/~.+/', re.I)
+RE_FEEDBURNER_LINK = re.compile(r'^https?://[^/]+/~.{1,3}/', re.I)
 STRIP_ATTRS = set((
     'class',
     'id'
@@ -77,7 +77,7 @@ def CleanFeed(feed_url, keep_contents):
       entry.content = clean_content
 
   return feed
-if not 'Development' in os.environ.get('SERVER_SOFTWARE', ''):
+if 'Development' not in os.environ.get('SERVER_SOFTWARE', ''):
   CleanFeed = util.Memoize('Clean_%s_%d', 1800)(CleanFeed)
 
 
@@ -118,10 +118,8 @@ def CleanUrl(url):
     note = u'<!-- cleaned content, %s, %s -->\n' % (e.__class__.__name__, e)
     content = extract_content.ExtractFromHtml(url, html)
 
-  logging.debug('%s %s', type(note), note[0:50])
-  logging.debug('%s %s', type(content), content[0:50])
   return note + Munge(content)
-if not 'Development' in os.environ.get('SERVER_SOFTWARE', ''):
+if 'Development' not in os.environ.get('SERVER_SOFTWARE', ''):
   CleanUrl = util.Memoize('Clean_%s', 3600*24)(CleanUrl)
 
 
