@@ -140,6 +140,4 @@ def Munge(html):
   for tag in soup.findAll(name='img', attrs={'src': RE_FEEDBURNER_LINK}):
     tag.extract()
 
-  content = soup.renderContents()
-
-  return content
+  return unicode(soup)
