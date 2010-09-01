@@ -163,6 +163,7 @@ def _ExtractFromHtmlGeneric(url, html):
     logging.debug('%10.2f %s', parent['score'], util.SoupTagOnly(parent))
 
   if not top_parent:
+    logging.warn('Did not select a top parent!')
     return u''
 
   # Strip pieces with negative scores here?

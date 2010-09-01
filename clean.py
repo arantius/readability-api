@@ -24,12 +24,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Use default membership test instead of 'has_key'
-# pylint: disable-msg=C6401
-# -- this doesn't work with BeautifulSoup objects.  Disable check.
-
-import logging
-import os
 import re
 
 from third_party import BeautifulSoup
@@ -102,12 +96,12 @@ def Clean(url):
     note = u'<!-- cleaned content, %s, %s -->\n' % (e.__class__.__name__, e)
     content = extract_content.ExtractFromHtml(url, html)
 
-  return note + Munge(content)
+  return note + _Munge(content)
 if not util.IS_DEV_APPSERVER:
   Clean = util.Memoize('Clean_%s', 3600*24)(Clean)  # pylint: disable-msg=C6409
 
 
-def Munge(html):
+def _Munge(html):
   """Given a string of HTML content, munge it to be more pleasing."""
   html = html.replace('&nbsp;', ' ')
   soup = BeautifulSoup.BeautifulSoup(html)
