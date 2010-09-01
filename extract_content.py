@@ -38,6 +38,7 @@ BLOCK_TAG_NAMES = set((
     'blockquote', 'dl', 'div', 'ol', 'p', 'pre', 'table', 'ul',
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
     ))
+COMMA_LINK_SCORE = 3  # Points added for commas, subtracted for links-in-lists.
 MAX_SCORE_DEPTH = 5
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
 RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
@@ -140,7 +141,7 @@ def ExtractFromHtml(url, html):
       base_score = TAG_BASE_SCORES[container.name]
       _ApplyScore(parent, _ScoreForParent(parent, base_score))
 
-    _ApplyScore(parent, container.text.count(',') * 3)
+    _ApplyScore(parent, container.text.count(',') * COMMA_LINK_SCORE)
 
   top_parent = None
   for parent in soup.findAll(attrs={'score': True}):
@@ -185,14 +186,10 @@ def _ScoreForParent(parent, base_score):
       score += base_score * 20
 
   # Remove points for links, especially those in lists.
-  for link in parent.findAll('a'):
-    score -= TAG_BASE_SCORE_MAX / base_score
-    try:
-      if link.findParents('li')[0].findParents('ul')[0]:
-        score -= TAG_BASE_SCORE_MAX
-    except IndexError:
-      # Item did not exist.
-      pass
+  for link in parent.findAll('ul'):
+    for link in parent.findAll('li'):
+      for link in parent.findAll('a'):
+        score -= COMMA_LINK_SCORE
 
   # Remove points for previous nodes, earlier = lose fewer points; break ties.
   score -= len(parent.findAllPrevious(True)) / 10
