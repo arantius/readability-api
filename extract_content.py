@@ -112,6 +112,16 @@ def ExtractFromHtml(url, html):
   # Turn double-linebreaks into faked-up paragraphs before parsing.
   html = re.sub(RE_DOUBLE_BR, '</p><p>', html)
 
+  if re.search(r'^http://(www\.)?reddit\.com/.*/comments/', url, re.I):
+    strainer = BeautifulSoup.SoupStrainer(
+        attrs={'class': re.compile(r'thing.*link')})
+    soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)
+    return unicode(soup.find(attrs={'class': 'usertext-body'}))
+  else:
+    return _ExtractFromHtmlGeneric(url, html)
+
+
+def _ExtractFromHtmlGeneric(url, html):
   try:
     soup = BeautifulSoup.BeautifulSoup(html)
   except HTMLParser.HTMLParseError, e:
