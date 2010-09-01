@@ -120,7 +120,8 @@ def Munge(html):
       if match:
         img['align'] = match.group(1)
     else:
-      if img.parent and (img.parent.name == 'p') and img.parent.text:
+      parent_p = img.findParents('p', limit=1)
+      if parent_p and parent_p[0].text:
         if not img.findPreviousSiblings(name=True, limit=1):
           img['align'] = 'left'
 
