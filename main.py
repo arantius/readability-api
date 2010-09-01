@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-"""App Engine request handler for Readability API project.."""
+"""App Engine request handler for Readability API project.
 
-"""
+--------------------------------------------------------------------------------
+
 Readability API - Clean up pages and feeds to be readable.
 Copyright (C) 2010  Anthony Lieuallen
 

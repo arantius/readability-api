@@ -17,9 +17,9 @@ Usage example:
 Note that the html argument to the constructor is optional, but can be provided
 to avoid a second URL fetch in the case that it is already known.  If it is
 provided, the "final" URL (after possible redirects) should also be provided.
-"""
 
-"""
+--------------------------------------------------------------------------------
+
 Readability API - Clean up pages and feeds to be readable.
 Copyright (C) 2010  Anthony Lieuallen
 

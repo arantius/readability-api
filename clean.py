@@ -1,7 +1,12 @@
 #!/usr/bin/env python
-"""App Engine request handler for Readability API project.."""
+"""Cleaning wrapper.
 
-"""
+Given a URL, first apply special cases.  Then try to fetch a feed of the
+content, then try to directly handle the HTML.  Clean up all HTML where
+appropriate.
+
+--------------------------------------------------------------------------------
+
 Readability API - Clean up pages and feeds to be readable.
 Copyright (C) 2010  Anthony Lieuallen
 

@@ -4,9 +4,9 @@
 Now: General purpose "page cleaner".  Given the *content* of a page, at a URL,
 attempts to convert it into the smallest subset of markup that contains the
 entire body of important content.
-"""
 
-"""
+--------------------------------------------------------------------------------
+
 Readability API - Clean up pages and feeds to be readable.
 Copyright (C) 2010  Anthony Lieuallen
 
