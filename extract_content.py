@@ -186,10 +186,13 @@ def _ScoreForParent(parent, base_score):
       score += base_score * 20
 
   # Remove points for links, especially those in lists.
-  for link in parent.findAll('ul'):
-    for link in parent.findAll('li'):
-      for link in parent.findAll('a'):
+  for link in parent.findAll('a'):
+    try:
+      if link.findParents('li')[0].findParents('ul')[0]:
         score -= COMMA_LINK_SCORE
+    except IndexError:
+      # Item did not exist.
+      pass
 
   # Remove points for previous nodes, earlier = lose fewer points; break ties.
   score -= len(parent.findAllPrevious(True)) / 10
