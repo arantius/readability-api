@@ -38,8 +38,10 @@ BLOCK_TAG_NAMES = set((
     'blockquote', 'dl', 'div', 'ol', 'p', 'pre', 'table', 'ul',
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
     ))
-COMMA_LINK_SCORE = 3  # Points added for commas, subtracted for links-in-lists.
 MAX_SCORE_DEPTH = 5
+POINTS_COMMA = 3
+POINTS_CONTAINER = 8
+POINTS_LINK = 3
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
 RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
 RE_CLASS_ID_STRIP_POST = re.compile(
@@ -73,6 +75,7 @@ RE_CLASS_ID_POSITIVE = re.compile(
     r'|body'
     r'|content'
     r'|entry'
+    r'|msgs'  # google groups
     r'|post'
     r'|snap_preview'
     r'|story'
@@ -151,7 +154,10 @@ def _ExtractFromHtmlGeneric(url, html):
       base_score = TAG_BASE_SCORES[container.name]
       _ApplyScore(parent, _ScoreForParent(parent, base_score))
 
-    _ApplyScore(parent, container.text.count(',') * COMMA_LINK_SCORE)
+    # Points just for having a 'container'.
+    _ApplyScore(parent, POINTS_CONTAINER)
+    # Points for having commas -- which weakly imply real text.
+    _ApplyScore(parent, container.text.count(',') * POINTS_COMMA)
 
   top_parent = None
   for parent in soup.findAll(attrs={'score': True}):
@@ -198,9 +204,10 @@ def _ScoreForParent(parent, base_score):
 
   # Remove points for links, especially those in lists.
   for link in parent.findAll('a'):
+    score -= POINTS_LINK
     try:
       if link.findParents('li')[0].findParents('ul')[0]:
-        score -= COMMA_LINK_SCORE
+        score -= POINTS_LINK
     except IndexError:
       # Item did not exist.
       pass
