@@ -112,15 +112,18 @@ def _Munge(html):
   for img in soup.findAll('img'):
     if img.has_key('align'):
       continue
+
     if img.has_key('class'):
       match = RE_ALIGNED.search(img['class'])
       if match:
         img['align'] = match.group(1)
-    else:
-      parent_p = img.findParents('p', limit=1)
-      if parent_p and parent_p[0].text:
-        if not img.findPreviousSiblings(name=True, limit=1):
-          img['align'] = 'left'
+        continue
+
+    parent_p = img.findParents('p', limit=1)
+    if parent_p and not img.findPreviousSiblings(name=True, limit=1):
+      parent_p = parent_p[0]
+      if parent_p.text or not parent_p.findPreviousSiblings('p'):
+        img['align'] = 'left'
 
   # Remove unwanted attributes from all tags (e.g. events, styles).
   for tag in soup.findAll(True):
