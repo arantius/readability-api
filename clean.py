@@ -130,6 +130,10 @@ def _Munge(html):
     for attr in STRIP_ATTRS:
       del tag[attr]
 
+  # Remove links to "social media" junk.
+  for tag in soup.findAll(name='a', href=re.compile(r'api.tweetmeme.com')):
+    tag.extract()
+
   # Remove empty cells/divs/paragraphs.
   for tag in soup.findAll(('div', 'p', 'td')):
     if not tag.find(('embed', 'img', 'object')) and not tag.text.strip():
