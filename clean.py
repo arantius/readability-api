@@ -119,10 +119,9 @@ def _Munge(html):
         img['align'] = match.group(1)
         continue
 
-    parent_p = img.findParents('p', limit=1)
-    if parent_p and not img.findPreviousSiblings(name=True, limit=1):
-      parent_p = parent_p[0]
-      if parent_p.text or not parent_p.findPreviousSiblings('p'):
+    parent_p = img.findParent('p', limit=1)
+    if parent_p and not img.findPreviousSibling(name=True):
+      if parent_p.text or not parent_p.findPreviousSibling('p'):
         img['align'] = 'left'
 
   # Remove unwanted attributes from all tags (e.g. events, styles).
