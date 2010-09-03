@@ -40,17 +40,19 @@ BLOCK_TAG_NAMES = set((
     ))
 MAX_SCORE_DEPTH = 5
 POINTS_COMMA = 3
-POINTS_CONTAINER = 8
+POINTS_CONTAINER = 6
 POINTS_LINK = 3
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
 RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
 RE_CLASS_ID_STRIP_POST = re.compile(
     r'(_|\b)foot'
     r'|(_|\b)(sub)?head'
+    r'|(_|\b)related'
     r'|(_|\b)side',
     re.I)
 RE_CLASS_ID_STRIP_PRE = re.compile(
     r'addtoany'
+    r'|(_|\b)ad(_box)'
     r'|(_|\b)comment'
     r'|disqus_thread|dsq-brlink'
     r'|fb-like'
@@ -59,7 +61,7 @@ RE_CLASS_ID_STRIP_PRE = re.compile(
     r'|(_|\b)neighbor'
     r'|(_|\b)read-more'
     r'|(_|\b)recent-post'
-    r'|(_|\b)related'
+    r'|(_|\b)secondary'
     r'|(_|\b)shar(e|ing)'
     r'|share'
     r'|social'
@@ -141,23 +143,20 @@ def _ExtractFromHtmlGeneric(url, html):
   # Count score for all ancestors-of-paragraphs.
   parents = []
   for container in soup.findAll(TAG_BASE_SCORES):
-    # Skip e.g. divs with nested divs.  We'll consider the nested one directly,
-    # so skip to avoid double-counting.
-    if container.find(container.name):
-      logging.debug('Skip nested container: %s', util.SoupTagOnly(container))
-      continue
-
+    # Seek an ancestor with a positive class/id.
+    parent = container.findParent(
+        lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE))
+    if not parent:
+      # Fall back to the direct parent.
+      parent = container.parent
     # Score each parent-of-containers once.
-    parent = container.parent
     if parent not in parents:
       parents.append(parent)
       base_score = TAG_BASE_SCORES[container.name]
       _ApplyScore(parent, _ScoreForParent(parent, base_score))
 
     # Points just for having a 'container'.
-    _ApplyScore(parent, POINTS_CONTAINER)
-    # Points for having commas -- which weakly imply real text.
-    _ApplyScore(parent, container.text.count(',') * POINTS_COMMA)
+    _ApplyScore(container, POINTS_CONTAINER * base_score)
 
   top_parent = None
   for parent in soup.findAll(attrs={'score': True}):
@@ -202,13 +201,16 @@ def _ScoreForParent(parent, base_score):
     if not filter(None, sibling_matches):
       score += base_score * 20
 
+  # Add points for having commas -- which weakly imply real text.
+  score += parent.text.count(',') * POINTS_COMMA
+
   # Remove points for links, especially those in lists.
   for link in parent.findAll('a'):
     score -= POINTS_LINK
     try:
-      if link.findParents('li')[0].findParents('ul')[0]:
+      if link.findParent('li').findParent('ul'):
         score -= POINTS_LINK
-    except IndexError:
+    except AttributeError:
       # Item did not exist.
       pass
 
@@ -243,9 +245,11 @@ def _ApplyScore(tag, score, depth=0):
     return
   # Let me put spaces where I want them: pylint: disable-msg=C6007
   decayed_score = score * ( ( 1 - (depth / float(MAX_SCORE_DEPTH)) ) ** 2.5 )
+
   if not tag.has_key('score'):
     tag['score'] = 0
   tag['score'] = float(tag['score']) + decayed_score
+
   _ApplyScore(tag.parent, score, depth + 1)
 
 
