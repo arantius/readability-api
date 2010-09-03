@@ -3,19 +3,26 @@ version: default
 runtime: python
 api_version: 1
 
+default_expiration: 4d
+
 handlers:
 - url: /robots.txt
   static_files: robots.txt
   upload: robots.txt
+
 - url: /admin.*
   script: $PYTHON_LIB/google/appengine/ext/admin
   login: admin
+  secure: always
+
 - url: /stats.*
   script: $PYTHON_LIB/google/appengine/ext/appstats/ui.py
   login: admin
   secure: always
+
 - url: /_ah/queue/deferred
   script: $PYTHON_LIB/google/appengine/ext/deferred/deferred.py
   login: admin
+
 - url: /.*
   script: main.py
