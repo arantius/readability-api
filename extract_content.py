@@ -42,6 +42,7 @@ MAX_SCORE_DEPTH = 5
 POINTS_COMMA = 3
 POINTS_CONTAINER = 6
 POINTS_LINK = 3
+POINTS_POSITIVE_CLASS_ID = 30
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
 RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
 RE_CLASS_ID_STRIP_POST = re.compile(
@@ -157,6 +158,14 @@ def _ExtractFromHtmlGeneric(url, html):
 
     # Points just for having a 'container'.
     _ApplyScore(container, POINTS_CONTAINER * base_score)
+  # Count score for any positive class/id matching node that wasn't already
+  # caught.
+  parents = soup.findAll(
+      lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE))
+  for parent in parents:
+    if parent not in parents:
+      parents.append(parent)
+      _ApplyScore(parent, _ScoreForParent(parent, 1.0))
 
   top_parent = None
   for parent in soup.findAll(attrs={'score': True}):
@@ -170,10 +179,11 @@ def _ExtractFromHtmlGeneric(url, html):
   if not top_parent:
     logging.warn('Did not select a top parent!')
     return u''
+  else:
+    logging.debug('Selected parent node: %s', util.SoupTagOnly(top_parent))
 
   # Strip pieces with negative scores here?
-
-  _Strip(soup, _UnwantedTagPost)
+  _Strip(top_parent, _UnwantedTagPost)
   _FixUrls(top_parent, url)
 
   return unicode(top_parent)
@@ -199,7 +209,7 @@ def _ScoreForParent(parent, base_score):
     sibling_matches = [util.IdOrClassMatches(s, RE_CLASS_ID_POSITIVE)
                        for s in siblings]
     if not filter(None, sibling_matches):
-      score += base_score * 20
+      score += base_score * POINTS_POSITIVE_CLASS_ID
 
   # Add points for having commas -- which weakly imply real text.
   score += parent.text.count(',') * POINTS_COMMA
