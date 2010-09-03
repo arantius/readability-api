@@ -101,7 +101,8 @@ class FeedExtractor(object):
     self.content = self._GetContent()
 
     # Now, we've found content.  Check if it's legit.
-    soup = BeautifulSoup.BeautifulSoup(self.content)
+    html = re.sub(r'<!--.*?-->', '', self.content)
+    soup = BeautifulSoup.BeautifulSoup(html)
     for tag in soup.findAll(('a', 'script', 'noscript')):
       tag.extract()
     text = soup.text
