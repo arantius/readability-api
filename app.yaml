@@ -10,6 +10,10 @@ handlers:
 - url: /admin.*
   script: $PYTHON_LIB/google/appengine/ext/admin
   login: admin
+- url: /stats.*
+  script: $PYTHON_LIB/google/appengine/ext/appstats/ui.py
+  login: admin
+  secure: always
 - url: /_ah/queue/deferred
   script: $PYTHON_LIB/google/appengine/ext/deferred/deferred.py
   login: admin
