@@ -49,7 +49,8 @@ RE_CLASS_ID_STRIP_POST = re.compile(
     r'(_|\b)foot'
     r'|(_|\b)(sub)?head'
     r'|(_|\b)related'
-    r'|(_|\b)side',
+    r'|(_|\b)side'
+    r'|widget',
     re.I)
 RE_CLASS_ID_STRIP_PRE = re.compile(
     r'addtoany'
@@ -68,8 +69,7 @@ RE_CLASS_ID_STRIP_PRE = re.compile(
     r'|social'
     r'|sponsor'
     r'|tool(box)?s?\d?(_|\b)'
-    r'|twitter'
-    r'|widget',
+    r'|twitter',
     re.I)
 RE_CLASS_ID_POSITIVE = re.compile(
     r'(_|\b)('
