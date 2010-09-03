@@ -138,6 +138,11 @@ def _Munge(html):
     if not tag.find(('embed', 'img', 'object')) and not tag.text.strip():
       tag.extract()
 
+  # Remove all totally empty nodes.
+  for tag in soup.findAll(True):
+    if not tag.find(True) and not(tag.text.strip()):
+      tag.extract()
+
   # Remove feedburner noise links.
   for tag in soup.findAll(name='a', attrs={'href': RE_FEEDBURNER_LINK}):
     tag.extract()
