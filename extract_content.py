@@ -39,6 +39,7 @@ BLOCK_TAG_NAMES = set((
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
     ))
 MAX_SCORE_DEPTH = 5
+MIN_CONTAINER_TEXT = 128
 POINTS_COMMA = 3
 POINTS_CONTAINER = 6
 POINTS_LINK = 3
@@ -156,8 +157,10 @@ def _ExtractFromHtmlGeneric(url, html):
       base_score = TAG_BASE_SCORES[container.name]
       _ApplyScore(parent, _ScoreForParent(parent, base_score))
 
-    # Points just for having a 'container'.
-    _ApplyScore(container, POINTS_CONTAINER * base_score)
+    # Points just for having a 'container' with text.
+    if len(container.text) >= MIN_CONTAINER_TEXT:
+      _ApplyScore(container, POINTS_CONTAINER * base_score)
+
   # Count score for any positive class/id matching node that wasn't already
   # caught.
   parents = soup.findAll(
