@@ -50,13 +50,27 @@ def Memoize(formatted_key, time=3600):
 @Memoize('Fetch_%s')
 def Fetch(url):
   """Fetch a URL, return its contents and any final-after-redirects URL."""
+  error = None
+  for _ in xrange(2):
+    try:
+      return _Fetch(url)
+    except _FetchError, e:
+      error = e
+  return (repr(error), url)
+
+
+class _FetchError(object):
+  pass
+
+
+def _Fetch(url):
   try:
     logging.debug('Fetching: %s', url)
-    response = urllib2.urlopen(url)
-  except (urlfetch.DownloadError, urllib2.HTTPError), e:
-    return (repr(e), url)
+    response = urlfetch.fetch(url, allow_truncated=True, deadline=3)
+  except urlfetch.DownloadError, e:
+    raise _FetchError(repr(e))
   else:
-    return (response.read(), response.geturl())
+    return (response.content, (response.final_url or url))
 
 
 def IdOrClassMatches(tag, re):
