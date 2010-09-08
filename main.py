@@ -37,6 +37,9 @@ else:
 
 
 class MainPage(webapp.RequestHandler):
+  request = None
+  response = None
+
   def get(self):
     self.response.headers['Content-Type'] = 'text/html'
     path = os.path.join(os.path.dirname(__file__), 'templates/main.html')
@@ -44,6 +47,9 @@ class MainPage(webapp.RequestHandler):
 
 
 class Clean(webapp.RequestHandler):
+  request = None
+  response = None
+
   def get(self):
     url = self.request.get('url') or self.request.get('link')
     html_wrap = self.request.get('html_wrap', 'False') == 'True'
@@ -56,7 +62,6 @@ class Clean(webapp.RequestHandler):
 
     self.response.headers['Content-Type'] = 'text/html; charset=UTF-8'
     self.response.out.write(output)
-
 
 
 def main():
