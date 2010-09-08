@@ -22,7 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import os
-import urllib2
 
 from google.appengine.api import memcache
 from google.appengine.api import urlfetch
