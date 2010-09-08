@@ -20,8 +20,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import email.utils
 import logging
 import os
+import time
 
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
@@ -61,6 +63,9 @@ class Clean(webapp.RequestHandler):
       output = 'Provide either "url" or "feed" parameters!'
 
     self.response.headers['Content-Type'] = 'text/html; charset=UTF-8'
+    self.response.headers['Cache-Control'] = 'max-age=3600'
+    self.response.headers['Expires'] = email.utils.formatdate(
+        timeval=time.time() + 3600, usegmt=True)
     self.response.out.write(output)
 
 
