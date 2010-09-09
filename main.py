@@ -20,7 +20,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import email.utils
+from email import utils as email_utils  # pylint: disable-msg=E0611,C6202
 import logging
 import os
 import time
@@ -64,7 +64,7 @@ class Clean(webapp.RequestHandler):
 
     self.response.headers['Content-Type'] = 'text/html; charset=UTF-8'
     self.response.headers['Cache-Control'] = 'max-age=3600'
-    self.response.headers['Expires'] = email.utils.formatdate(
+    self.response.headers['Expires'] = email_utils.formatdate(
         timeval=time.time() + 3600, usegmt=True)
     self.response.out.write(output)
 
