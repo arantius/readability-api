@@ -1,0 +1,8 @@
+* Strip same-as-title headings from the top.
+* Strip bylines.
+* Revamp content scoring.  Consider:
+  + Flash / other embeds
+  + Links to other domains
+  - Links to this domain (in a list?)
+  + Longish text (sentences)
+  - Short text (names, headings, sidebar content)
