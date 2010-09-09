@@ -99,6 +99,8 @@ class FeedExtractor(object):
     self._FindEntry()
 
     self.content = self._GetContent()
+    if not self.content:
+      raise NoRssContentError('no content found')
 
     # Now, we've found content.  Check if it's legit.
     html = re.sub(r'<!--.*?-->', '', self.content)
