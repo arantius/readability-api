@@ -58,7 +58,7 @@ def Fetch(url):
   return (repr(error), url)
 
 
-class _FetchError(object):
+class _FetchError(Exception):
   pass
 
 
