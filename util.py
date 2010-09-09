@@ -55,6 +55,7 @@ def Fetch(url):
       return _Fetch(url)
     except _FetchError, e:
       error = e
+      logging.exception(e)
   return (repr(error), url)
 
 
