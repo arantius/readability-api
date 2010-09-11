@@ -44,8 +44,6 @@ POINTS_COMMA = 3
 POINTS_CONTAINER = 6
 POINTS_LINK = 3
 POINTS_POSITIVE_CLASS_ID = 30
-RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
-RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
 RE_CLASS_ID_STRIP = re.compile(
     r'addtoany'
     r'|(_|\b)ad(_box)'
@@ -82,14 +80,8 @@ RE_CLASS_ID_POSITIVE = re.compile(
     r'|text'
     r')(_|\b)',
     re.I)
-STRIP_TAG_NAMES = set((
-    'iframe',
-    'link',
-    'meta',
-    'noscript',
-    'script',
-    'style',
-    ))
+RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
+RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
 TAG_BASE_SCORES = {
     'p': 5.0,
     'div': 1.5,
@@ -277,12 +269,8 @@ def _UnwantedTagPre(tag):
     if tag.has_key('name') and (tag['name'] == 'aspnetForm'):
       return False
     return True
-  if tag.name in STRIP_TAG_NAMES:
-    return True
   if util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP):
     logging.debug('Unwanted tag by class/id: %s', util.SoupTagOnly(tag))
-    return True
-  if tag.has_key('style') and RE_DISPLAY_NONE.search(tag['style']):
     return True
   return False
 

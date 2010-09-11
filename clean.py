@@ -65,6 +65,14 @@ STRIP_ATTRS = set((
     'score',
     'style',
     ))
+STRIP_TAG_NAMES = set((
+    'iframe',
+    'link',
+    'meta',
+    'noscript',
+    'script',
+    'style',
+    ))
 
 
 def Clean(url):
@@ -114,6 +122,10 @@ def _Munge(html):
   html = html.replace('&nbsp;', ' ')
   soup = BeautifulSoup.BeautifulSoup(html)
 
+  # Remove unwanted tags.
+  for tag in soup.findAll(STRIP_TAG_NAMES):
+    tag.extract()
+
   # For all images:
   #  * If they have a class that implies floating, apply alignment.
   #  * If they are at the beginning of a paragraph, with text, apply alignment.
@@ -145,7 +157,6 @@ def _Munge(html):
   for tag in soup.findAll(
       lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP)):
     tag.extract()
-
 
   # Remove all totally empty container elements.
   for tag in soup.findAll(('div', 'p', 'td', 'span')):
