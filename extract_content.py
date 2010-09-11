@@ -34,60 +34,38 @@ from third_party import BeautifulSoup
 
 import util
 
-BLOCK_TAG_NAMES = set((
-    'blockquote', 'dl', 'div', 'ol', 'p', 'pre', 'table', 'ul',
-    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    ))
+TAG_NAMES_BLOCK = set(('blockquote', 'div', 'li', 'p', 'pre', 'td', 'th'))
 MAX_SCORE_DEPTH = 5
-MIN_CONTAINER_TEXT = 128
-POINTS_COMMA = 3
-POINTS_CONTAINER = 6
-POINTS_LINK = 3
-POINTS_POSITIVE_CLASS_ID = 30
+RE_CLASS_ID_STRIP_ANY = (
+    '^addthis', 'functions', 'popular', '^related', 'tools', '^topic',
+    'sharethis', 'social',
+    )
+RE_CLASS_ID_STRIP_WHOLE = (
+    'pagination', 'prevnext', 'recent-posts',
+    'notes-container',  # tumblr comments
+    )
+RE_CLASS_ID_STRIP_WORDS = (
+    'comments?', 'head(er)?', 'hid(den|e)', 'foot(er)?', 'inset', 'nav',
+    'print', 'share', 'sidebar', 'sprite', 'tags',
+    'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)',  # CNN Junk
+    )
 RE_CLASS_ID_STRIP = re.compile(
-    r'addtoany'
-    r'|(_|\b)ad(_box)'
-    r'|(_|\b)comment'
-    r'|disqus_thread|dsq-brlink'
-    r'|email'
-    r'|fb-like'
-    r'|(_|\b)hid(den|e)(_|\b)'
-    r'|(_|\b)nav'
-    r'|(_|\b)neighbor'
-    r'|(_|\b)print'
-    r'|(_|\b)read-more'
-    r'|(_|\b)recent-post'
-    r'|(_|\b)recommend'
-    r'|(_|\b)secondary'
-    r'|(_|\b)shar(e|ing)'
-    r'|share'
-    r'|social'
-    r'|sponsor'
-    r'|tool(box)?s?\d?(_|\b)'
-    r'|twitter',
+    r'(' + '|'.join(RE_CLASS_ID_STRIP_ANY) + r')'
+    r'|(_|\b)(' + '|'.join(RE_CLASS_ID_STRIP_WORDS) + r')(_|\b)'
+    r'|^(' + '|'.join(RE_CLASS_ID_STRIP_WHOLE) + r')$',
     re.I)
+RE_CLASS_ID_POSITIVE_ANY = ('^article',)
+RE_CLASS_ID_POSITIVE_WHOLE = ('content', 'entry', 'postcontent')
+RE_CLASS_ID_POSITIVE_WORDS = ('post', 'text')
 RE_CLASS_ID_POSITIVE = re.compile(
-    r'(_|\b)('
-    r'article'
-    r'|artTe?xt'
-    r'|body'
-    r'|content'
-    r'|entry'
-    r'|msgs'  # google groups
-    r'|post'
-    r'|snap_preview'
-    r'|story'
-    r'|text'
-    r')(_|\b)',
+    r'(' + '|'.join(RE_CLASS_ID_POSITIVE_ANY) + r')'
+    r'|(_|\b)(' + '|'.join(RE_CLASS_ID_POSITIVE_WORDS) + r')(_|\b)'
+    r'|^(' + '|'.join(RE_CLASS_ID_POSITIVE_WHOLE) + r')$',
     re.I)
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
+RE_DOCTYPE = re.compile(r'<!DOCTYPE.*?>', re.S)
 RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
-TAG_BASE_SCORES = {
-    'p': 5.0,
-    'div': 1.5,
-    'td': 1.0,
-    }
-TAG_BASE_SCORE_MAX = max(TAG_BASE_SCORES.values())
+RE_HTML_COMMENTS = re.compile(r'<!--.*?-->', re.S)
 
 
 def ExtractFromUrl(url):
@@ -102,8 +80,9 @@ def ExtractFromUrl(url):
 
 def ExtractFromHtml(url, html):
   """Given a string of HTML, remove nasty bits, score and pick bit to keep."""
-  # Remove all HTML comments.
-  html = re.sub(r'<!--.*?-->', '', html)
+  # Remove all HTML comments, doctypes.
+  html = re.sub(RE_HTML_COMMENTS, '', html)
+  html = re.sub(RE_DOCTYPE, '', html)
   # Turn double-linebreaks into faked-up paragraphs before parsing.
   html = re.sub(RE_DOUBLE_BR, '</p><p>', html)
 
@@ -116,32 +95,27 @@ def ExtractFromHtml(url, html):
     return _ExtractFromHtmlGeneric(url, html)
 
 
-# Let me put spaces where I want them: pylint: disable-msg=C6007
-DEPTH_SCORE_DECAY = [( 1 - (depth / float(MAX_SCORE_DEPTH)) ) ** 2.5
-                     for depth in range(MAX_SCORE_DEPTH)]
-def _ApplyScore(tag, score, depth=0, score_type=None):
+_DEPTH_SCORE_DECAY = [(1 - depth / 12.0) ** 5
+                      for depth in range(MAX_SCORE_DEPTH + 1)]
+def _ApplyScore(tag, score, depth=0, name=None):
   """Recursively apply a decaying score to each parent up the tree."""
   if not tag:
     return
-  if (tag.name == 'body') and (depth > 0):
-    return
-  if tag.name == 'html':
-    return
   if depth > MAX_SCORE_DEPTH:
     return
-  decayed_score = score * DEPTH_SCORE_DECAY[depth]
+  decayed_score = score * _DEPTH_SCORE_DECAY[depth]
 
   if not tag.has_key('score'):
     tag['score'] = 0
   tag['score'] = float(tag['score']) + decayed_score
 
-  if score_type:
-    type_key = 'score_%s' % score_type
-    if not tag.has_key(type_key):
-      tag[type_key] = 0
-    tag[type_key] = float(tag[type_key]) + decayed_score
+  if util.IS_DEV_APPSERVER and name:
+    name_key = 'score_%s' % name
+    if not tag.has_key(name_key):
+      tag[name_key] = 0
+    tag[name_key] = float(tag[name_key]) + decayed_score
 
-  _ApplyScore(tag.parent, score, depth + 1)
+  _ApplyScore(tag.parent, score, depth + 1, name=name)
 
 
 def _ExtractFromHtmlGeneric(url, html):
@@ -151,60 +125,107 @@ def _ExtractFromHtmlGeneric(url, html):
     logging.exception(e)
     return u''
 
-  _Strip(soup, _UnwantedTagPre)
+  # Strip tags that will throw off our "text" calculations.
+  for tag in soup.findAll(name=set(('script', 'style'))):
+    tag.extract()
+  for tag in soup.findAll(attrs={'style': RE_DISPLAY_NONE}):
+    tag.extract()
+  # Strip tags that probably contain junk.
+  for tag in soup.findAll(attrs={'class': RE_CLASS_ID_STRIP}):
+    tag.extract()
+  for tag in soup.findAll(attrs={'id': RE_CLASS_ID_STRIP}):
+    tag.extract()
+
+  # Score up all 'leaf block' nodes (blocks not containing other blocks),
+  # based on the length of their text.
+  for block_leaf in _FindLeafBlocks(soup):
+    # Length of stripped text, with all whitespace collapsed.
+    block_text = block_leaf.text.strip()
+    block_text = re.sub(r'\s\s+', ' ', block_text)
+    text_len = len(block_text)
+
+    if text_len == 0:
+      continue
+    if text_len < 20:
+      _ApplyScore(block_leaf, -2, name='short_text')
+    if text_len > 75:
+      _ApplyScore(block_leaf, 6, name='some_text')
+    if text_len > 250:
+      _ApplyScore(block_leaf, 8, name='more_text')
+
+  # Score up images.
+  for tag in soup.findAll('img'):
+    if not tag.has_key('width') or not tag.has_key('height'):
+      continue
+    try:
+      size = int(tag['width']) * int(tag['height'])
+    except ValueError:
+      continue
+    if size >= 125000:
+      _ApplyScore(tag, 5, name='has_img')
+    if size >= 500000:
+      _ApplyScore(tag, 10, name='big_img')
+
+  # Score up objects/embeds.
+  EMBED_NAMES = set(('embed', 'object'))
+  for tag in soup.findAll(EMBED_NAMES):
+    if tag.findParent(EMBED_NAMES):
+      continue
+    _ApplyScore(tag, 15, name='has_embed')
+
+  # Score up based on id / class.
+  for tag in soup.findAll(attrs={'class': RE_CLASS_ID_POSITIVE}):
+    _ApplyScore(tag, 20, name='good_class')
+  for tag in soup.findAll(attrs={'id': RE_CLASS_ID_POSITIVE}):
+    _ApplyScore(tag, 20, name='good_id')
+
+  # Get the highest scored nodes.
+  scored_nodes = sorted(soup.findAll(attrs={'score': True}),
+                        key=lambda x: x['score'])[-15:]
+  if not scored_nodes:
+    return '<-- no scored content! -->'
+  best_node = scored_nodes[-1]
+
+  # For debugging ...
+  if 0 and util.IS_DEV_APPSERVER:
+    # Log scored nodes.
+    for node in scored_nodes:
+      logging.info('%10.2f %s', node['score'], util.SoupTagOnly(node)[0:69])
+    # Highlight the highest-scored node.
+    best_node['style'] = 'border: 2px dotted red !important;'
+    # Highlight positively-scored sibling nodes.
+    for tag in best_node.findPreviousSiblings(True):
+      if not tag.has_key('score'):
+        continue
+      if float(tag['score']) <= 0:
+        continue
+      tag['style'] = 'border: 2px dotted green !important;'
+    for tag in best_node.findNextSiblings(True):
+      if not tag.has_key('score'):
+        continue
+      if float(tag['score']) <= 0:
+        continue
+      tag['style'] = 'border: 2px dotted green !important;'
+    # Return this whole marked-up soup.
+    return unicode(soup)
 
   # Transform "text-only" (doesn't contain blocks) <div>s to <p>s.
   for tag in soup.findAll('div'):
-    if not tag.find(BLOCK_TAG_NAMES):
+    if not tag.find(TAG_NAMES_BLOCK):
       tag.name = 'p'
+  # Fix relative URLs.
+  _FixUrls(soup, url)
 
-  # Count score for all ancestors-of-paragraphs.
-  parents = []
-  for container in soup.findAll(TAG_BASE_SCORES):
-    # Seek an ancestor with a positive class/id.
-    parent = container.findParent(
-        lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE))
-    if not parent:
-      # Fall back to the direct parent.
-      parent = container.parent
-    # Score each parent-of-containers once.
-    if parent not in parents:
-      parents.append(parent)
-      base_score = TAG_BASE_SCORES[container.name]
-      _ApplyScore(parent, _ScoreForParent(parent, base_score))
+  return unicode(best_node)
 
-    # Points just for having a 'container' with text.
-    if len(container.text) >= MIN_CONTAINER_TEXT:
-      _ApplyScore(container, POINTS_CONTAINER * base_score)
 
-  # Count score for any positive class/id matching node that wasn't already
-  # caught.
-  parents = soup.findAll(
-      lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE))
-  for parent in parents:
-    if parent not in parents:
-      parents.append(parent)
-      _ApplyScore(parent, _ScoreForParent(parent, 1.0))
-
-  top_parent = None
-  for parent in soup.findAll(attrs={'score': True}):
-    if (not top_parent) or (parent['score'] > top_parent['score']):
-      top_parent = parent
-
-  for parent in sorted(soup.findAll(attrs={'score': True}),
-                       key=lambda x: x['score']):
-    logging.debug('%10.2f %s', parent['score'], util.SoupTagOnly(parent))
-
-  if not top_parent:
-    logging.warn('Did not select a top parent!')
-    return u''
-  else:
-    logging.debug('Selected parent node: %s', util.SoupTagOnly(top_parent))
-
-  # Strip pieces with negative scores here?
-  _FixUrls(top_parent, url)
-
-  return unicode(top_parent)
+def _FindLeafBlocks(soup):
+  for tag in soup.findAll(name=True, recursive=False):
+    if tag.name in TAG_NAMES_BLOCK and not tag.find(name=TAG_NAMES_BLOCK):
+      yield tag
+    else:
+      for child in _FindLeafBlocks(tag):
+        yield child
 
 
 def _FixUrls(parent, base_url):
@@ -213,66 +234,6 @@ def _FixUrls(parent, base_url):
       tag['href'] = urlparse.urljoin(base_url, tag['href'])
     if tag.has_key('src'):
       tag['src'] = urlparse.urljoin(base_url, tag['src'])
-
-
-def _ScoreForParent(parent, base_score):
-  score = 0
-  # Add points for certain id and class values.
-  if util.IdOrClassMatches(parent, RE_CLASS_ID_POSITIVE):
-    # If this parent's siblings also have an interesting id/class,
-    # don't score it well because of the match -- it's probably a false
-    # positive among a group of them.
-    siblings = (parent.findPreviousSiblings(name=True, limit=1)
-                + parent.findNextSiblings(name=True, limit=1))
-    sibling_matches = [util.IdOrClassMatches(s, RE_CLASS_ID_POSITIVE)
-                       for s in siblings]
-    if not filter(None, sibling_matches):
-      score += base_score * POINTS_POSITIVE_CLASS_ID
-
-  # Add points for having commas -- which weakly imply real text.
-  score += parent.text.count(',') * POINTS_COMMA
-
-  # Remove points for links, especially those in lists.
-  for link in parent.findAll('a'):
-    score -= POINTS_LINK
-    try:
-      if link.findParent('li').findParent('ul'):
-        score -= POINTS_LINK
-    except AttributeError:
-      # Item did not exist.
-      pass
-
-  # Remove points for previous nodes, earlier = lose fewer points; break ties.
-  score -= len(parent.findAllPrevious(True)) / 10
-
-  logging.debug('Parent base score: %4.2f %s', score, util.SoupTagOnly(parent))
-
-  return score
-
-
-def _Strip(soup, filter_func, mark=False):
-  """Breadth-first recursively strip unwanted tags out of the soup."""
-  for tag in soup.findAll(filter_func, recursive=False):
-    if mark:
-      tag['style'] = 'border: 2px solid red;'
-    else:
-      tag.extract()
-  for tag in soup.findAll(recursive=False):
-    _Strip(tag, filter_func)
-
-
-def _UnwantedTagPre(tag):
-  """Filter soup tags, before parent scoring."""
-  if tag.name == 'form':
-    if tag.has_key('id') and (tag['id'] == 'aspnetForm'):
-      return False
-    if tag.has_key('name') and (tag['name'] == 'aspnetForm'):
-      return False
-    return True
-  if util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP):
-    logging.debug('Unwanted tag by class/id: %s', util.SoupTagOnly(tag))
-    return True
-  return False
 
 
 if __name__ == '__main__':

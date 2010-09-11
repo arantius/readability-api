@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import logging
 import re
 
 from third_party import BeautifulSoup
@@ -40,7 +41,7 @@ RE_CLASS_ID_STRIP = re.compile(
     r'|(_|\b)side'
     r'|widget',
     re.I)
-RE_FEEDBURNER_LINK = re.compile(r'^https?://[^/]+/~.{1,3}/', re.I)
+RE_FEED_JUNK = re.compile(r'^https?://feed[^/]+/(~.{1,3}|1\.0)/', re.I)
 STRIP_ATTRS = set((
     'class',
     'id'
@@ -163,10 +164,19 @@ def _Munge(html):
     if not tag.find(True) and not tag.text.strip():
       tag.extract()
 
-  # Remove feedburner noise links.
-  for tag in soup.findAll(name='a', attrs={'href': RE_FEEDBURNER_LINK}):
+  # Remove feed junklinks.
+  for tag in soup.findAll(name='a', attrs={'href': RE_FEED_JUNK}):
     tag.extract()
-  for tag in soup.findAll(name='img', attrs={'src': RE_FEEDBURNER_LINK}):
+  for tag in soup.findAll(name='img', attrs={'src': RE_FEED_JUNK}):
     tag.extract()
 
+  # Remove "related posts" and its ilk.
+  for tag in soup.findAll(re.compile(r'^h\d$', re.I)):
+    if 'Related Posts' in tag.text: _StripAfter(tag)
+
   return unicode(soup)
+
+def _StripAfter(strip_tag):
+  for tag in strip_tag.findAllNext():
+    tag.extract()
+  strip_tag.extract()
