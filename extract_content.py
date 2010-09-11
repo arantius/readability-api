@@ -241,6 +241,9 @@ def _Strip(soup, filter_func, mark=False):
     _Strip(tag, filter_func)
 
 
+# Let me put spaces where I want them: pylint: disable-msg=C6007
+DEPTH_SCORE_DECAY = [( 1 - (depth / float(MAX_SCORE_DEPTH)) ) ** 2.5
+                     for depth in range(MAX_SCORE_DEPTH)]
 def _ApplyScore(tag, score, depth=0):
   """Recursively apply a decaying score to each parent up the tree."""
   if not tag:
@@ -251,8 +254,7 @@ def _ApplyScore(tag, score, depth=0):
     return
   if depth > MAX_SCORE_DEPTH:
     return
-  # Let me put spaces where I want them: pylint: disable-msg=C6007
-  decayed_score = score * ( ( 1 - (depth / float(MAX_SCORE_DEPTH)) ) ** 2.5 )
+  decayed_score = score * DEPTH_SCORE_DECAY[depth]
 
   if not tag.has_key('score'):
     tag['score'] = 0
