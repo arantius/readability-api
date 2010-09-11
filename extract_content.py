@@ -124,6 +124,34 @@ def ExtractFromHtml(url, html):
     return _ExtractFromHtmlGeneric(url, html)
 
 
+# Let me put spaces where I want them: pylint: disable-msg=C6007
+DEPTH_SCORE_DECAY = [( 1 - (depth / float(MAX_SCORE_DEPTH)) ) ** 2.5
+                     for depth in range(MAX_SCORE_DEPTH)]
+def _ApplyScore(tag, score, depth=0, score_type=None):
+  """Recursively apply a decaying score to each parent up the tree."""
+  if not tag:
+    return
+  if (tag.name == 'body') and (depth > 0):
+    return
+  if tag.name == 'html':
+    return
+  if depth > MAX_SCORE_DEPTH:
+    return
+  decayed_score = score * DEPTH_SCORE_DECAY[depth]
+
+  if not tag.has_key('score'):
+    tag['score'] = 0
+  tag['score'] = float(tag['score']) + decayed_score
+
+  if score_type:
+    type_key = 'score_%s' % score_type
+    if not tag.has_key(type_key):
+      tag[type_key] = 0
+    tag[type_key] = float(tag[type_key]) + decayed_score
+
+  _ApplyScore(tag.parent, score, depth + 1)
+
+
 def _ExtractFromHtmlGeneric(url, html):
   try:
     soup = BeautifulSoup.BeautifulSoup(html)
@@ -239,28 +267,6 @@ def _Strip(soup, filter_func, mark=False):
       tag.extract()
   for tag in soup.findAll(recursive=False):
     _Strip(tag, filter_func)
-
-
-# Let me put spaces where I want them: pylint: disable-msg=C6007
-DEPTH_SCORE_DECAY = [( 1 - (depth / float(MAX_SCORE_DEPTH)) ) ** 2.5
-                     for depth in range(MAX_SCORE_DEPTH)]
-def _ApplyScore(tag, score, depth=0):
-  """Recursively apply a decaying score to each parent up the tree."""
-  if not tag:
-    return
-  if (tag.name == 'body') and (depth > 0):
-    return
-  if tag.name == 'html':
-    return
-  if depth > MAX_SCORE_DEPTH:
-    return
-  decayed_score = score * DEPTH_SCORE_DECAY[depth]
-
-  if not tag.has_key('score'):
-    tag['score'] = 0
-  tag['score'] = float(tag['score']) + decayed_score
-
-  _ApplyScore(tag.parent, score, depth + 1)
 
 
 def _UnwantedTagPre(tag):
