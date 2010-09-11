@@ -33,6 +33,13 @@ import extract_feed
 import util
 
 RE_ALIGNED = re.compile(r'(?:_|\b)(?:align)?(left|right)(?:_|\b)', re.I)
+RE_CLASS_ID_STRIP = re.compile(
+    r'(_|\b)foot'
+    r'|(_|\b)(sub)?head'
+    r'|(_|\b)related'
+    r'|(_|\b)side'
+    r'|widget',
+    re.I)
 RE_FEEDBURNER_LINK = re.compile(r'^https?://[^/]+/~.{1,3}/', re.I)
 STRIP_ATTRS = set((
     'class',
@@ -55,6 +62,7 @@ STRIP_ATTRS = set((
     'onselect',
     'onsubmit',
     'onunload',
+    'score',
     'style',
     ))
 
@@ -133,10 +141,11 @@ def _Munge(html):
   for tag in soup.findAll(name='a', href=re.compile(r'api.tweetmeme.com')):
     tag.extract()
 
-  # Remove empty cells/divs/paragraphs.
-  for tag in soup.findAll(('div', 'p', 'td')):
-    if not tag.find(('embed', 'img', 'object')) and not tag.text.strip():
-      tag.extract()
+  # Remove junk content by id/class.
+  for tag in soup.findAll(
+      lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP)):
+    tag.extract()
+
 
   # Remove all totally empty container elements.
   for tag in soup.findAll(('div', 'p', 'td', 'span')):

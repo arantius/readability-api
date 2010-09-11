@@ -46,14 +46,7 @@ POINTS_LINK = 3
 POINTS_POSITIVE_CLASS_ID = 30
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
 RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
-RE_CLASS_ID_STRIP_POST = re.compile(
-    r'(_|\b)foot'
-    r'|(_|\b)(sub)?head'
-    r'|(_|\b)related'
-    r'|(_|\b)side'
-    r'|widget',
-    re.I)
-RE_CLASS_ID_STRIP_PRE = re.compile(
+RE_CLASS_ID_STRIP = re.compile(
     r'addtoany'
     r'|(_|\b)ad(_box)'
     r'|(_|\b)comment'
@@ -189,7 +182,6 @@ def _ExtractFromHtmlGeneric(url, html):
     logging.debug('Selected parent node: %s', util.SoupTagOnly(top_parent))
 
   # Strip pieces with negative scores here?
-  _Strip(top_parent, _UnwantedTagPost)
   _FixUrls(top_parent, url)
 
   return unicode(top_parent)
@@ -269,14 +261,6 @@ def _ApplyScore(tag, score, depth=0):
   _ApplyScore(tag.parent, score, depth + 1)
 
 
-def _UnwantedTagPost(tag):
-  """Filter soup tags, after parent scoring."""
-  if util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP_POST):
-    logging.debug('Unwanted tag by class/id: %s', util.SoupTagOnly(tag))
-    return True
-  return False
-
-
 def _UnwantedTagPre(tag):
   """Filter soup tags, before parent scoring."""
   if tag.name == 'form':
@@ -287,7 +271,7 @@ def _UnwantedTagPre(tag):
     return True
   if tag.name in STRIP_TAG_NAMES:
     return True
-  if util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP_PRE):
+  if util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP):
     logging.debug('Unwanted tag by class/id: %s', util.SoupTagOnly(tag))
     return True
   if tag.has_key('style') and RE_DISPLAY_NONE.search(tag['style']):
