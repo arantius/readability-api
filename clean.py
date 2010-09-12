@@ -42,6 +42,7 @@ RE_CLASS_ID_STRIP = re.compile(
     r'|widget',
     re.I)
 RE_FEED_JUNK = re.compile(r'^https?://feed[^/]+/(~.{1,3}|1\.0)/', re.I)
+RE_RELATED_HEADER = re.compile(r'\brelated (posts?|articles?)\b', re.I)
 STRIP_ATTRS = set((
     'class',
     'id'
@@ -171,9 +172,16 @@ def _Munge(soup):
   for tag in soup.findAll(name='img', attrs={'src': RE_FEED_JUNK}):
     tag.extract()
 
-  # Remove "related posts" and its ilk.
-  for tag in soup.findAll(re.compile(r'^h\d$', re.I)):
-    if 'Related Posts' in tag.text: _StripAfter(tag)
+  # Remove "related posts" and its ilk.  Sometimes it's a preceding heading,
+  # sometimes it's the text in the containing (parent) <p>.
+  for tag in soup.findAll(('ul', 'ol')):
+    previous = tag.findPreviousSibling(True)
+    if previous and RE_RELATED_HEADER.search(previous.text):
+      _StripAfter(previous)
+    elif tag.parent:
+      parent_text = ' '.join(tag.parent.findAll(text=True))
+      if RE_RELATED_HEADER.search(parent_text):
+        _StripAfter(tag.parent)
 
   return unicode(soup)
 
