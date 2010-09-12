@@ -68,7 +68,8 @@ class _FetchError(Exception):
 
 def _Fetch(url):
   try:
-    logging.debug('Fetching: %s', url)
+    if IS_DEV_APPSERVER:
+      logging.info('Fetching: %s', url)
     response = urlfetch.fetch(url, allow_truncated=True, deadline=3)
   except urlfetch.DownloadError, e:
     raise _FetchError(repr(e))

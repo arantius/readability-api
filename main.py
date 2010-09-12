@@ -21,7 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from email import utils as email_utils  # pylint: disable-msg=E0611,C6202
-import logging
 import os
 import time
 
@@ -31,11 +30,6 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 
 import clean
 import util
-
-if util.IS_DEV_APPSERVER:
-  logging.getLogger().setLevel(logging.DEBUG)
-else:
-  logging.getLogger().setLevel(logging.WARNING)
 
 
 class MainPage(webapp.RequestHandler):
