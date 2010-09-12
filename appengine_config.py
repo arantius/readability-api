@@ -1,4 +1,7 @@
-def webapp_add_wsgi_middleware(app):
-  from google.appengine.ext.appstats import recording
-  app = recording.appstats_wsgi_middleware(app)
-  return app
+import util
+
+if not util.IS_DEV_APPSERVER:
+  def webapp_add_wsgi_middleware(app):
+    from google.appengine.ext.appstats import recording
+    app = recording.appstats_wsgi_middleware(app)
+    return app
