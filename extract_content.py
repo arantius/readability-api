@@ -40,12 +40,12 @@ RE_CLASS_ID_STRIP_ANY = (
     'sharethis', 'social',
     )
 RE_CLASS_ID_STRIP_WHOLE = (
-    'pagination', 'prevnext', 'recent-posts',
+    'byline', 'pagination', 'prevnext', 'recent-posts',
     'notes-container',  # tumblr comments
     )
 RE_CLASS_ID_STRIP_WORDS = (
-    'comments?', 'head(er)?', 'hid(den|e)', 'foot(er)?', 'inset', 'nav',
-    'print', 'share', 'sidebar', 'sprite', 'tags', 'talkback',
+    '(article)?comments?', 'head(er)?', 'hid(den|e)', 'foot(er)?', 'inset',
+    'nav', 'print', 'share', 'sidebar', 'sprite', 'tags', 'talkback',
     'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)',  # CNN Junk
     )
 RE_CLASS_ID_STRIP = re.compile(
