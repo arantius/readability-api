@@ -46,7 +46,7 @@ RE_CLASS_ID_STRIP_WHOLE = (
     )
 RE_CLASS_ID_STRIP_WORDS = (
     'comments?', 'head(er)?', 'hid(den|e)', 'foot(er)?', 'inset', 'nav',
-    'print', 'share', 'sidebar', 'sprite', 'tags',
+    'print', 'share', 'sidebar', 'sprite', 'tags', 'talkback',
     'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)',  # CNN Junk
     )
 RE_CLASS_ID_STRIP = re.compile(
@@ -55,8 +55,8 @@ RE_CLASS_ID_STRIP = re.compile(
     r'|^(' + '|'.join(RE_CLASS_ID_STRIP_WHOLE) + r')$',
     re.I)
 RE_CLASS_ID_POSITIVE_ANY = ('^article',)
-RE_CLASS_ID_POSITIVE_WHOLE = ('content', 'entry', 'postcontent')
-RE_CLASS_ID_POSITIVE_WORDS = ('post', 'text')
+RE_CLASS_ID_POSITIVE_WHOLE = ('content', 'postcontent')
+RE_CLASS_ID_POSITIVE_WORDS = ('entry', 'post', 'text')
 RE_CLASS_ID_POSITIVE = re.compile(
     r'(' + '|'.join(RE_CLASS_ID_POSITIVE_ANY) + r')'
     r'|(_|\b)(' + '|'.join(RE_CLASS_ID_POSITIVE_WORDS) + r')(_|\b)'
@@ -130,6 +130,7 @@ def _ExtractFromHtmlGeneric(url, html):
     tag.extract()
   for tag in soup.findAll(attrs={'style': RE_DISPLAY_NONE}):
     tag.extract()
+
   # Strip tags that probably contain junk.
   for tag in soup.findAll(attrs={'class': RE_CLASS_ID_STRIP}):
     tag.extract()
@@ -183,7 +184,7 @@ def _ExtractFromHtmlGeneric(url, html):
   scored_nodes = sorted(soup.findAll(attrs={'score': True}),
                         key=lambda x: x['score'])[-15:]
   if not scored_nodes:
-    return '<-- no scored content! -->'
+    return '<!-- no scored content! -->'
   best_node = scored_nodes[-1]
 
   # For debugging ...
@@ -207,7 +208,7 @@ def _ExtractFromHtmlGeneric(url, html):
         continue
       tag['style'] = 'border: 2px dotted green !important;'
     # Return this whole marked-up soup.
-    return unicode(soup)
+    return soup
 
   # Transform "text-only" (doesn't contain blocks) <div>s to <p>s.
   for tag in soup.findAll('div'):
