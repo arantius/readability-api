@@ -73,12 +73,12 @@ def _Fetch(url):
     return (response.content, (response.final_url or url))
 
 
-def IdOrClassMatches(tag, re):
+def IdOrClassMatches(tag, regex):
   if not tag:
     return False
-  if tag.has_key('class') and re.search(tag['class']):
+  if tag.has_key('class') and regex.search(tag['class']):
     return True
-  if tag.has_key('id') and re.search(tag['id']):
+  if tag.has_key('id') and regex.search(tag['id']):
     return True
   return False
 
