@@ -63,9 +63,6 @@ RE_CLASS_ID_POSITIVE = re.compile(
     r'|^(' + '|'.join(RE_CLASS_ID_POSITIVE_WHOLE) + r')$',
     re.I)
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
-RE_DOCTYPE = re.compile(r'<!DOCTYPE.*?>', re.S)
-RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
-RE_HTML_COMMENTS = re.compile(r'<!--.*?-->', re.S)
 
 
 def ExtractFromUrl(url):
@@ -80,12 +77,6 @@ def ExtractFromUrl(url):
 
 def ExtractFromHtml(url, html):
   """Given a string of HTML, remove nasty bits, score and pick bit to keep."""
-  # Remove all HTML comments, doctypes.
-  html = re.sub(RE_HTML_COMMENTS, '', html)
-  html = re.sub(RE_DOCTYPE, '', html)
-  # Turn double-linebreaks into faked-up paragraphs before parsing.
-  html = re.sub(RE_DOUBLE_BR, '</p><p>', html)
-
   if re.search(r'^http://(www\.)?reddit\.com/.*/comments/', url, re.I):
     strainer = BeautifulSoup.SoupStrainer(
         attrs={'class': re.compile(r'thing.*link')})
@@ -120,7 +111,7 @@ def _ApplyScore(tag, score, depth=0, name=None):
 
 def _ExtractFromHtmlGeneric(url, html):
   try:
-    soup = BeautifulSoup.BeautifulSoup(html)
+    soup = BeautifulSoup.BeautifulSoup(util.PreCleanHtml(html))
   except HTMLParser.HTMLParseError, e:
     logging.exception(e)
     return u''

@@ -22,12 +22,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import os
+import re
 
 from google.appengine.api import memcache
 from google.appengine.api import urlfetch
 from google.appengine.ext.webapp import template
 
 IS_DEV_APPSERVER = 'Development' in os.environ.get('SERVER_SOFTWARE', '')
+RE_DOCTYPE = re.compile(r'<!DOCTYPE.*?>', re.S)
+RE_HTML_COMMENTS = re.compile(r'<!--.*?-->', re.S)
 
 
 def Memoize(formatted_key, time=3600):
@@ -81,6 +84,14 @@ def IdOrClassMatches(tag, regex):
   if tag.has_key('id') and regex.search(tag['id']):
     return True
   return False
+
+
+def PreCleanHtml(html):
+  # Remove all HTML comments, doctypes.
+  html = re.sub(RE_HTML_COMMENTS, '', html)
+  html = re.sub(RE_DOCTYPE, '', html)
+
+  return html
 
 
 def RenderTemplate(template_name, template_values):

@@ -98,7 +98,7 @@ class FeedExtractor(object):
     self.feed = feedparser.parse(feed_source)
     self._FindEntry()
 
-    self.content = self._GetContent()
+    self.content = util.PreCleanHtml(self._GetContent())
     if not self.content:
       raise NoRssContentError('no content found')
 
