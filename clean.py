@@ -108,21 +108,18 @@ def Clean(url):
     extractor = extract_feed.FeedExtractor(
         url=url, final_url=final_url, html=html)
     note = u'<!-- cleaned feed -->\n'
-    content = extractor.content
+    soup = extractor.soup
   except extract_feed.RssError, e:
     note = u'<!-- cleaned content, %s, %s -->\n' % (e.__class__.__name__, e)
-    content = extract_content.ExtractFromHtml(url, html)
+    soup = extract_content.ExtractFromHtml(url, html)
 
-  return note + _Munge(content)
+  return note + _Munge(soup)
 if not util.IS_DEV_APPSERVER:
   Clean = util.Memoize('Clean_%s', 3600*24)(Clean)  # pylint: disable-msg=C6409
 
 
-def _Munge(html):
+def _Munge(soup):
   """Given a string of HTML content, munge it to be more pleasing."""
-  html = html.replace('&nbsp;', ' ')
-  soup = BeautifulSoup.BeautifulSoup(html)
-
   # Remove unwanted tags.
   for tag in soup.findAll(STRIP_TAG_NAMES):
     tag.extract()

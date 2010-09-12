@@ -104,10 +104,10 @@ class FeedExtractor(object):
 
     # Now, we've found content.  Check if it's legit.
     html = re.sub(r'<!--.*?-->', '', self.content)
-    soup = BeautifulSoup.BeautifulSoup(html)
-    for tag in soup.findAll(('a', 'script', 'noscript')):
+    self.soup = BeautifulSoup.BeautifulSoup(html)
+    for tag in self.soup.findAll(('script', 'noscript')):
       tag.extract()
-    text = soup.text
+    text = self.soup.text
     if re.search(r'\[?\.\.\.\]?\s*$', text):
       raise NoRssContentError('trailing ellipsis')
     if len(text) < MIN_FEED_TEXT_LEN:

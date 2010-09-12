@@ -216,7 +216,7 @@ def _ExtractFromHtmlGeneric(url, html):
   # Fix relative URLs.
   _FixUrls(soup, url)
 
-  return unicode(best_node)
+  return best_node
 
 
 def _FindLeafBlocks(soup):
