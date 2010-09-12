@@ -182,6 +182,17 @@ def _ExtractFromHtmlGeneric(url, html):
     return '<!-- no scored content! -->'
   best_node = scored_nodes[-1]
 
+  # Transform "text-only" (doesn't contain blocks) <div>s to <p>s.
+  for tag in soup.findAll('div'):
+    if not tag.find(TAG_NAMES_BLOCK):
+      tag.name = 'p'
+  # Fix relative URLs.
+  _FixUrls(best_node, url)
+
+  title_header = _FindTitleHeader(best_node, title)
+  if title_header:
+    _StripBefore(title_header)
+
   # For debugging ...
   if 0 and util.IS_DEV_APPSERVER:
     # Log scored nodes.
@@ -204,17 +215,6 @@ def _ExtractFromHtmlGeneric(url, html):
       tag['style'] = 'border: 2px dotted green !important;'
     # Return this whole marked-up soup.
     return soup
-
-  # Transform "text-only" (doesn't contain blocks) <div>s to <p>s.
-  for tag in soup.findAll('div'):
-    if not tag.find(TAG_NAMES_BLOCK):
-      tag.name = 'p'
-  # Fix relative URLs.
-  _FixUrls(soup, url)
-
-  title_header = _FindTitleHeader(best_node, title)
-  if title_header:
-    _StripBefore(title_header)
 
   return best_node
 
@@ -247,7 +247,11 @@ def _FixUrls(parent, base_url):
 
 
 def _StripBefore(strip_tag):
+  ancestors = strip_tag.findParents(True)
   for tag in strip_tag.findAllPrevious():
+    if tag in ancestors:
+      # Don't strip the tags that contain the strip_tag.
+      continue
     tag.extract()
   strip_tag.extract()
 
