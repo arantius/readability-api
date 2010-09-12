@@ -120,6 +120,10 @@ if not util.IS_DEV_APPSERVER:
 
 def _Munge(soup):
   """Given a string of HTML content, munge it to be more pleasing."""
+  # In certain failure cases, we'll still get a string.  Just use it.
+  if isinstance(soup, basestring):
+    return soup
+
   # Remove unwanted tags.
   for tag in soup.findAll(STRIP_TAG_NAMES):
     tag.extract()
