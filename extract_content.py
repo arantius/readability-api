@@ -34,7 +34,6 @@ from third_party import BeautifulSoup
 
 import util
 
-TAG_NAMES_BLOCK = set(('blockquote', 'div', 'li', 'p', 'pre', 'td', 'th'))
 MAX_SCORE_DEPTH = 5
 RE_CLASS_ID_STRIP_ANY = (
     '^addthis', 'functions', 'popular', '^related', 'tools', '^topic',
@@ -63,6 +62,8 @@ RE_CLASS_ID_POSITIVE = re.compile(
     r'|^(' + '|'.join(RE_CLASS_ID_POSITIVE_WHOLE) + r')$',
     re.I)
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
+TAG_NAMES_BLOCK = set(('blockquote', 'div', 'li', 'p', 'pre', 'td', 'th'))
+TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 
 
 def ExtractFromUrl(url):
@@ -115,6 +116,9 @@ def _ExtractFromHtmlGeneric(url, html):
   except HTMLParser.HTMLParseError, e:
     logging.exception(e)
     return u''
+
+  title = soup.find('title')
+  title = title and title.text.lower() or ''
 
   # Strip tags that will throw off our "text" calculations.
   for tag in soup.findAll(name=set(('script', 'style'))):
@@ -208,6 +212,10 @@ def _ExtractFromHtmlGeneric(url, html):
   # Fix relative URLs.
   _FixUrls(soup, url)
 
+  title_header = _FindTitleHeader(best_node, title)
+  if title_header:
+    _StripBefore(title_header)
+
   return best_node
 
 
@@ -220,12 +228,28 @@ def _FindLeafBlocks(soup):
         yield child
 
 
+def _FindTitleHeader(soup, title_text):
+  headers = soup.findAll(TAG_NAMES_HEADER)
+  for header in headers:
+    header_text = header.text.lower()
+    if len(header_text) < 10:
+      continue  # avoid false positives thanks to short/empty headers
+    if (title_text in header_text) or (header_text in title_text):
+      return header
+
+
 def _FixUrls(parent, base_url):
   for tag in parent.findAll():
     if tag.has_key('href'):
       tag['href'] = urlparse.urljoin(base_url, tag['href'])
     if tag.has_key('src'):
       tag['src'] = urlparse.urljoin(base_url, tag['src'])
+
+
+def _StripBefore(strip_tag):
+  for tag in strip_tag.findAllPrevious():
+    tag.extract()
+  strip_tag.extract()
 
 
 if __name__ == '__main__':

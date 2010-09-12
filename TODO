@@ -1,3 +1,1 @@
-* Strip same-as-title headings from the top.
 * Strip bylines.
-* Optimize: pass soups around, rather than HTML that's parsed more than once.
