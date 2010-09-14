@@ -37,7 +37,8 @@ import util
 MAX_SCORE_DEPTH = 5
 #RE_CLASS_ID_NEGATIVE_ANY = ()
 #RE_CLASS_ID_NEGATIVE_WHOLE = ()
-RE_CLASS_ID_NEGATIVE_WORDS = ('ad', 'author', 'meta', 'module')
+RE_CLASS_ID_NEGATIVE_WORDS = (
+    'ad(block)?', 'author', 'delicious', 'meta', 'module', 'twitter', 'widget')
 RE_CLASS_ID_NEGATIVE = re.compile(
     #r'(' + '|'.join(RE_CLASS_ID_NEGATIVE_ANY) + r')'
     r'(_|\b)(' + '|'.join(RE_CLASS_ID_NEGATIVE_WORDS) + r')(_|\b)',
@@ -45,7 +46,7 @@ RE_CLASS_ID_NEGATIVE = re.compile(
     re.I)
 RE_CLASS_ID_STRIP_ANY = (
     '^addthis', 'functions', 'popular', '^related', 'tools', '^topic',
-    'sharethis', 'social',
+    'sharethis', 'socia(ble|l)',
     )
 RE_CLASS_ID_STRIP_WHOLE = (
     'byline', 'pagination', 'prevnext', 'recent-posts',
@@ -62,7 +63,7 @@ RE_CLASS_ID_STRIP = re.compile(
     r'|^(' + '|'.join(RE_CLASS_ID_STRIP_WHOLE) + r')$',
     re.I)
 RE_CLASS_ID_POSITIVE_ANY = ('^article',)
-RE_CLASS_ID_POSITIVE_WHOLE = ('content', 'postcontent')
+RE_CLASS_ID_POSITIVE_WHOLE = ('content', 'page', 'postcontent', '(story)?body')
 RE_CLASS_ID_POSITIVE_WORDS = ('entry', 'post', 'text')
 RE_CLASS_ID_POSITIVE = re.compile(
     r'(' + '|'.join(RE_CLASS_ID_POSITIVE_ANY) + r')'
@@ -181,14 +182,12 @@ def _ExtractFromHtmlGeneric(url, html):
     _ApplyScore(tag, 15, name='has_embed')
 
   # Score based on id / class.
-  idClassMap = (
-    (-20, 'class', RE_CLASS_ID_NEGATIVE),
-    (-20, 'id', RE_CLASS_ID_NEGATIVE),
-    (20, 'class', RE_CLASS_ID_POSITIVE),
-    (20, 'id', RE_CLASS_ID_POSITIVE))
-  for (score, attr, regex) in idClassMap:
-    for tag in soup.findAll(attrs={attr: regex}):
-      _ApplyScore(tag, score, name=attr)
+  for tag in soup.findAll(
+      lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_NEGATIVE)):
+    _ApplyScore(tag, -20, name='bad_class_id')
+  for tag in soup.findAll(
+      lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE)):
+    _ApplyScore(tag, -20, name='good_class_id')
 
   # Get the highest scored nodes.
   scored_nodes = sorted(soup.findAll(attrs={'score': True}),
