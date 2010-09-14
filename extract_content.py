@@ -157,6 +157,9 @@ def _ExtractFromHtmlGeneric(url, html):
       size = int(tag['width']) * int(tag['height'])
     except ValueError:
       continue
+    _ApplyScore(tag, 1, name='any_img')
+    if size == 1:
+      _ApplyScore(tag, -3, name='tiny_img')
     if size >= 125000:
       _ApplyScore(tag, 5, name='has_img')
     if size >= 500000:
