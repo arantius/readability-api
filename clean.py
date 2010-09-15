@@ -105,7 +105,6 @@ def Clean(url):
 
   html, final_url = util.Fetch(url)
   note = ''
-  content = ''
   try:
     extractor = extract_feed.FeedExtractor(
         url=url, final_url=final_url, html=html)
