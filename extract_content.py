@@ -189,12 +189,11 @@ def _ExtractFromHtmlGeneric(url, html):
     _ApplyScore(tag, 15, name='has_embed')
 
   # Score based on id / class.
-  for tag in soup.findAll(
-      lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_NEGATIVE)):
-    _ApplyScore(tag, -20, name='bad_class_id')
-  for tag in soup.findAll(
-      lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE)):
-    _ApplyScore(tag, 20, name='good_class_id')
+  for tag in soup.findAll(True):
+    if util.IdOrClassMatches(tag, RE_CLASS_ID_NEGATIVE):
+      _ApplyScore(tag, -20, name='bad_class_id')
+    elif util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE):
+      _ApplyScore(tag, 20, name='good_class_id')
 
   # Get the highest scored nodes.
   scored_nodes = sorted(soup.findAll(attrs={'score': True}),
