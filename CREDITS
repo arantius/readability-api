@@ -1,3 +1,6 @@
 Includes "Hacker News" feed cleaning code, originally by Nirmal Patel.
 http://nirmalpatel.com/fcgi/hn.py
 Reused under terms of the GPLv3 license.
+
+Includes "hyphenate.py" by Ned Batchelder, from the public domain.
+http://nedbatchelder.com/code/modules/hyphenate.html

@@ -28,6 +28,7 @@ import logging
 import re
 
 from third_party import BeautifulSoup
+from third_party import hyphenate
 
 import extract_content
 import extract_feed
@@ -183,7 +184,15 @@ def _Munge(soup):
       if RE_RELATED_HEADER.search(parent_text):
         _StripAfter(tag.parent)
 
-  return unicode(soup)
+  # Hyphenate all text.
+  for text in soup.findAll(text=True):
+    text.replaceWith(BeautifulSoup.NavigableString(
+        '&shy;'.join(hyphenate.hyphenate_word(text))
+        ))
+
+  # Serialize the soup, and apply full justification.
+  return u"<div style='text-align: justify;'>%s</div>" % unicode(soup)
+
 
 def _StripAfter(strip_tag):
   for tag in strip_tag.findAllNext():
