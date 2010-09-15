@@ -24,7 +24,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import logging
 import re
 
 from third_party import BeautifulSoup
@@ -34,7 +33,8 @@ import extract_content
 import extract_feed
 import util
 
-RE_ALIGNED = re.compile(r'(?:_|\b)(?:align)?(left|right)(?:_|\b)', re.I)
+RE_ALIGNED = re.compile(
+    r'(?:_|\b)(?:align|float:\s*)?(left|right)(?:_|\b)', re.I)
 RE_CLASS_ID_STRIP = re.compile(
     r'(_|\b)foot'
     r'|(_|\b)(sub)?head'
@@ -130,11 +130,17 @@ def _Munge(soup):
     tag.extract()
 
   # For all images:
-  #  * If they have a class that implies floating, apply alignment.
+  #  * If they have a style or class that implies floating, apply alignment.
   #  * If they are at the beginning of a paragraph, with text, apply alignment.
   for img in soup.findAll('img'):
     if img.has_key('align'):
       continue
+
+    if img.has_key('style'):
+      match = RE_ALIGNED.search(img['style'])
+      if match:
+        img['align'] = match.group(1)
+        continue
 
     if img.has_key('class'):
       match = RE_ALIGNED.search(img['class'])
