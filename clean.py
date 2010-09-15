@@ -158,6 +158,11 @@ def _Munge(soup):
     for attr in STRIP_ATTRS:
       del tag[attr]
 
+  # Now that we've removed attributes, including style, put back clears
+  # on aligned images.
+  for img in soup.findAll('img', attrs={'align': True}):
+    img['style'] = 'clear: both'
+
   # Remove links to "social media" junk.
   for tag in soup.findAll(name='a', href=re.compile(r'api.tweetmeme.com')):
     tag.extract()
