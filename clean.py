@@ -167,10 +167,14 @@ def _Munge(soup):
       lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP)):
     tag.extract()
 
-  # Remove all totally empty container elements.
-  for tag in soup.findAll(('div', 'p', 'td', 'span')):
-    if not tag.find(True) and not tag.text.strip():
-      tag.extract()
+  # Remove all totally empty container elements.  (Plus those that contain
+  # only linebreaks.)
+  for tag in soup.findAll(('a', 'div', 'p', 'td', 'span')):
+    if not tag.text.strip():
+      if not tag.find(True):
+        tag.extract()
+      elif not tag.find(lambda tag: tag.name != 'br'):
+        tag.extract()
 
   # Remove feed junklinks.
   for tag in soup.findAll(name='a', attrs={'href': RE_FEED_JUNK}):
