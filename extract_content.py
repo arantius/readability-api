@@ -39,7 +39,8 @@ MAX_SCORE_DEPTH = 5
 #RE_CLASS_ID_NEGATIVE_ANY = ()
 #RE_CLASS_ID_NEGATIVE_WHOLE = ()
 RE_CLASS_ID_NEGATIVE_WORDS = (
-    'ad(block)?', 'author', 'delicious', 'meta', 'module', 'twitter', 'widget')
+    'ad(block)?', 'author', 'delicious', 'meta', 'module', 'post-meta',
+    'twitter', 'widget')
 RE_CLASS_ID_NEGATIVE = re.compile(
     #r'(' + '|'.join(RE_CLASS_ID_NEGATIVE_ANY) + r')'
     r'(_|\b)(' + '|'.join(RE_CLASS_ID_NEGATIVE_WORDS) + r')(_|\b)',
@@ -51,7 +52,7 @@ RE_CLASS_ID_STRIP_ANY = (
     )
 RE_CLASS_ID_STRIP_WHOLE = (
     'byline', 'dd_post_share', 'pagination', 'prevnext', 'recent-posts',
-    'notes-container',  # tumblr comments
+    'notes-container',  'post-notes', # tumblr comments
     )
 RE_CLASS_ID_STRIP_WORDS = (
     '(article)?comments?', 'head(er)?', 'hid(den|e)', 'foot(er)?',
