@@ -208,27 +208,10 @@ def _ExtractFromHtmlGeneric(url, html):
     _StripBefore(title_header)
 
   # For debugging ...
-  if 0 and util.IS_DEV_APPSERVER:
+  if util.IS_DEV_APPSERVER:
     # Log scored nodes.
     for node in scored_nodes:
       logging.info('%10.2f %s', node['score'], util.SoupTagOnly(node)[0:69])
-    # Highlight the highest-scored node.
-    best_node['style'] = 'border: 2px dotted red !important;'
-    # Highlight positively-scored sibling nodes.
-    for tag in best_node.findPreviousSiblings(True):
-      if not tag.has_key('score'):
-        continue
-      if float(tag['score']) <= 0:
-        continue
-      tag['style'] = 'border: 2px dotted green !important;'
-    for tag in best_node.findNextSiblings(True):
-      if not tag.has_key('score'):
-        continue
-      if float(tag['score']) <= 0:
-        continue
-      tag['style'] = 'border: 2px dotted green !important;'
-    # Return this whole marked-up soup.
-    return soup
 
   return best_node
 
