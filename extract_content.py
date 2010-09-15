@@ -47,12 +47,12 @@ RE_CLASS_ID_NEGATIVE = re.compile(
     #r'|^(' + '|'.join(RE_CLASS_ID_NEGATIVE_WHOLE) + r')$',
     re.I)
 RE_CLASS_ID_STRIP_ANY = (
-    '^addthis', 'functions', 'popular', '^related', 'tools', '^topic',
+    '^add(this|toany)', 'functions', 'popular', '^related', 'tools', '^topic',
     'sharethis', 'socia(ble|l)',
     )
 RE_CLASS_ID_STRIP_WHOLE = (
     'byline', 'dd_post_share', 'pagination', 'prevnext', 'recent-posts',
-    'notes-container',  'post-notes', # tumblr comments
+    'notes-container', 'post-notes',  # tumblr comments
     )
 RE_CLASS_ID_STRIP_WORDS = (
     '(article)?comments?', 'head(er)?', 'hid(den|e)', 'foot(er)?',
@@ -131,6 +131,7 @@ def _ExtractFromHtmlGeneric(url, html):
   except HTMLParser.HTMLParseError, e:
     logging.exception(e)
     return u''
+  return soup
 
   title = soup.find('title')
   title = title and title.text.lower() or ''
@@ -199,7 +200,7 @@ def _ExtractFromHtmlGeneric(url, html):
   scored_nodes = sorted(soup.findAll(attrs={'score': True}),
                         key=lambda x: x['score'])[-15:]
   if not scored_nodes:
-    return '<!-- no scored content! -->'
+    return u'<!-- no scored content! -->' + html
   best_node = scored_nodes[-1]
 
   # Transform "text-only" (doesn't contain blocks) <div>s to <p>s.
