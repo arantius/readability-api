@@ -33,7 +33,7 @@ RE_DOCTYPE = re.compile(r'<!DOCTYPE.*?>', re.S)
 RE_HTML_COMMENTS = re.compile(r'<!--.*?-->', re.S)
 
 
-def Memoize(formatted_key, time=3600):
+def Memoize(formatted_key, time=60*60):
   """Decorator to store a function call result in App Engine memcache."""
 
   def Decorator(func):
@@ -49,7 +49,7 @@ def Memoize(formatted_key, time=3600):
   return Decorator
 
 
-@Memoize('Fetch_%s')
+@Memoize('Fetch_%s', 60*60*24)
 def Fetch(url):
   """Fetch a URL, return its contents and any final-after-redirects URL."""
   error = None

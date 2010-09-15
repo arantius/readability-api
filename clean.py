@@ -119,7 +119,7 @@ def Clean(url):
 
   return note + _Munge(soup)
 if not util.IS_DEV_APPSERVER:
-  Clean = util.Memoize('Clean_%s', 3600*24)(Clean)  # pylint: disable-msg=C6409
+  Clean = util.Memoize('Clean_%s', 60*60*24)(Clean)  # pylint: disable-msg=C6409
 
 
 def _Munge(soup):
