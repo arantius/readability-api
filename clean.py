@@ -44,30 +44,33 @@ RE_CLASS_ID_STRIP = re.compile(
     re.I)
 RE_FEED_JUNK = re.compile(r'^https?://feed[^/]+/(~.{1,3}|1\.0)/', re.I)
 RE_RELATED_HEADER = re.compile(r'\brelated (posts?|articles?)\b', re.I)
-STRIP_ATTRS = set((
-    'class',
-    'id'
-    'onblur',
-    'onchange ',
-    'onclick',
-    'ondblclick',
-    'onfocus',
-    'onkeydown',
-    'onkeypress',
-    'onkeyup',
-    'onload',
-    'onmousedown',
-    'onmousemove',
-    'onmouseout',
-    'onmouseover',
-    'onmouseup',
-    'onreset',
-    'onselect',
-    'onsubmit',
-    'onunload',
-    'score',
-    'style',
-    ))
+STRIP_ATTRS = {
+    'onblur': True,
+    'onchange ': True,
+    'onclick': True,
+    'ondblclick': True,
+    'onfocus': True,
+    'onkeydown': True,
+    'onkeypress': True,
+    'onkeyup': True,
+    'onload': True,
+    'onmousedown': True,
+    'onmousemove': True,
+    'onmouseout': True,
+    'onmouseover': True,
+    'onmouseup': True,
+    'onreset': True,
+    'onselect': True,
+    'onsubmit': True,
+    'onunload': True,
+    'style': True,
+    }
+if not util.IS_DEV_APPSERVER:
+  STRIP_ATTRS.update({
+      'class': util.IS_DEV_APPSERVER,
+      'id': util.IS_DEV_APPSERVER,
+      'score': util.IS_DEV_APPSERVER,
+      })
 STRIP_TAG_NAMES = set((
     'iframe',
     'link',
