@@ -34,6 +34,7 @@ from third_party import BeautifulSoup
 
 import util
 
+EMBED_NAMES = set(('embed', 'object'))
 MAX_SCORE_DEPTH = 5
 #RE_CLASS_ID_NEGATIVE_ANY = ()
 #RE_CLASS_ID_NEGATIVE_WHOLE = ()
@@ -49,13 +50,14 @@ RE_CLASS_ID_STRIP_ANY = (
     'sharethis', 'socia(ble|l)',
     )
 RE_CLASS_ID_STRIP_WHOLE = (
-    'byline', 'pagination', 'prevnext', 'recent-posts',
+    'byline', 'dd_post_share', 'pagination', 'prevnext', 'recent-posts',
     'notes-container',  # tumblr comments
     )
 RE_CLASS_ID_STRIP_WORDS = (
-    '(article)?comments?', 'head(er)?', 'hid(den|e)', 'foot(er)?', 'inset',
-    'nav', 'print', 'share', 'sidebar', 'sprite', 'tags', 'talkback',
+    '(article)?comments?', 'head(er)?', 'hid(den|e)', 'foot(er)?',
+    'inset', 'nav', 'print', 'sidebar', 'sprite', 'tags', 'talkback',
     'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)',  # CNN Junk
+    # NOT: 'share' -- breaks twitter
     )
 RE_CLASS_ID_STRIP = re.compile(
     r'(' + '|'.join(RE_CLASS_ID_STRIP_ANY) + r')'
@@ -63,8 +65,11 @@ RE_CLASS_ID_STRIP = re.compile(
     r'|^(' + '|'.join(RE_CLASS_ID_STRIP_WHOLE) + r')$',
     re.I)
 RE_CLASS_ID_POSITIVE_ANY = ('^article',)
-RE_CLASS_ID_POSITIVE_WHOLE = ('content', 'page', 'postcontent', '(story)?body')
-RE_CLASS_ID_POSITIVE_WORDS = ('entry', 'post', 'text')
+RE_CLASS_ID_POSITIVE_WHOLE = (
+    'page', 'permalink', 'player', 'postcontent', '(story)?body'
+    # Test: removed 'content' as it often matches too much
+    )
+RE_CLASS_ID_POSITIVE_WORDS = ('h?entry', 'post', 'text')
 RE_CLASS_ID_POSITIVE = re.compile(
     r'(' + '|'.join(RE_CLASS_ID_POSITIVE_ANY) + r')'
     r'|(_|\b)(' + '|'.join(RE_CLASS_ID_POSITIVE_WORDS) + r')(_|\b)'
@@ -73,6 +78,8 @@ RE_CLASS_ID_POSITIVE = re.compile(
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
 TAG_NAMES_BLOCK = set(('blockquote', 'div', 'li', 'p', 'pre', 'td', 'th'))
 TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
+
+_DEPTH_SCORE_DECAY = [(1 - d / 12.0) ** 5 for d in range(MAX_SCORE_DEPTH + 1)]
 
 
 def ExtractFromUrl(url):
@@ -96,8 +103,6 @@ def ExtractFromHtml(url, html):
     return _ExtractFromHtmlGeneric(url, html)
 
 
-_DEPTH_SCORE_DECAY = [(1 - depth / 12.0) ** 5
-                      for depth in range(MAX_SCORE_DEPTH + 1)]
 def _ApplyScore(tag, score, depth=0, name=None):
   """Recursively apply a decaying score to each parent up the tree."""
   if not tag:
@@ -136,6 +141,8 @@ def _ExtractFromHtmlGeneric(url, html):
     tag.extract()
 
   # Strip tags that probably contain junk.
+  for tag in soup.findAll('form'):
+    tag.extract()
   for tag in soup.findAll(attrs={'class': RE_CLASS_ID_STRIP}):
     tag.extract()
   for tag in soup.findAll(attrs={'id': RE_CLASS_ID_STRIP}):
@@ -175,7 +182,6 @@ def _ExtractFromHtmlGeneric(url, html):
       _ApplyScore(tag, 10, name='big_img')
 
   # Score up objects/embeds.
-  EMBED_NAMES = set(('embed', 'object'))
   for tag in soup.findAll(EMBED_NAMES):
     if tag.findParent(EMBED_NAMES):
       continue
@@ -187,7 +193,7 @@ def _ExtractFromHtmlGeneric(url, html):
     _ApplyScore(tag, -20, name='bad_class_id')
   for tag in soup.findAll(
       lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE)):
-    _ApplyScore(tag, -20, name='good_class_id')
+    _ApplyScore(tag, 20, name='good_class_id')
 
   # Get the highest scored nodes.
   scored_nodes = sorted(soup.findAll(attrs={'score': True}),
