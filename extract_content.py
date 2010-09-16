@@ -77,6 +77,7 @@ RE_CLASS_ID_POSITIVE = re.compile(
     r'|^(' + '|'.join(RE_CLASS_ID_POSITIVE_WHOLE) + r')$',
     re.I)
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
+RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
 TAG_NAMES_BLOCK = set(('blockquote', 'div', 'li', 'p', 'pre', 'td', 'th'))
 TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 
@@ -126,6 +127,9 @@ def _ApplyScore(tag, score, depth=0, name=None):
 
 
 def _ExtractFromHtmlGeneric(url, html):
+  # Turn double-linebreaks into faked-up paragraphs before parsing.
+  html = re.sub(RE_DOUBLE_BR, '</p><p>', html)
+
   try:
     soup = BeautifulSoup.BeautifulSoup(util.PreCleanHtml(html))
   except HTMLParser.HTMLParseError, e:
