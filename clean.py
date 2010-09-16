@@ -206,6 +206,8 @@ def _Munge(soup):
     text_parts = re.split(r'(&[^;]{2,6};)', text)
     new_text = []
     for t in text_parts:
+      if not t:
+        continue
       if '&' == t[0]:
         new_text.append(t)
       else:
