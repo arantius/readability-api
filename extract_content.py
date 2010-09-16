@@ -36,14 +36,14 @@ import util
 
 EMBED_NAMES = set(('embed', 'object'))
 MAX_SCORE_DEPTH = 5
-#RE_CLASS_ID_NEGATIVE_ANY = ()
+RE_CLASS_ID_NEGATIVE_ANY = ('facebook',)
 #RE_CLASS_ID_NEGATIVE_WHOLE = ()
 RE_CLASS_ID_NEGATIVE_WORDS = (
     'ad(block)?', 'author', 'delicious', 'meta', 'module', 'post-meta',
-    'twitter', 'widget')
+    'tag(ged|s)', 'twitter', 'widget')
 RE_CLASS_ID_NEGATIVE = re.compile(
-    #r'(' + '|'.join(RE_CLASS_ID_NEGATIVE_ANY) + r')'
-    r'(_|\b)(' + '|'.join(RE_CLASS_ID_NEGATIVE_WORDS) + r')(_|\b)',
+    r'(' + '|'.join(RE_CLASS_ID_NEGATIVE_ANY) + r')'
+    r'|(_|\b)(' + '|'.join(RE_CLASS_ID_NEGATIVE_WORDS) + r')(_|\b)',
     #r'|^(' + '|'.join(RE_CLASS_ID_NEGATIVE_WHOLE) + r')$',
     re.I)
 RE_CLASS_ID_STRIP_ANY = (
