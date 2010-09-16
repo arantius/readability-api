@@ -146,6 +146,9 @@ def _ExtractFromHtmlGeneric(url, html):
     tag.extract()
   for tag in soup.findAll(
       lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP)):
+    if util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE):
+      continue
+    logging.info('Strip: %s', util.SoupTagOnly(tag))
     tag.extract()
 
   # Score up all 'leaf block' nodes (blocks not containing other blocks),
