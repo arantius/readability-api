@@ -39,24 +39,25 @@ MAX_SCORE_DEPTH = 5
 RE_CLASS_ID_NEGATIVE_ANY = ('facebook',)
 #RE_CLASS_ID_NEGATIVE_WHOLE = ()
 RE_CLASS_ID_NEGATIVE_WORDS = (
-    'ad(block)?', 'author', 'delicious', 'meta', 'module', 'post-meta',
-    'tag(ged|s)', 'twitter', 'widget')
+    'ad(block)?', 'author', 'bottom', 'delicious', 'featured', 'meta', 'module',
+    'post-meta', 'tag(ged|s)', 'twitter', 'widget')
 RE_CLASS_ID_NEGATIVE = re.compile(
     r'(' + '|'.join(RE_CLASS_ID_NEGATIVE_ANY) + r')'
     r'|(_|\b)(' + '|'.join(RE_CLASS_ID_NEGATIVE_WORDS) + r')(_|\b)',
     #r'|^(' + '|'.join(RE_CLASS_ID_NEGATIVE_WHOLE) + r')$',
     re.I)
 RE_CLASS_ID_STRIP_ANY = (
-    '^add(this|toany)', 'functions', 'popular', '^related', 'tools', '^topic',
-    'sharethis', 'socia(ble|l)',
+    '^add(this|toany)', '^comment', 'functions', 'popular', '^related', 'tools',
+    '^topic', 'sharethis', 'socia(ble|l)',
     )
 RE_CLASS_ID_STRIP_WHOLE = (
     'byline', 'dd_post_share', 'pagination', 'prevnext', 'recent-posts',
     'notes-container', 'post-notes',  # tumblr comments
     )
 RE_CLASS_ID_STRIP_WORDS = (
-    '(article)?comments?', 'head(er)?', 'hid(den|e)', 'foot(er)?',
-    'inset', 'nav', 'print', 'sidebar', 'sprite', 'tags', 'talkback',
+    '(article)?comments?', 'categor(ies|y)', 'head(er)?', 'hid(den|e)',
+    'foot(er)?', 'inset', 'nav', 'print', 'sidebar', 'sprite', 'tags',
+    'talkback',
     'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)',  # CNN Junk
     # NOT: 'share' -- breaks twitter
     )
