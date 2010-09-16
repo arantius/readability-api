@@ -203,9 +203,14 @@ def _Munge(soup):
 
   # Hyphenate all text.
   for text in soup.findAll(text=True):
-    new_text = text.replace('&nbsp;', ' ')
-    new_text = '&shy;'.join(hyphenate.hyphenate_word(new_text))
-    text.replaceWith(BeautifulSoup.NavigableString(new_text))
+    text_parts = re.split(r'(&[^;]{2,6};)', text)
+    new_text = []
+    for t in text_parts:
+      if '&' == t[0]:
+        new_text.append(t)
+      else:
+        new_text.append('&shy;'.join(hyphenate.hyphenate_word(t)))
+    text.replaceWith(BeautifulSoup.NavigableString(''.join(new_text)))
 
   # Serialize the soup, and apply full justification.
   return u"<div style='text-align: justify;'>%s</div>" % unicode(soup)
