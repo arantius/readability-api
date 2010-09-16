@@ -131,7 +131,6 @@ def _ExtractFromHtmlGeneric(url, html):
   except HTMLParser.HTMLParseError, e:
     logging.exception(e)
     return u''
-  return soup
 
   title = soup.find('title')
   title = title and title.text.lower() or ''
