@@ -80,6 +80,8 @@ def _Fetch(url):
 def IdOrClassMatches(tag, regex):
   if not tag:
     return False
+  if tag.name in ('body', 'html'):
+    return False
   if tag.has_key('class') and regex.search(tag['class']):
     return True
   if tag.has_key('id') and regex.search(tag['id']):
