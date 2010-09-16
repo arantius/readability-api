@@ -144,9 +144,8 @@ def _ExtractFromHtmlGeneric(url, html):
   # Strip tags that probably contain junk.
   for tag in soup.findAll('form'):
     tag.extract()
-  for tag in soup.findAll(attrs={'class': RE_CLASS_ID_STRIP}):
-    tag.extract()
-  for tag in soup.findAll(attrs={'id': RE_CLASS_ID_STRIP}):
+  for tag in soup.findAll(
+      lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP)):
     tag.extract()
 
   # Score up all 'leaf block' nodes (blocks not containing other blocks),
