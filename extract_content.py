@@ -165,9 +165,9 @@ def _ExtractFromHtmlGeneric(url, html):
 
   # Score up all 'leaf block' nodes (blocks not containing other blocks),
   # based on the length of their text.
-  for block_leaf in _FindLeafBlocks(soup):
+  for leaf_block in _FindLeafBlocks(soup):
     # Length of stripped text, with all whitespace collapsed.
-    block_text = block_leaf.text.strip()
+    block_text = leaf_block.text.strip()
     block_text = re.sub(r'\s\s+', ' ', block_text)
     block_text = re.sub(r'&[^;]{2,6};', '', block_text)
     text_len = len(block_text)
@@ -175,11 +175,11 @@ def _ExtractFromHtmlGeneric(url, html):
     if text_len == 0:
       continue
     if text_len < 20:
-      _ApplyScore(block_leaf, -2, name='short_text')
+      _ApplyScore(leaf_block, -2, name='short_text')
     if text_len > 75:
-      _ApplyScore(block_leaf, 6, name='some_text')
+      _ApplyScore(leaf_block, 6, name='some_text')
     if text_len > 250:
-      _ApplyScore(block_leaf, 8, name='more_text')
+      _ApplyScore(leaf_block, 8, name='more_text')
 
   # Score up images.
   for tag in soup.findAll('img'):
