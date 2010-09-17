@@ -147,7 +147,15 @@ def _ExtractFromHtmlGeneric(url, html):
     tag.extract()
 
   # Strip tags that probably contain junk.
-  for tag in soup.findAll('form'):
+  def _NonAspnetForm(tag):
+    if tag.name != 'form':
+      return False
+    if tag.has_key('id') and (tag['id'] == 'aspnetForm'):
+      return False
+    if tag.has_key('name') and (tag['name'] == 'aspnetForm'):
+      return False
+    return True
+  for tag in soup.findAll(_NonAspnetForm):
     tag.extract()
   for tag in soup.findAll(
       lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP)):
