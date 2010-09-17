@@ -214,7 +214,7 @@ def _ExtractFromHtmlGeneric(url, html):
   scored_nodes = sorted(soup.findAll(attrs={'score': True}),
                         key=lambda x: x['score'])[-15:]
   if not scored_nodes:
-    return u'<!-- no scored content! -->' + html
+    return u'<p>Scoring error.</p>'
   best_node = scored_nodes[-1]
 
   # Transform "text-only" (doesn't contain blocks) <div>s to <p>s.
