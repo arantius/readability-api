@@ -51,13 +51,14 @@ RE_CLASS_ID_STRIP_ANY = (
     '^topic', 'sharethis', 'socia(ble|l)',
     )
 RE_CLASS_ID_STRIP_WHOLE = (
-    'byline', 'dd_post_share', 'pagination', 'prevnext', 'recent-posts',
+    'author_info', 'byline', 'pagination', 'posted_on', 'prevnext',
+    'recent-posts', 'respond',
     'notes-container', 'post-notes',  # tumblr comments
     )
 RE_CLASS_ID_STRIP_WORDS = (
-    '(article)?comments?', 'categor(ies|y)', 'head(er)?', 'hid(den|e)',
-    'foot(er)?', 'inset', 'nav', 'print', 'sidebar', 'sprite', 'tags',
-    'talkback',
+    '(article)?comments?', 'categor(ies|y)', 'dd_post_share', 'head(er)?',
+    'hid(den|e)','foot(er)?', 'inset', 'nav', 'print', 'sidebar', 'sprite',
+    'tags', 'talkback',
     'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)',  # CNN Junk
     # NOT: 'share' -- breaks twitter
     )
@@ -68,10 +69,10 @@ RE_CLASS_ID_STRIP = re.compile(
     re.I)
 RE_CLASS_ID_POSITIVE_ANY = ('^article',)
 RE_CLASS_ID_POSITIVE_WHOLE = (
-    'page', 'permalink', 'player', 'postcontent', '(story)?body'
+    'page', 'permalink', 'player', 'post(-\d+|content)?', '(story)?body'
     # Test: removed 'content' as it often matches too much
     )
-RE_CLASS_ID_POSITIVE_WORDS = ('h?entry', 'post', 'text')
+RE_CLASS_ID_POSITIVE_WORDS = ('h?entry', 'text')
 RE_CLASS_ID_POSITIVE = re.compile(
     r'(' + '|'.join(RE_CLASS_ID_POSITIVE_ANY) + r')'
     r'|(_|\b)(' + '|'.join(RE_CLASS_ID_POSITIVE_WORDS) + r')(_|\b)'
