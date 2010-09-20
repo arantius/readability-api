@@ -35,6 +35,7 @@ from third_party import BeautifulSoup
 import util
 
 EMBED_NAMES = set(('embed', 'object'))
+MAX_CLASS_ID_STRIP_PERCENTAGE = 0.25
 MAX_SCORE_DEPTH = 5
 RE_CLASS_ID_NEGATIVE_ANY = ('facebook',)
 #RE_CLASS_ID_NEGATIVE_WHOLE = ()
@@ -108,16 +109,12 @@ def ExtractFromHtml(url, html):
 
 
 def StripJunk(soup):
-  # Remove forms, excepting asp.net forms that contain the whole page.
-  def _NonAspnetForm(tag):
-    if tag.name != 'form':
-      return False
-    if tag.has_key('id') and (tag['id'] == 'aspnetForm'):
-      return False
-    if tag.has_key('name') and (tag['name'] == 'aspnetForm'):
-      return False
-    return True
-  for tag in soup.findAll(_NonAspnetForm):
+  """Strip out junk nodes, for a variety of reasons."""
+  # Remove forms, scripts, and styles.
+  for tag in soup.findAll(('form', 'script', 'style')):
+    tag.extract()
+  # Script non-displayed nodes.
+  for tag in soup.findAll(attrs={'style': RE_DISPLAY_NONE}):
     tag.extract()
 
   # Remove links to "social media" junk.
@@ -126,12 +123,18 @@ def StripJunk(soup):
     tag.extract()
 
   # Remove all tags with a class/id that matches my pattern.
+  soup_len = float(len(unicode(soup)))
   for tag in soup.findAll(
       lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP)):
+    tag_len = len(unicode(tag))
+    if tag_len / soup_len > MAX_CLASS_ID_STRIP_PERCENTAGE:
+      continue
     if util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE):
       continue
     if util.IS_DEV_APPSERVER:
-      logging.info('Strip for class/id: %s', util.SoupTagOnly(tag))
+      logging.info(
+          'Strip for class/id: %f %d %d %s',
+          (tag_len/soup_len), tag_len, soup_len, util.SoupTagOnly(tag))
     tag.extract()
 
 
@@ -168,12 +171,6 @@ def _ExtractFromHtmlGeneric(url, html):
 
   title = soup.find('title')
   title = title and title.text.lower() or ''
-
-  # Strip tags that will throw off our "text" calculations.
-  for tag in soup.findAll(name=set(('script', 'style'))):
-    tag.extract()
-  for tag in soup.findAll(attrs={'style': RE_DISPLAY_NONE}):
-    tag.extract()
 
   # Strip tags that probably contain junk, before scoring.
   StripJunk(soup)
