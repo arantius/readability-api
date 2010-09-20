@@ -1528,7 +1528,11 @@ class BeautifulSoup(BeautifulStoneSoup):
     #contain another tag of the same type. Furthermore, it's common
     #to actually use these tags this way.
     NESTABLE_INLINE_TAGS = ('span', 'font', 'q', 'object', 'bdo', 'sub', 'sup',
-                            'center')
+                            'center',
+                            # html5 tags:
+                            'article', 'aside', 'details', 'figure', 'footer',
+                            'header', 'hgroup', 'mark', 'meter', 'nav',
+                            'output', 'section', 'summary', 'time')
 
     #According to the HTML standard, these block tags can contain
     #another tag of the same type. Furthermore, it's common

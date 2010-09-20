@@ -117,8 +117,8 @@ def StripJunk(soup):
     if tag_len / soup_len > MAX_CLASS_ID_STRIP_PERCENTAGE:
       return
     tag.extract()
-    
-  
+
+
   # Remove forms, scripts, and styles.
   for tag in soup.findAll(('form', 'script', 'style')):
     _Strip(tag)
