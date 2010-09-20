@@ -130,7 +130,7 @@ def _Munge(soup):
   # In certain failure cases, we'll still get a string.  Just use it.
   if isinstance(soup, basestring):
     return soup
-  return unicode(soup)
+
   # Remove unwanted tags.
   for tag in soup.findAll(STRIP_TAG_NAMES):
     tag.extract()
