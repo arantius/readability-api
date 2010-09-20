@@ -35,13 +35,6 @@ import util
 
 RE_ALIGNED = re.compile(
     r'(?:_|\b)(?:align|float:\s*)?(left|right)(?:_|\b)', re.I)
-RE_CLASS_ID_STRIP = re.compile(
-    r'(_|\b)foot'
-    r'|(_|\b)(sub)?head'
-    r'|(_|\b)related'
-    r'|(_|\b)side'
-    r'|widget',
-    re.I)
 RE_FEED_JUNK = re.compile(r'^https?://feed[^/]+/(~.{1,3}|1\.0)/', re.I)
 RE_RELATED_HEADER = re.compile(r'\brelated (posts?|articles?)\b', re.I)
 STRIP_ATTRS = {
@@ -166,14 +159,7 @@ def _Munge(soup):
   for img in soup.findAll('img', attrs={'align': True}):
     img['style'] = 'clear: both'
 
-  # Remove links to "social media" junk.
-  for tag in soup.findAll(name='a', href=re.compile(r'api.tweetmeme.com')):
-    tag.extract()
-
-  # Remove junk content by id/class.
-  for tag in soup.findAll(
-      lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP)):
-    tag.extract()
+  extract_content.StripJunk(soup)
 
   # Remove all totally empty container elements.  (Plus those that contain
   # only linebreaks.)

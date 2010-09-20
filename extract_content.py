@@ -107,6 +107,34 @@ def ExtractFromHtml(url, html):
     return _ExtractFromHtmlGeneric(url, html)
 
 
+def StripJunk(soup):
+  # Remove forms, excepting asp.net forms that contain the whole page.
+  def _NonAspnetForm(tag):
+    if tag.name != 'form':
+      return False
+    if tag.has_key('id') and (tag['id'] == 'aspnetForm'):
+      return False
+    if tag.has_key('name') and (tag['name'] == 'aspnetForm'):
+      return False
+    return True
+  for tag in soup.findAll(_NonAspnetForm):
+    tag.extract()
+
+  # Remove links to "social media" junk.
+  for tag in soup.findAll(name='a', href=re.compile(
+      r'addtoany\.com|api\.tweetmeme\.com|^javascript:')):
+    tag.extract()
+
+  # Remove all tags with a class/id that matches my pattern.
+  for tag in soup.findAll(
+      lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP)):
+    if util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE):
+      continue
+    if util.IS_DEV_APPSERVER:
+      logging.info('Strip for class/id: %s', util.SoupTagOnly(tag))
+    tag.extract()
+
+
 def _ApplyScore(tag, score, depth=0, name=None):
   """Recursively apply a decaying score to each parent up the tree."""
   if not tag:
@@ -147,24 +175,8 @@ def _ExtractFromHtmlGeneric(url, html):
   for tag in soup.findAll(attrs={'style': RE_DISPLAY_NONE}):
     tag.extract()
 
-  # Strip tags that probably contain junk.
-  def _NonAspnetForm(tag):
-    if tag.name != 'form':
-      return False
-    if tag.has_key('id') and (tag['id'] == 'aspnetForm'):
-      return False
-    if tag.has_key('name') and (tag['name'] == 'aspnetForm'):
-      return False
-    return True
-  for tag in soup.findAll(_NonAspnetForm):
-    tag.extract()
-  for tag in soup.findAll(
-      lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP)):
-    if util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE):
-      continue
-    if util.IS_DEV_APPSERVER:
-      logging.info('Strip for class/id: %s', util.SoupTagOnly(tag))
-    tag.extract()
+  # Strip tags that probably contain junk, before scoring.
+  StripJunk(soup)
 
   # Score up all 'leaf block' nodes (blocks not containing other blocks),
   # based on the length of their text.
