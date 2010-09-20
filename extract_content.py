@@ -40,7 +40,7 @@ RE_CLASS_ID_NEGATIVE_ANY = ('facebook',)
 #RE_CLASS_ID_NEGATIVE_WHOLE = ()
 RE_CLASS_ID_NEGATIVE_WORDS = (
     'ad(block)?', 'author', 'bottom', 'delicious', 'featured', 'meta', 'module',
-    'post-meta', 'tag(ged|s)', 'twitter', 'widget')
+    'post-meta', 'twitter', 'widget')
 RE_CLASS_ID_NEGATIVE = re.compile(
     r'(' + '|'.join(RE_CLASS_ID_NEGATIVE_ANY) + r')'
     r'|(_|\b)(' + '|'.join(RE_CLASS_ID_NEGATIVE_WORDS) + r')(_|\b)',
@@ -57,8 +57,8 @@ RE_CLASS_ID_STRIP_WHOLE = (
     )
 RE_CLASS_ID_STRIP_WORDS = (
     '(article)?comments?', 'categor(ies|y)', 'dd_post_share', 'head(er)?',
-    'hid(den|e)','foot(er)?', 'inset', 'nav', 'print', 'sidebar', 'sprite',
-    'tags', 'talkback',
+    'hid(den|e)', 'foot(er)?', 'inset', 'nav', 'post_share', 'print', 'sidebar',
+    'sprite', 'tag(ged|s)', 'talkback',
     'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)',  # CNN Junk
     # NOT: 'share' -- breaks twitter
     )
@@ -69,7 +69,7 @@ RE_CLASS_ID_STRIP = re.compile(
     re.I)
 RE_CLASS_ID_POSITIVE_ANY = ('^article',)
 RE_CLASS_ID_POSITIVE_WHOLE = (
-    'page', 'permalink', 'player', 'post(-\d+|content)?', '(story)?body'
+    'page', 'permalink', 'player', 'post(-\d+|body|content)?', '(story)?body'
     # Test: removed 'content' as it often matches too much
     )
 RE_CLASS_ID_POSITIVE_WORDS = ('h?entry', 'text')
