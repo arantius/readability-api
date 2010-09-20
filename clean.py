@@ -36,7 +36,7 @@ import util
 RE_ALIGNED = re.compile(
     r'(?:_|\b)(?:align|float:\s*)?(left|right)(?:_|\b)', re.I)
 RE_FEED_JUNK = re.compile(r'^https?://feed[^/]+/(~.{1,3}|1\.0)/', re.I)
-RE_RELATED_HEADER = re.compile(r'\brelated (posts?|articles?)\b', re.I)
+RE_RELATED_HEADER = re.compile(r'\brelated (posts?|articles?)\b|see also', re.I)
 STRIP_ATTRS = {
     'onblur': True,
     'onchange ': True,
