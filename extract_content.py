@@ -28,7 +28,6 @@ import HTMLParser
 import logging
 import re
 import sys
-import urlparse
 
 from third_party import BeautifulSoup
 
@@ -192,7 +191,6 @@ def _ExtractFromHtmlGeneric(url, html):
   best_node = scored_nodes[-1]
 
   _TransformDivsToPs(soup)
-  _FixUrls(best_node, url)
 
   # If a header repeats the title, strip it and all preceding nodes.
   title_header = _FindTitleHeader(best_node, title)
@@ -225,14 +223,6 @@ def _FindTitleHeader(soup, title_text):
       continue  # avoid false positives thanks to short/empty headers
     if (title_text in header_text) or (header_text in title_text):
       return header
-
-
-def _FixUrls(parent, base_url):
-  for tag in parent.findAll():
-    if tag.has_key('href'):
-      tag['href'] = urlparse.urljoin(base_url, tag['href'])
-    if tag.has_key('src'):
-      tag['src'] = urlparse.urljoin(base_url, tag['src'])
 
 
 def _ScoreBlocks(soup):

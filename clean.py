@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import re
+import urlparse
 
 from third_party import BeautifulSoup
 from third_party import hyphenate
@@ -110,9 +111,18 @@ def Clean(url):
     note = u'<!-- cleaned content, %s, %s -->\n' % (e.__class__.__name__, e)
     soup = extract_content.ExtractFromHtml(url, html)
 
+  _FixUrls(soup, final_url)
   return note + _Munge(soup)
 if not util.IS_DEV_APPSERVER:
   Clean = util.Memoize('Clean_%s', 60*60*24)(Clean)  # pylint: disable-msg=C6409
+
+
+def _FixUrls(parent, base_url):
+  for tag in parent.findAll():
+    if tag.has_key('href'):
+      tag['href'] = urlparse.urljoin(base_url, tag['href'])
+    if tag.has_key('src'):
+      tag['src'] = urlparse.urljoin(base_url, tag['src'])
 
 
 def _Munge(soup):
@@ -120,7 +130,7 @@ def _Munge(soup):
   # In certain failure cases, we'll still get a string.  Just use it.
   if isinstance(soup, basestring):
     return soup
-
+  return unicode(soup)
   # Remove unwanted tags.
   for tag in soup.findAll(STRIP_TAG_NAMES):
     tag.extract()

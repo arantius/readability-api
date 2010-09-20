@@ -1,1 +1,2 @@
 * Strip bylines.
+* Process RSS ourselves -- Pipes strips <iframe> and <embed>!
