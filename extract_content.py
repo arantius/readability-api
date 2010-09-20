@@ -68,7 +68,7 @@ RE_CLASS_ID_STRIP = re.compile(
     r'|(_|\b)(' + '|'.join(RE_CLASS_ID_STRIP_WORDS) + r')(_|\b)'
     r'|^(' + '|'.join(RE_CLASS_ID_STRIP_WHOLE) + r')$',
     re.I)
-RE_CLASS_ID_POSITIVE_ANY = ('^article\S*(tools?)',)
+RE_CLASS_ID_POSITIVE_ANY = ('^article_?(body)',)
 RE_CLASS_ID_POSITIVE_WHOLE = (
     'page', 'permalink', 'player', 'post(-\d+|body|content)?', '(story)?body'
     # Test: removed 'content' as it often matches too much
@@ -110,32 +110,36 @@ def ExtractFromHtml(url, html):
 
 def StripJunk(soup):
   """Strip out junk nodes, for a variety of reasons."""
+  soup_len = float(len(unicode(soup)))
+
+  def _Strip(tag):
+    tag_len = len(unicode(tag))
+    if tag_len / soup_len > MAX_CLASS_ID_STRIP_PERCENTAGE:
+      return
+    tag.extract()
+    
+  
   # Remove forms, scripts, and styles.
   for tag in soup.findAll(('form', 'script', 'style')):
-    tag.extract()
+    _Strip(tag)
   # Script non-displayed nodes.
   for tag in soup.findAll(attrs={'style': RE_DISPLAY_NONE}):
-    tag.extract()
+    _Strip(tag)
 
   # Remove links to "social media" junk.
   for tag in soup.findAll(name='a', href=re.compile(
       r'addtoany\.com|api\.tweetmeme\.com|^javascript:')):
-    tag.extract()
+    _Strip(tag)
 
   # Remove all tags with a class/id that matches my pattern.
-  soup_len = float(len(unicode(soup)))
   for tag in soup.findAll(
       lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP)):
-    tag_len = len(unicode(tag))
-    if tag_len / soup_len > MAX_CLASS_ID_STRIP_PERCENTAGE:
-      continue
     if util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE):
       continue
     if util.IS_DEV_APPSERVER:
       logging.info(
-          'Strip for class/id: %f %6d %6d %s',
-          (tag_len/soup_len), tag_len, soup_len, util.SoupTagOnly(tag))
-    tag.extract()
+          'Strip for class/id: %s', util.SoupTagOnly(tag))
+    _Strip(tag)
 
 
 def _ApplyScore(tag, score, depth=0, name=None):
