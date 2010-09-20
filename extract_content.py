@@ -198,13 +198,13 @@ def _ExtractFromHtmlGeneric(url, html):
 
   # Score up images.
   for tag in soup.findAll('img'):
+    _ApplyScore(tag, 1, name='any_img')
     if not tag.has_key('width') or not tag.has_key('height'):
       continue
     try:
       size = int(tag['width']) * int(tag['height'])
     except ValueError:
       continue
-    _ApplyScore(tag, 1, name='any_img')
     if size == 1:
       _ApplyScore(tag, -3, name='tiny_img')
     if size >= 125000:
