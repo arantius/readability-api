@@ -178,52 +178,10 @@ def _ExtractFromHtmlGeneric(url, html):
   # Strip tags that probably contain junk, before scoring.
   StripJunk(soup)
 
-  # Score up all 'leaf block' nodes (blocks not containing other blocks),
-  # based on the length of their text.
-  for leaf_block in _FindLeafBlocks(soup):
-    # Length of stripped text, with all whitespace collapsed.
-    block_text = leaf_block.text.strip()
-    block_text = re.sub(r'\s\s+', ' ', block_text)
-    block_text = re.sub(r'&[^;]{2,6};', '', block_text)
-    text_len = len(block_text)
-
-    if text_len == 0:
-      continue
-    if text_len < 20:
-      _ApplyScore(leaf_block, -2, name='short_text')
-    if text_len > 75:
-      _ApplyScore(leaf_block, 6, name='some_text')
-    if text_len > 250:
-      _ApplyScore(leaf_block, 8, name='more_text')
-
-  # Score up images.
-  for tag in soup.findAll('img'):
-    _ApplyScore(tag, 1, name='any_img')
-    if not tag.has_key('width') or not tag.has_key('height'):
-      continue
-    try:
-      size = int(tag['width']) * int(tag['height'])
-    except ValueError:
-      continue
-    if size == 1:
-      _ApplyScore(tag, -3, name='tiny_img')
-    if size >= 125000:
-      _ApplyScore(tag, 5, name='has_img')
-    if size >= 500000:
-      _ApplyScore(tag, 10, name='big_img')
-
-  # Score up objects/embeds.
-  for tag in soup.findAll(EMBED_NAMES):
-    if tag.findParent(EMBED_NAMES):
-      continue
-    _ApplyScore(tag, 15, name='has_embed')
-
-  # Score based on id / class.
-  for tag in soup.findAll(True):
-    if util.IdOrClassMatches(tag, RE_CLASS_ID_NEGATIVE):
-      _ApplyScore(tag, -20, name='bad_class_id')
-    elif util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE):
-      _ApplyScore(tag, 20, name='good_class_id')
+  _ScoreBlocks(soup)
+  _ScoreClassId(soup)
+  _ScoreImages(soup)
+  _ScoreEmbeds(soup)
 
   # Get the highest scored nodes.
   scored_nodes = sorted(soup.findAll(attrs={'score': True}),
@@ -232,13 +190,10 @@ def _ExtractFromHtmlGeneric(url, html):
     return u'<p>Scoring error.</p>'
   best_node = scored_nodes[-1]
 
-  # Transform "text-only" (doesn't contain blocks) <div>s to <p>s.
-  for tag in soup.findAll('div'):
-    if not tag.find(TAG_NAMES_BLOCK):
-      tag.name = 'p'
-  # Fix relative URLs.
+  _TransformDivsToPs(soup)
   _FixUrls(best_node, url)
 
+  # If a header repeats the title, strip it and all preceding nodes.
   title_header = _FindTitleHeader(best_node, title)
   if title_header:
     _StripBefore(title_header)
@@ -279,6 +234,60 @@ def _FixUrls(parent, base_url):
       tag['src'] = urlparse.urljoin(base_url, tag['src'])
 
 
+def _ScoreBlocks(soup):
+  """Score up all leaf block nodes, based on the length of their text."""
+  for leaf_block in _FindLeafBlocks(soup):
+    # Length of stripped text, with all whitespace collapsed.
+    block_text = leaf_block.text.strip()
+    block_text = re.sub(r'\s\s+', ' ', block_text)
+    block_text = re.sub(r'&[^;]{2,6};', '', block_text)
+    text_len = len(block_text)
+
+    if text_len == 0:
+      continue
+    if text_len < 20:
+      _ApplyScore(leaf_block, -2, name='short_text')
+    if text_len > 75:
+      _ApplyScore(leaf_block, 6, name='some_text')
+    if text_len > 250:
+      _ApplyScore(leaf_block, 8, name='more_text')
+
+
+def _ScoreClassId(soup):
+  """Score up and down, based on class and id."""
+  for tag in soup.findAll(True):
+    if util.IdOrClassMatches(tag, RE_CLASS_ID_NEGATIVE):
+      _ApplyScore(tag, -20, name='bad_class_id')
+    elif util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE):
+      _ApplyScore(tag, 20, name='good_class_id')
+
+
+def _ScoreEmbeds(soup):
+  """Score up objects/embeds."""
+  for tag in soup.findAll(EMBED_NAMES):
+    if tag.findParent(EMBED_NAMES):
+      continue
+    _ApplyScore(tag, 15, name='has_embed')
+
+
+def _ScoreImages(soup):
+  """Score up images."""
+  for tag in soup.findAll('img'):
+    _ApplyScore(tag, 1, name='any_img')
+    if not tag.has_key('width') or not tag.has_key('height'):
+      continue
+    try:
+      size = int(tag['width']) * int(tag['height'])
+    except ValueError:
+      continue
+    if size == 1:
+      _ApplyScore(tag, -3, name='tiny_img')
+    if size >= 125000:
+      _ApplyScore(tag, 5, name='has_img')
+    if size >= 500000:
+      _ApplyScore(tag, 10, name='big_img')
+
+
 def _StripBefore(strip_tag):
   ancestors = strip_tag.findParents(True)
   for tag in strip_tag.findAllPrevious():
@@ -287,6 +296,12 @@ def _StripBefore(strip_tag):
       continue
     tag.extract()
   strip_tag.extract()
+
+
+def _TransformDivsToPs(soup):
+  for tag in soup.findAll('div'):
+    if not tag.find(TAG_NAMES_BLOCK):
+      tag.name = 'p'
 
 
 if __name__ == '__main__':
