@@ -53,7 +53,7 @@ RE_CLASS_ID_STRIP_ANY = (
 RE_CLASS_ID_STRIP_WHOLE = (
     'author_info', 'byline', 'more_stories', 'pagination', 'posted_on',
     'prevnext', 'recent-posts', 'respond',
-    'notes-container', 'post-notes',  # tumblr comments
+    'notes', 'notes-container', 'post-notes',  # tumblr comments
     )
 RE_CLASS_ID_STRIP_WORDS = (
     'ad', '(article)?comments?', 'categor(ies|y)', 'dd_post_share', 'head(er)?',
@@ -69,7 +69,7 @@ RE_CLASS_ID_STRIP = re.compile(
     re.I)
 RE_CLASS_ID_POSITIVE_ANY = ('^article_?(body)',)
 RE_CLASS_ID_POSITIVE_WHOLE = (
-    'page', 'permalink', 'player', 'post(-\d+|body|content)?', '(story)?body'
+    'page', 'permalink', 'player', 'post[-_]?(\d+|body|content)?', '(story)?body'
     # Test: removed 'content' as it often matches too much
     )
 RE_CLASS_ID_POSITIVE_WORDS = ('h?entry', 'text')
@@ -127,7 +127,10 @@ def StripJunk(soup):
 
   # Remove links to "social media" junk.
   for tag in soup.findAll(name='a', href=re.compile(
-      r'addtoany\.com|api\.tweetmeme\.com|^javascript:')):
+      r'addtoany\.com|api\.tweetmeme\.com|delicious\.com|^javascript:')):
+    _Strip(tag)
+  for tag in soup.findAll(src=re.compile(
+      r'reddit\.com|stumbleupon\.com')):
     _Strip(tag)
 
   # Remove all tags with a class/id that matches my pattern.
@@ -237,7 +240,7 @@ def _ScoreBlocks(soup):
     if text_len == 0:
       continue
     if text_len < 20:
-      _ApplyScore(leaf_block, -2, name='short_text')
+      _ApplyScore(leaf_block, -1.5, name='short_text')
     if text_len > 75:
       _ApplyScore(leaf_block, 6, name='some_text')
     if text_len > 250:

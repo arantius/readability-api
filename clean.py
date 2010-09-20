@@ -37,7 +37,8 @@ import util
 RE_ALIGNED = re.compile(
     r'(?:_|\b)(?:align|float:\s*)?(left|right)(?:_|\b)', re.I)
 RE_FEED_JUNK = re.compile(r'^https?://feed[^/]+/(~.{1,3}|1\.0)/', re.I)
-RE_RELATED_HEADER = re.compile(r'\brelated (posts?|articles?)\b|see also', re.I)
+RE_RELATED_HEADER = re.compile(
+    r'\b(for more|related (posts?|articles?)|see also)\b', re.I)
 STRIP_ATTRS = {
     'onblur': True,
     'onchange ': True,
@@ -118,11 +119,10 @@ if not util.IS_DEV_APPSERVER:
 
 
 def _FixUrls(parent, base_url):
-  for tag in parent.findAll():
-    if tag.has_key('href'):
-      tag['href'] = urlparse.urljoin(base_url, tag['href'])
-    if tag.has_key('src'):
-      tag['src'] = urlparse.urljoin(base_url, tag['src'])
+  for tag in parent.findAll(href=True):
+    tag['href'] = urlparse.urljoin(base_url, tag['href'])
+  for tag in parent.findAll(src=True):
+    tag['src'] = urlparse.urljoin(base_url, tag['src'])
 
 
 def _Munge(soup):

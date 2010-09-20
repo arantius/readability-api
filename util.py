@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 import os
 import re
+import urlparse
 
 from google.appengine.api import memcache
 from google.appengine.api import urlfetch
@@ -74,7 +75,9 @@ def _Fetch(url):
   except urlfetch.DownloadError, e:
     raise _FetchError(repr(e))
   else:
-    return (response.content, (response.final_url or url))
+    final_url = (response.final_url or url)
+    final_url = urlparse.urljoin(url, final_url)
+    return (response.content, final_url)
 
 
 def IdOrClassMatches(tag, regex):
