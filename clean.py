@@ -125,30 +125,6 @@ def _Munge(soup):
   for tag in soup.findAll(STRIP_TAG_NAMES):
     tag.extract()
 
-  # For all images:
-  #  * If they have a style or class that implies floating, apply alignment.
-  #  * If they are at the beginning of a paragraph, with text, apply alignment.
-  for img in soup.findAll('img'):
-    if img.has_key('align'):
-      continue
-
-    if img.has_key('style'):
-      match = RE_ALIGNED.search(img['style'])
-      if match:
-        img['align'] = match.group(1)
-        continue
-
-    if img.has_key('class'):
-      match = RE_ALIGNED.search(img['class'])
-      if match:
-        img['align'] = match.group(1)
-        continue
-
-    parent_p = img.findParent('p', limit=1)
-    if parent_p and not img.findPreviousSibling(name=True):
-      if parent_p.text or not parent_p.findPreviousSibling('p'):
-        img['align'] = 'left'
-
   # Remove unwanted attributes from all tags (e.g. events, styles).
   for tag in soup.findAll(True):
     for attr in STRIP_ATTRS:
@@ -202,6 +178,33 @@ def _Munge(soup):
 
   # Serialize the soup, and apply full justification.
   return u"<div style='text-align: justify;'>%s</div>" % unicode(soup)
+
+
+def _MungeImages(soup):
+  # For all images:
+  #  * If they have a style or class that implies floating, apply alignment.
+  #  * If they are at the beginning of a paragraph, with text, apply alignment.
+  for img in soup.findAll('img'):
+    if img.has_key('align'):
+      continue
+
+    if img.has_key('style'):
+      match = RE_ALIGNED.search(img['style'])
+      if match:
+        img['align'] = match.group(1)
+        continue
+
+    if img.has_key('class'):
+      match = RE_ALIGNED.search(img['class'])
+      if match:
+        img['align'] = match.group(1)
+        continue
+
+    parent_p = img.findParent('p', limit=1)
+    if parent_p and not img.findPreviousSibling(name=True):
+      if parent_p.text or not parent_p.findPreviousSibling('p'):
+        img['align'] = 'left'
+
 
 
 def _StripAfter(strip_tag):
