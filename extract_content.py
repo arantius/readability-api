@@ -52,8 +52,8 @@ RE_CLASS_ID_STRIP_ANY = (
     '^topic', 'sharethis', 'socia(ble|l)',
     )
 RE_CLASS_ID_STRIP_WHOLE = (
-    'author_info', 'byline', 'pagination', 'posted_on', 'prevnext',
-    'recent-posts', 'respond',
+    'author_info', 'byline', 'more_stories', 'pagination', 'posted_on',
+    'prevnext', 'recent-posts', 'respond',
     'notes-container', 'post-notes',  # tumblr comments
     )
 RE_CLASS_ID_STRIP_WORDS = (
