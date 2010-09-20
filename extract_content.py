@@ -48,8 +48,8 @@ RE_CLASS_ID_NEGATIVE = re.compile(
     #r'|^(' + '|'.join(RE_CLASS_ID_NEGATIVE_WHOLE) + r')$',
     re.I)
 RE_CLASS_ID_STRIP_ANY = (
-    '^add(this|toany)', '^comment', 'functions', 'popular', '^related', 'tools',
-    '^topic', 'sharethis', 'socia(ble|l)',
+    '^add(this|toany)', '^comment', 'functions', 'popular', '^related',
+    'tool(box|s)', '^topic', 'sharethis', 'socia(ble|l)',
     )
 RE_CLASS_ID_STRIP_WHOLE = (
     'author_info', 'byline', 'more_stories', 'pagination', 'posted_on',
@@ -57,7 +57,7 @@ RE_CLASS_ID_STRIP_WHOLE = (
     'notes-container', 'post-notes',  # tumblr comments
     )
 RE_CLASS_ID_STRIP_WORDS = (
-    '(article)?comments?', 'categor(ies|y)', 'dd_post_share', 'head(er)?',
+    'ad', '(article)?comments?', 'categor(ies|y)', 'dd_post_share', 'head(er)?',
     'hid(den|e)', 'foot(er)?', 'inset', 'nav', 'post_share', 'print', 'sidebar',
     'sprite', 'tag(ged|s)', 'talkback',
     'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)',  # CNN Junk
@@ -68,7 +68,7 @@ RE_CLASS_ID_STRIP = re.compile(
     r'|(_|\b)(' + '|'.join(RE_CLASS_ID_STRIP_WORDS) + r')(_|\b)'
     r'|^(' + '|'.join(RE_CLASS_ID_STRIP_WHOLE) + r')$',
     re.I)
-RE_CLASS_ID_POSITIVE_ANY = ('^article',)
+RE_CLASS_ID_POSITIVE_ANY = ('^article\S*(tools?)',)
 RE_CLASS_ID_POSITIVE_WHOLE = (
     'page', 'permalink', 'player', 'post(-\d+|body|content)?', '(story)?body'
     # Test: removed 'content' as it often matches too much
@@ -133,7 +133,7 @@ def StripJunk(soup):
       continue
     if util.IS_DEV_APPSERVER:
       logging.info(
-          'Strip for class/id: %f %d %d %s',
+          'Strip for class/id: %f %6d %6d %s',
           (tag_len/soup_len), tag_len, soup_len, util.SoupTagOnly(tag))
     tag.extract()
 
