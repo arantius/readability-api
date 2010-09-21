@@ -151,13 +151,16 @@ def _MungeHyphenate(soup):
   for text in soup.findAll(text=True):
     text_parts = re.split(r'(&[^;]{2,6};)', text)
     new_text = []
-    for t in text_parts:
-      if not t:
+    for text_part in text_parts:
+      if not text_part:
         continue
-      if '&' == t[0]:
-        new_text.append(t)
+      if '&' == text_part[0]:
+        new_text.append(text_part)
       else:
-        new_text.append('&shy;'.join(hyphenate.hyphenate_word(t)))
+        words = re.split(r'\s+', text_part)
+        words = ['&shy;'.join(hyphenate.hyphenate_word(word))
+                 for word in words]
+        new_text.append(' '.join(words))
     text.replaceWith(BeautifulSoup.NavigableString(''.join(new_text)))
 
 
