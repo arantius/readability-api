@@ -166,11 +166,10 @@ def _ApplyScore(tag, score, depth=0, name=None):
 
 
 def _ExtractFromHtmlGeneric(html):
-  # Turn double-linebreaks into faked-up paragraphs before parsing.
-  html = re.sub(RE_DOUBLE_BR, '</p><p>', html)
-
   try:
-    soup = BeautifulSoup.BeautifulSoup(util.PreCleanHtml(html))
+    soup = BeautifulSoup.BeautifulSoup(
+        util.PreCleanHtml(html),
+        convertEntities=BeautifulSoup.BeautifulStoneSoup.ALL_ENTITIES)
   except HTMLParser.HTMLParseError, e:
     logging.exception(e)
     return u''
@@ -178,9 +177,7 @@ def _ExtractFromHtmlGeneric(html):
   title = soup.find('title')
   title = title and title.text.lower() or ''
 
-  # Strip tags that probably contain junk, before scoring.
   StripJunk(soup)
-
   _ScoreBlocks(soup)
   _ScoreClassId(soup)
   _ScoreImages(soup)

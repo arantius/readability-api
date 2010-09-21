@@ -31,6 +31,7 @@ from google.appengine.ext.webapp import template
 
 IS_DEV_APPSERVER = 'Development' in os.environ.get('SERVER_SOFTWARE', '')
 RE_DOCTYPE = re.compile(r'<!DOCTYPE.*?>', re.S)
+RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
 RE_HTML_COMMENTS = re.compile(r'<!--.*?-->', re.S)
 
 
@@ -96,6 +97,8 @@ def PreCleanHtml(html):
   # Remove all HTML comments, doctypes.
   html = re.sub(RE_HTML_COMMENTS, '', html)
   html = re.sub(RE_DOCTYPE, '', html)
+  # Turn double-linebreaks into faked-up paragraphs.
+  html = re.sub(RE_DOUBLE_BR, '</p><p>', html)
 
   return html
 
