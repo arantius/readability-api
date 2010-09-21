@@ -48,19 +48,21 @@ RE_CLASS_ID_NEGATIVE = re.compile(
     re.I)
 RE_CLASS_ID_STRIP_ANY = (
     '^add(this|toany)', '^comment', 'functions', 'popular', 'tool(box|s)',
-    '^topic', 'sharethis', 'socia(ble|l)',
+    'share(box|this)', 'socia(ble|l)',
+    # '^topic' broke cracked.com
     )
 RE_CLASS_ID_STRIP_WHOLE = (
     'author_info', 'blippr-nobr', 'byline', 'more_stories', 'pagination',
-    'posted_on', 'prevnext', 'recent-posts', 'respond',
+    'posted_on', 'prevnext', 'recent-posts', 'respond', 'share',
     'notes', 'notes-container', 'post-notes',  # tumblr comments
     )
 RE_CLASS_ID_STRIP_WORDS = (
     'ad', '(article|post)?comments?', 'categor(ies|y)', 'dd_post_share',
-    'head(er)?', 'hid(den|e)', 'foot(er)?', 'inset', 'nav', 'post_share',
+    'hid(den|e)', 'foot(er)?', 'inset', 'nav', 'post_share',
     'print', 'related\d?', 'sidebar', 'sprite', 'tag(ged|s)', 'talkback',
     'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)',  # CNN Junk
-    # NOT: 'share' -- breaks twitter
+    # 'share' breaks twitter
+    # 'head(er)?' breaks a few sites that (accidentally?) put all content there
     )
 RE_CLASS_ID_STRIP = re.compile(
     r'(' + '|'.join(RE_CLASS_ID_STRIP_ANY) + r')'
@@ -69,7 +71,7 @@ RE_CLASS_ID_STRIP = re.compile(
     re.I)
 RE_CLASS_ID_POSITIVE_ANY = ('^article_?(body)',)
 RE_CLASS_ID_POSITIVE_WHOLE = (
-    'page', 'permalink', 'player', 'post[-_]?(\d+|body|content)?',
+    'page', 'permalink', 'player', 'post[-_]?(\d+|body|content)?', 'single',
     '(story)?body'
     # Test: removed 'content' as it often matches too much
     )
@@ -80,7 +82,7 @@ RE_CLASS_ID_POSITIVE = re.compile(
     r'|^(' + '|'.join(RE_CLASS_ID_POSITIVE_WHOLE) + r')$',
     re.I)
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
-TAG_NAMES_BLOCK = set(('blockquote', 'div', 'li', 'p', 'pre', 'td', 'th'))
+TAG_NAMES_BLOCK = set(('blockquote', 'div', 'ol', 'p', 'pre', 'td', 'th', 'ul'))
 TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 
 _DEPTH_SCORE_DECAY = [(1 - d / 12.0) ** 5 for d in range(MAX_SCORE_DEPTH + 1)]
@@ -118,8 +120,15 @@ def StripJunk(soup):
 
   # Remove links to "social media" and other junk.
   for tag in soup.findAll(name='a', href=re.compile(
-      r'addtoany\.com|api\.tweetmeme\.com|delicious\.com|facebook\.com/share'
-      r'|^javascript:|\bsponsor\b'
+      r'addtoany\.com|api\.tweetmeme\.com|twitter\.com/home\?status'
+      r'|(delicious\.com|del\.icio\.us)/post'
+      r'|yahoo\.com/buzz'
+      r'|newsvine\.com/_tools'
+      r'|(digg|reddit|stumbleupon)\.com/submit'
+      r'|(linkedin)\.com/share'
+      r'|facebook\.com/share|fusion\.google\.com/add'
+      r'|^javascript:'
+      r'|\b(share|sponsor)\b'
       )):
     tag.extract()
   for tag in soup.findAll(src=re.compile(
@@ -228,7 +237,7 @@ def _ScoreBlocks(soup):
 
     if text_len == 0:
       continue
-    if text_len < 20:
+    if (text_len < 20) and (leaf_block.name not in TAG_NAMES_HEADER):
       _ApplyScore(leaf_block, -1.5, name='short_text')
     if text_len > 75:
       _ApplyScore(leaf_block, 6, name='some_text')
@@ -257,12 +266,16 @@ def _ScoreImages(soup):
   """Score up images."""
   for tag in soup.findAll('img'):
     _ApplyScore(tag, 1, name='any_img')
+    if tag.has_key('alt'):
+      _ApplyScore(tag, 3, name='img_alt')
+
     if not tag.has_key('width') or not tag.has_key('height'):
       continue
     try:
       size = int(tag['width']) * int(tag['height'])
     except ValueError:
       continue
+
     if size == 1:
       _ApplyScore(tag, -3, name='tiny_img')
     if size >= 125000:
