@@ -203,6 +203,9 @@ def _MungeStripEmpties(soup):
         tag.extract()
       elif not tag.find(lambda tag: tag.name != 'br'):
         tag.extract()
+  for tag in soup.findAll('table'):
+    if not tag.find(('td', 'th')):
+      tag.extract()
 
 
 def _MungeStripRelatedList(soup):

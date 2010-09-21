@@ -47,18 +47,18 @@ RE_CLASS_ID_NEGATIVE = re.compile(
     #r'|^(' + '|'.join(RE_CLASS_ID_NEGATIVE_WHOLE) + r')$',
     re.I)
 RE_CLASS_ID_STRIP_ANY = (
-    '^add(this|toany)', '^comment', 'functions', 'popular', '^related',
-    'tool(box|s)', '^topic', 'sharethis', 'socia(ble|l)',
+    '^add(this|toany)', '^comment', 'functions', 'popular', 'tool(box|s)',
+    '^topic', 'sharethis', 'socia(ble|l)',
     )
 RE_CLASS_ID_STRIP_WHOLE = (
-    'author_info', 'byline', 'more_stories', 'pagination', 'posted_on',
-    'prevnext', 'recent-posts', 'respond',
+    'author_info', 'blippr-nobr', 'byline', 'more_stories', 'pagination',
+    'posted_on', 'prevnext', 'recent-posts', 'respond',
     'notes', 'notes-container', 'post-notes',  # tumblr comments
     )
 RE_CLASS_ID_STRIP_WORDS = (
-    'ad', '(article)?comments?', 'categor(ies|y)', 'dd_post_share', 'head(er)?',
-    'hid(den|e)', 'foot(er)?', 'inset', 'nav', 'post_share', 'print', 'sidebar',
-    'sprite', 'tag(ged|s)', 'talkback',
+    'ad', '(article|post)?comments?', 'categor(ies|y)', 'dd_post_share',
+    'head(er)?', 'hid(den|e)', 'foot(er)?', 'inset', 'nav', 'post_share',
+    'print', 'related\d?', 'sidebar', 'sprite', 'tag(ged|s)', 'talkback',
     'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)',  # CNN Junk
     # NOT: 'share' -- breaks twitter
     )
@@ -80,7 +80,6 @@ RE_CLASS_ID_POSITIVE = re.compile(
     r'|^(' + '|'.join(RE_CLASS_ID_POSITIVE_WHOLE) + r')$',
     re.I)
 RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
-RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
 TAG_NAMES_BLOCK = set(('blockquote', 'div', 'li', 'p', 'pre', 'td', 'th'))
 TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 
@@ -125,9 +124,11 @@ def StripJunk(soup):
   for tag in soup.findAll(attrs={'style': RE_DISPLAY_NONE}):
     _Strip(tag)
 
-  # Remove links to "social media" junk.
+  # Remove links to "social media" and other junk.
   for tag in soup.findAll(name='a', href=re.compile(
-      r'addtoany\.com|api\.tweetmeme\.com|delicious\.com|^javascript:')):
+      r'addtoany\.com|api\.tweetmeme\.com|delicious\.com|facebook\.com/share'
+      r'|^javascript:|\bsponsor\b'
+      )):
     _Strip(tag)
   for tag in soup.findAll(src=re.compile(
       r'reddit\.com|stumbleupon\.com')):
