@@ -109,30 +109,22 @@ def ExtractFromHtml(url, html):
 
 def StripJunk(soup):
   """Strip out junk nodes, for a variety of reasons."""
-  soup_len = float(len(unicode(soup)))
-
-  def _Strip(tag):
-    tag_len = len(unicode(tag))
-    if tag_len / soup_len > MAX_CLASS_ID_STRIP_PERCENTAGE:
-      return
-    tag.extract()
-
   # Remove forms, scripts, and styles.
   for tag in soup.findAll(('form', 'script', 'style')):
-    _Strip(tag)
+    tag.extract()
   # Script non-displayed nodes.
   for tag in soup.findAll(attrs={'style': RE_DISPLAY_NONE}):
-    _Strip(tag)
+    tag.extract()
 
   # Remove links to "social media" and other junk.
   for tag in soup.findAll(name='a', href=re.compile(
       r'addtoany\.com|api\.tweetmeme\.com|delicious\.com|facebook\.com/share'
       r'|^javascript:|\bsponsor\b'
       )):
-    _Strip(tag)
+    tag.extract()
   for tag in soup.findAll(src=re.compile(
       r'reddit\.com|stumbleupon\.com')):
-    _Strip(tag)
+    tag.extract()
 
   # Remove all tags with a class/id that matches my pattern.
   for tag in soup.findAll(
@@ -140,9 +132,8 @@ def StripJunk(soup):
     if util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE):
       continue
     if util.IS_DEV_APPSERVER:
-      logging.info(
-          'Strip for class/id: %s', util.SoupTagOnly(tag))
-    _Strip(tag)
+      logging.info('Strip for class/id: %s', util.SoupTagOnly(tag))
+    tag.extract()
 
 
 def _ApplyScore(tag, score, depth=0, name=None):
