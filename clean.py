@@ -112,8 +112,7 @@ def Clean(url):
     note = u'<!-- cleaned content, %s, %s -->\n' % (e.__class__.__name__, e)
     soup = extract_content.ExtractFromHtml(url, html)
 
-  _FixUrls(soup, final_url)
-  return note + _Munge(soup)
+  return note + _Munge(soup, final_url)
 if not util.IS_DEV_APPSERVER:
   Clean = util.Memoize('Clean_%s', 60*60*24)(Clean)  # pylint: disable-msg=C6409
 
@@ -125,12 +124,13 @@ def _FixUrls(parent, base_url):
     tag['src'] = urlparse.urljoin(base_url, tag['src'])
 
 
-def _Munge(soup):
+def _Munge(soup, url):
   """Given a string of HTML content, munge it to be more pleasing."""
   # In certain failure cases, we'll still get a string.  Just use it.
   if isinstance(soup, basestring):
     return soup
 
+  _FixUrls(soup, url)
   _MungeImages(soup)
   _MungeStripTags(soup)
   _MungeStripAttrs(soup)
