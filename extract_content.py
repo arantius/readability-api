@@ -69,7 +69,8 @@ RE_CLASS_ID_STRIP = re.compile(
     re.I)
 RE_CLASS_ID_POSITIVE_ANY = ('^article_?(body)',)
 RE_CLASS_ID_POSITIVE_WHOLE = (
-    'page', 'permalink', 'player', 'post[-_]?(\d+|body|content)?', '(story)?body'
+    'page', 'permalink', 'player', 'post[-_]?(\d+|body|content)?',
+    '(story)?body'
     # Test: removed 'content' as it often matches too much
     )
 RE_CLASS_ID_POSITIVE_WORDS = ('h?entry', 'text')
@@ -104,7 +105,7 @@ def ExtractFromHtml(url, html):
     soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)
     return unicode(soup.find(attrs={'class': 'usertext-body'}))
   else:
-    return _ExtractFromHtmlGeneric(url, html)
+    return _ExtractFromHtmlGeneric(html)
 
 
 def StripJunk(soup):
@@ -116,7 +117,6 @@ def StripJunk(soup):
     if tag_len / soup_len > MAX_CLASS_ID_STRIP_PERCENTAGE:
       return
     tag.extract()
-
 
   # Remove forms, scripts, and styles.
   for tag in soup.findAll(('form', 'script', 'style')):
@@ -165,7 +165,7 @@ def _ApplyScore(tag, score, depth=0, name=None):
   _ApplyScore(tag.parent, score, depth + 1, name=name)
 
 
-def _ExtractFromHtmlGeneric(url, html):
+def _ExtractFromHtmlGeneric(html):
   # Turn double-linebreaks into faked-up paragraphs before parsing.
   html = re.sub(RE_DOUBLE_BR, '</p><p>', html)
 

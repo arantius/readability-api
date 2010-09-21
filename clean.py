@@ -216,7 +216,6 @@ def _MungeImages(soup):
         img['align'] = 'left'
 
 
-
 def _StripAfter(strip_tag):
   for tag in strip_tag.findAllNext():
     tag.extract()
