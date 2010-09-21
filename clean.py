@@ -131,49 +131,23 @@ def _Munge(soup):
   if isinstance(soup, basestring):
     return soup
 
-  # Remove unwanted tags.
-  for tag in soup.findAll(STRIP_TAG_NAMES):
-    tag.extract()
-
-  # Remove unwanted attributes from all tags (e.g. events, styles).
-  for tag in soup.findAll(True):
-    for attr in STRIP_ATTRS:
-      del tag[attr]
+  _MungeImages(soup)
+  _MungeStripTags(soup)
+  _MungeStripAttrs(soup)
+  _MungeStripEmpties(soup)
+  _MungeStripRelatedList(soup)
+  _MungeHyphenate(soup)
 
   # Now that we've removed attributes, including style, put back clears
   # on aligned images.
   for img in soup.findAll('img', attrs={'align': True}):
     img['style'] = 'clear: both'
 
-  extract_content.StripJunk(soup)
+  # Serialize the soup, and apply full justification.
+  return u"<div style='text-align: justify;'>%s</div>" % unicode(soup)
 
-  # Remove all totally empty container elements.  (Plus those that contain
-  # only linebreaks.)
-  for tag in soup.findAll(('a', 'div', 'p', 'td', 'span')):
-    if not tag.text.strip():
-      if not tag.find(True):
-        tag.extract()
-      elif not tag.find(lambda tag: tag.name != 'br'):
-        tag.extract()
 
-  # Remove feed junklinks.
-  for tag in soup.findAll(name='a', attrs={'href': RE_FEED_JUNK}):
-    tag.extract()
-  for tag in soup.findAll(name='img', attrs={'src': RE_FEED_JUNK}):
-    tag.extract()
-
-  # Remove "related posts" and its ilk.  Sometimes it's a preceding heading,
-  # sometimes it's the text in the containing (parent) <p>.
-  for tag in soup.findAll(('ul', 'ol')):
-    previous = tag.findPreviousSibling(True)
-    if previous and RE_RELATED_HEADER.search(previous.text):
-      _StripAfter(previous)
-    elif tag.parent:
-      parent_text = ' '.join(tag.parent.findAll(text=True))
-      if RE_RELATED_HEADER.search(parent_text):
-        _StripAfter(tag.parent)
-
-  # Hyphenate all text.
+def _MungeHyphenate(soup):
   for text in soup.findAll(text=True):
     text_parts = re.split(r'(&[^;]{2,6};)', text)
     new_text = []
@@ -185,9 +159,6 @@ def _Munge(soup):
       else:
         new_text.append('&shy;'.join(hyphenate.hyphenate_word(t)))
     text.replaceWith(BeautifulSoup.NavigableString(''.join(new_text)))
-
-  # Serialize the soup, and apply full justification.
-  return u"<div style='text-align: justify;'>%s</div>" % unicode(soup)
 
 
 def _MungeImages(soup):
@@ -210,10 +181,48 @@ def _MungeImages(soup):
         img['align'] = match.group(1)
         continue
 
-    parent_p = img.findParent('p', limit=1)
-    if parent_p and not img.findPreviousSibling(name=True):
-      if parent_p.text or not parent_p.findPreviousSibling('p'):
-        img['align'] = 'left'
+#    parent_p = img.findParent('p', limit=1)
+#    if parent_p and not img.findPreviousSibling(name=True):
+#      if parent_p.text or not parent_p.findPreviousSibling('p'):
+#        img['align'] = 'left'
+
+
+def _MungeStripAttrs(soup):
+  for tag in soup.findAll(True):
+    for attr in STRIP_ATTRS:
+      del tag[attr]
+
+
+def _MungeStripEmpties(soup):
+  for tag in soup.findAll(('a', 'div', 'p', 'td', 'span')):
+    if not tag.text.strip():
+      if not tag.find(True):
+        tag.extract()
+      elif not tag.find(lambda tag: tag.name != 'br'):
+        tag.extract()
+
+
+def _MungeStripRelatedList(soup):
+  for tag in soup.findAll(('ul', 'ol')):
+    previous = tag.findPreviousSibling(True)
+    if previous and RE_RELATED_HEADER.search(previous.text):
+      _StripAfter(previous)
+    elif tag.parent:
+      parent_text = ' '.join(tag.parent.findAll(text=True))
+      if RE_RELATED_HEADER.search(parent_text):
+        _StripAfter(tag.parent)
+
+
+def _MungeStripTags(soup):
+  for tag in soup.findAll(STRIP_TAG_NAMES):
+    tag.extract()
+
+  for tag in soup.findAll(name='a', attrs={'href': RE_FEED_JUNK}):
+    tag.extract()
+  for tag in soup.findAll(name='img', attrs={'src': RE_FEED_JUNK}):
+    tag.extract()
+
+  extract_content.StripJunk(soup)
 
 
 def _StripAfter(strip_tag):
