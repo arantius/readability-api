@@ -32,14 +32,19 @@ import clean
 import util
 
 
+def _RenderTemplate(template_name, context=None):
+  context = context or {}
+  path = os.path.join(os.path.dirname(__file__), 'templates', template_name)
+  return template.render(path, context)
+
+
 class MainPage(webapp.RequestHandler):
   request = None
   response = None
 
   def get(self):
     self.response.headers['Content-Type'] = 'text/html'
-    path = os.path.join(os.path.dirname(__file__), 'templates/main.html')
-    self.response.out.write(template.render(path, {}))
+    self.response.out.write(_RenderTemplate('main.html'))
 
 
 class Clean(webapp.RequestHandler):
@@ -48,15 +53,23 @@ class Clean(webapp.RequestHandler):
 
   def get(self):
     url = self.request.get('url') or self.request.get('link')
-    html_wrap = self.request.get('html_wrap', 'False') == 'True'
+    wrap = self.request.get('wrap', None)
+    if wrap and (self.request.get('html_wrap', 'False') == 'True'):
+      wrap = 'html'
+    mimetype = 'text/html; charset=UTF-8'
+
     if url:
       output = clean.Clean(url)
-      if html_wrap:
+      if wrap == 'html':
         output = u'<html><body>\n%s\n</body></html>' % output
+      elif wrap == 'rss':
+        mimetype = 'text/xml; charset=UTF-8'
+        output = _RenderTemplate('single-item-feed.xml',
+                                 {'content': output})
     else:
       output = 'Provide either "url" or "feed" parameters!'
 
-    self.response.headers['Content-Type'] = 'text/html; charset=UTF-8'
+    self.response.headers['Content-Type'] = mimetype
     self.response.headers['Cache-Control'] = 'max-age=3600'
     self.response.headers['Expires'] = email_utils.formatdate(
         timeval=time.time() + 3600, usegmt=True)

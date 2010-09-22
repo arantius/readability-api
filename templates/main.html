@@ -12,9 +12,17 @@
 URL: <input type='text' name='url' size='50'>
 <input type='submit'><br>
 <label>
-  <input type='checkbox' name='html_wrap' value='True'>
+  <input type='radio' name='wrap' value=''>
+  No wrapping
+</label><br>
+<label>
+  <input type='radio' name='wrap' value='html'>
   Wrap contents in &lt;html&gt; and &lt;body&gt; tags
-</label>
+</label><br>
+<label>
+  <input type='radio' name='wrap' value='rss'>
+  Wrap contents in a dummy RSS feed
+</label><br>
 </form>
 
 <hr>

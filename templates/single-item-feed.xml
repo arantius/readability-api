@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+<channel>
+<title>Dummy Feed</title>
+<description>This feed exists only to provide a way for Pipes to read content.  Pipes' "Fetch Page" will strip (e.g.) IFRAME and EMBED nodes.  The "Fetch Data" module will not.</description>
+<item>
+<description><![CDATA[{{ content }}]]></description>
+</item>
+</channel>
+</rss>
