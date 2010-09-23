@@ -150,6 +150,8 @@ def _Munge(soup, url):
 
 def _MungeHyphenate(soup):
   for text in soup.findAll(text=True):
+    if text.findParent('pre'):
+      continue
     text_parts = re.split(r'(&[^;]{2,6};)', text)
     new_text = []
     for text_part in text_parts:

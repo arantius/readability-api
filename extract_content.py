@@ -231,7 +231,7 @@ def _ScoreBlocks(soup):
   for leaf_block in _FindLeafBlocks(soup):
     # Length of stripped text, with all whitespace collapsed.
     block_text = leaf_block.text.strip()
-    block_text = re.sub(r'\s\s+', ' ', block_text)
+    block_text = re.sub(r'[ \t]+', ' ', block_text)
     block_text = re.sub(r'&[^;]{2,6};', '', block_text)
     text_len = len(block_text)
 
