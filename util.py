@@ -30,9 +30,12 @@ from google.appengine.api import urlfetch
 from google.appengine.ext.webapp import template
 
 IS_DEV_APPSERVER = 'Development' in os.environ.get('SERVER_SOFTWARE', '')
+MAX_SCORE_DEPTH = 5
 RE_DOCTYPE = re.compile(r'<!DOCTYPE.*?>', re.S)
 RE_DOUBLE_BR = re.compile(r'<br[ /]*>\s*<br[ /]*>', re.I)
 RE_HTML_COMMENTS = re.compile(r'<!--.*?-->', re.S)
+
+_DEPTH_SCORE_DECAY = [(1 - d / 12.0) ** 5 for d in range(MAX_SCORE_DEPTH + 1)]
 
 
 def Memoize(formatted_key, time=60*60):
@@ -49,6 +52,26 @@ def Memoize(formatted_key, time=60*60):
       return result
     return InnerDecorator
   return Decorator
+
+
+def ApplyScore(tag, score, depth=0, name=None):
+  """Recursively apply a decaying score to each parent up the tree."""
+  if not tag:
+    return
+  if depth > MAX_SCORE_DEPTH:
+    return
+  decayed_score = score * _DEPTH_SCORE_DECAY[depth]
+
+  if not tag.has_key('score'): tag['score'] = 0.0
+  tag['score'] = tag['score'] + decayed_score
+
+  if IS_DEV_APPSERVER and name:
+    name_key = 'score_%s' % name
+    if not tag.has_key(name_key):
+      tag[name_key] = 0
+    tag[name_key] = float(tag[name_key]) + decayed_score
+
+  ApplyScore(tag.parent, score, depth + 1, name=name)
 
 
 @Memoize('Fetch_%s', 60*60*24)
@@ -79,18 +102,6 @@ def _Fetch(url):
     final_url = (response.final_url or url)
     final_url = urlparse.urljoin(url, final_url)
     return (response.content, final_url)
-
-
-def IdOrClassMatches(tag, regex):
-  if not tag:
-    return False
-  if tag.name in ('body', 'html'):
-    return False
-  if tag.has_key('class') and regex.search(tag['class']):
-    return True
-  if tag.has_key('id') and regex.search(tag['id']):
-    return True
-  return False
 
 
 def PreCleanHtml(html):

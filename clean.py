@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import logging
 import re
 import urlparse
 
@@ -38,11 +39,11 @@ import util
 
 RE_ALIGNED = re.compile(
     r'(?:_|\b)(?:align|float:\s*)?(left|right)(?:_|\b)', re.I)
-RE_FEED_JUNK = re.compile(r'^https?://feed[^/]+/(~.{1,3}|1\.0)/', re.I)
 RE_RELATED_HEADER = re.compile(
     r'\b(for more|most popular|related (posts?|articles?)|see also'
     r'|suggested links)\b', re.I)
 STRIP_ATTRS = {
+    'classid': True,
     'onblur': True,
     'onchange ': True,
     'onclick': True,
@@ -69,14 +70,6 @@ if not util.IS_DEV_APPSERVER:
       'id': util.IS_DEV_APPSERVER,
       'score': util.IS_DEV_APPSERVER,
       })
-STRIP_TAG_NAMES = set((
-    'iframe',
-    'link',
-    'meta',
-    'noscript',
-    'script',
-    'style',
-    ))
 
 
 def Clean(url):
@@ -135,7 +128,6 @@ def _Munge(soup, url):
 
   _FixUrls(soup, url)
   _MungeImages(soup)
-  _MungeStripTags(soup)
   _MungeStripAttrs(soup)
   _MungeStripEmpties(soup)
   _MungeStripRelatedList(soup)
@@ -222,23 +214,16 @@ def _MungeStripRelatedList(soup):
       _StripAfter(previous)
     elif tag.parent:
       parent_text = ' '.join(tag.parent.findAll(text=True))
+      if len(parent_text) > 100:
+        # Too-long text means this must not be a header, false positive!
+        continue
       if RE_RELATED_HEADER.search(parent_text):
         _StripAfter(tag.parent)
 
 
-def _MungeStripTags(soup):
-  for tag in soup.findAll(STRIP_TAG_NAMES):
-    tag.extract()
-
-  for tag in soup.findAll(name='a', attrs={'href': RE_FEED_JUNK}):
-    tag.extract()
-  for tag in soup.findAll(name='img', attrs={'src': RE_FEED_JUNK}):
-    tag.extract()
-
-  extract_content.StripJunk(soup)
-
-
 def _StripAfter(strip_tag):
+  if util.IS_DEV_APPSERVER:
+    logging.info('Strip after: %s', util.SoupTagOnly(strip_tag))
   for tag in strip_tag.findAllNext():
     tag.extract()
   strip_tag.extract()

@@ -44,6 +44,7 @@ from third_party import BeautifulSoup
 from third_party import autorss
 from third_party import feedparser
 
+import patterns
 import util
 
 
@@ -112,6 +113,9 @@ class FeedExtractor(object):
       raise NoRssContentError('trailing ellipsis')
     if len(text) < MIN_FEED_TEXT_LEN:
       raise NoRssContentError('text too short (%d)' % len(text))
+
+    # To strip things out, really.
+    patterns.Process(self.soup)
 
   def _DetectFeed(self):
     """Find the URL to a feed for this page."""

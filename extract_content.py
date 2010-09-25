@@ -31,61 +31,12 @@ import sys
 
 from third_party import BeautifulSoup
 
+import patterns
 import util
 
 EMBED_NAMES = set(('embed', 'object'))
-MAX_CLASS_ID_STRIP_PERCENTAGE = 0.25
-MAX_SCORE_DEPTH = 5
-RE_CLASS_ID_NEGATIVE_ANY = ('facebook',)
-#RE_CLASS_ID_NEGATIVE_WHOLE = ()
-RE_CLASS_ID_NEGATIVE_WORDS = (
-    'ad(block)?', 'author', 'bottom', 'delicious', 'featured', 'meta', 'module',
-    'post-meta', 'twitter', 'widget')
-RE_CLASS_ID_NEGATIVE = re.compile(
-    r'(' + '|'.join(RE_CLASS_ID_NEGATIVE_ANY) + r')'
-    r'|(_|\b)(' + '|'.join(RE_CLASS_ID_NEGATIVE_WORDS) + r')(_|\b)',
-    #r'|^(' + '|'.join(RE_CLASS_ID_NEGATIVE_WHOLE) + r')$',
-    re.I)
-RE_CLASS_ID_STRIP_ANY = (
-    '^add(this|toany)', '^comment', 'functions', 'popular', 'tool(box|s)',
-    'share(box|this)', 'socia(ble|l)',
-    # '^topic' broke cracked.com
-    )
-RE_CLASS_ID_STRIP_WHOLE = (
-    'author_info', 'blippr-nobr', 'byline', 'more_stories', 'pagination',
-    'posted_on', 'prevnext', 'recent-posts', 'respond', 'share',
-    'notes', 'notes-container', 'post-notes',  # tumblr comments
-    )
-RE_CLASS_ID_STRIP_WORDS = (
-    'ad', '(article|post)?comments?', 'categor(ies|y)', 'dd_post_share',
-    'hid(den|e)', 'foot(er)?', 'inset', 'nav', 'post_share',
-    'print', 'related\d?', 'sidebar', 'sprite', 'tag(ged|s)', 'talkback',
-    'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)',  # CNN Junk
-    # 'share' breaks twitter
-    # 'head(er)?' breaks a few sites that (accidentally?) put all content there
-    )
-RE_CLASS_ID_STRIP = re.compile(
-    r'(' + '|'.join(RE_CLASS_ID_STRIP_ANY) + r')'
-    r'|(_|\b)(' + '|'.join(RE_CLASS_ID_STRIP_WORDS) + r')(_|\b)'
-    r'|^(' + '|'.join(RE_CLASS_ID_STRIP_WHOLE) + r')$',
-    re.I)
-RE_CLASS_ID_POSITIVE_ANY = ('^article_?(body)',)
-RE_CLASS_ID_POSITIVE_WHOLE = (
-    'page', 'permalink', 'player', 'post[-_]?(\d+|body|content)?', 'single',
-    '(story)?body'
-    # Test: removed 'content' as it often matches too much
-    )
-RE_CLASS_ID_POSITIVE_WORDS = ('h?entry', 'text')
-RE_CLASS_ID_POSITIVE = re.compile(
-    r'(' + '|'.join(RE_CLASS_ID_POSITIVE_ANY) + r')'
-    r'|(_|\b)(' + '|'.join(RE_CLASS_ID_POSITIVE_WORDS) + r')(_|\b)'
-    r'|^(' + '|'.join(RE_CLASS_ID_POSITIVE_WHOLE) + r')$',
-    re.I)
-RE_DISPLAY_NONE = re.compile(r'display\s*:\s*none', re.I)
 TAG_NAMES_BLOCK = set(('blockquote', 'div', 'ol', 'p', 'pre', 'td', 'th', 'ul'))
 TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
-
-_DEPTH_SCORE_DECAY = [(1 - d / 12.0) ** 5 for d in range(MAX_SCORE_DEPTH + 1)]
 
 
 def ExtractFromUrl(url):
@@ -109,63 +60,6 @@ def ExtractFromHtml(url, html):
     return _ExtractFromHtmlGeneric(html)
 
 
-def StripJunk(soup):
-  """Strip out junk nodes, for a variety of reasons."""
-  # Remove forms, scripts, and styles.
-  for tag in soup.findAll(('form', 'script', 'style')):
-    tag.extract()
-  # Script non-displayed nodes.
-  for tag in soup.findAll(attrs={'style': RE_DISPLAY_NONE}):
-    tag.extract()
-
-  # Remove links to "social media" and other junk.
-  for tag in soup.findAll(name='a', href=re.compile(
-      r'addtoany\.com|api\.tweetmeme\.com|twitter\.com/home\?status'
-      r'|(delicious\.com|del\.icio\.us)/post'
-      r'|yahoo\.com/buzz'
-      r'|newsvine\.com/_tools'
-      r'|(digg|reddit|stumbleupon)\.com/submit'
-      r'|(linkedin)\.com/share'
-      r'|facebook\.com/share|fusion\.google\.com/add'
-      r'|^javascript:'
-      r'|\b(share|sponsor)\b'
-      )):
-    tag.extract()
-  for tag in soup.findAll(src=re.compile(
-      r'reddit\.com|stumbleupon\.com')):
-    tag.extract()
-
-  # Remove all tags with a class/id that matches my pattern.
-  for tag in soup.findAll(
-      lambda tag: util.IdOrClassMatches(tag, RE_CLASS_ID_STRIP)):
-    if util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE):
-      continue
-    if util.IS_DEV_APPSERVER:
-      logging.info('Strip for class/id: %s', util.SoupTagOnly(tag))
-    tag.extract()
-
-
-def _ApplyScore(tag, score, depth=0, name=None):
-  """Recursively apply a decaying score to each parent up the tree."""
-  if not tag:
-    return
-  if depth > MAX_SCORE_DEPTH:
-    return
-  decayed_score = score * _DEPTH_SCORE_DECAY[depth]
-
-  if not tag.has_key('score'):
-    tag['score'] = 0
-  tag['score'] = float(tag['score']) + decayed_score
-
-  if util.IS_DEV_APPSERVER and name:
-    name_key = 'score_%s' % name
-    if not tag.has_key(name_key):
-      tag[name_key] = 0
-    tag[name_key] = float(tag[name_key]) + decayed_score
-
-  _ApplyScore(tag.parent, score, depth + 1, name=name)
-
-
 def _ExtractFromHtmlGeneric(html):
   try:
     soup = BeautifulSoup.BeautifulSoup(
@@ -178,9 +72,8 @@ def _ExtractFromHtmlGeneric(html):
   title = soup.find('title')
   title = title and title.text.lower() or ''
 
-  StripJunk(soup)
+  patterns.Process(soup)
   _ScoreBlocks(soup)
-  _ScoreClassId(soup)
   _ScoreImages(soup)
   _ScoreEmbeds(soup)
 
@@ -238,20 +131,11 @@ def _ScoreBlocks(soup):
     if text_len == 0:
       continue
     if (text_len < 20) and (leaf_block.name not in TAG_NAMES_HEADER):
-      _ApplyScore(leaf_block, -1.5, name='short_text')
+      util.ApplyScore(leaf_block, -1.5, name='short_text')
     if text_len > 75:
-      _ApplyScore(leaf_block, 6, name='some_text')
+      util.ApplyScore(leaf_block, 6, name='some_text')
     if text_len > 250:
-      _ApplyScore(leaf_block, 8, name='more_text')
-
-
-def _ScoreClassId(soup):
-  """Score up and down, based on class and id."""
-  for tag in soup.findAll(True):
-    if util.IdOrClassMatches(tag, RE_CLASS_ID_NEGATIVE):
-      _ApplyScore(tag, -20, name='bad_class_id')
-    elif util.IdOrClassMatches(tag, RE_CLASS_ID_POSITIVE):
-      _ApplyScore(tag, 20, name='good_class_id')
+      util.ApplyScore(leaf_block, 8, name='more_text')
 
 
 def _ScoreEmbeds(soup):
@@ -259,15 +143,15 @@ def _ScoreEmbeds(soup):
   for tag in soup.findAll(EMBED_NAMES):
     if tag.findParent(EMBED_NAMES):
       continue
-    _ApplyScore(tag, 15, name='has_embed')
+    util.ApplyScore(tag, 15, name='has_embed')
 
 
 def _ScoreImages(soup):
   """Score up images."""
   for tag in soup.findAll('img'):
-    _ApplyScore(tag, 1, name='any_img')
+    util.ApplyScore(tag, 1, name='any_img')
     if tag.has_key('alt'):
-      _ApplyScore(tag, 3, name='img_alt')
+      util.ApplyScore(tag, 3, name='img_alt')
 
     if not tag.has_key('width') or not tag.has_key('height'):
       continue
@@ -277,11 +161,11 @@ def _ScoreImages(soup):
       continue
 
     if size == 1:
-      _ApplyScore(tag, -3, name='tiny_img')
+      util.ApplyScore(tag, -3, name='tiny_img')
     if size >= 125000:
-      _ApplyScore(tag, 5, name='has_img')
+      util.ApplyScore(tag, 5, name='has_img')
     if size >= 500000:
-      _ApplyScore(tag, 10, name='big_img')
+      util.ApplyScore(tag, 10, name='big_img')
 
 
 def _StripBefore(strip_tag):
