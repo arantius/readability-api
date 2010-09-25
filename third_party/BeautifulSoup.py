@@ -1390,7 +1390,10 @@ class BeautifulStoneSoup(Tag, SGMLParser):
     def handle_charref(self, ref):
         "Handle character references as data."
         if self.convertEntities:
-            data = unichr(int(ref))
+            if ref[0] == 'x':
+              data = unichr(int(ref[1:], 16))
+            else:
+              data = unichr(int(ref))
         else:
             data = '&#%s;' % ref
         self.handle_data(data)
