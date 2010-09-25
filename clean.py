@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """Cleaning wrapper.
 
 Given a URL, first apply special cases.  Then try to fetch a feed of the
@@ -32,6 +33,7 @@ from third_party import hyphenate
 
 import extract_content
 import extract_feed
+import patterns
 import util
 
 RE_ALIGNED = re.compile(
@@ -161,7 +163,9 @@ def _MungeHyphenate(soup):
         new_text.append(text_part)
       else:
         words = re.split(r'\s+', text_part)
-        words = ['&shy;'.join(hyphenate.hyphenate_word(word))
+        # ­ is a unicode soft hyphen here -- only two UTF-8 bytes, and
+        # it doesn't clutter up the source view!
+        words = [u'­'.join(hyphenate.hyphenate_word(word))
                  for word in words]
         new_text.append(' '.join(words))
     text.replaceWith(BeautifulSoup.NavigableString(''.join(new_text)))
