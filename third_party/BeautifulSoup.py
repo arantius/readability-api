@@ -1531,16 +1531,16 @@ class BeautifulSoup(BeautifulStoneSoup):
     #contain another tag of the same type. Furthermore, it's common
     #to actually use these tags this way.
     NESTABLE_INLINE_TAGS = ('span', 'font', 'q', 'object', 'bdo', 'sub', 'sup',
-                            'center',
-                            # html5 tags:
-                            'article', 'aside', 'details', 'figure', 'footer',
-                            'header', 'hgroup', 'mark', 'meter', 'nav',
-                            'output', 'section', 'summary', 'time')
+                            'center')
 
     #According to the HTML standard, these block tags can contain
     #another tag of the same type. Furthermore, it's common
     #to actually use these tags this way.
-    NESTABLE_BLOCK_TAGS = ('blockquote', 'div', 'fieldset', 'ins', 'del')
+    NESTABLE_BLOCK_TAGS = ('blockquote', 'div', 'fieldset', 'ins', 'del',
+                           # html5 tags:
+                           'article', 'aside', 'details', 'figure', 'footer',
+                           'header', 'hgroup', 'mark', 'meter', 'nav',
+                           'output', 'section', 'summary', 'time')
 
     #Lists can contain other lists, but there are restrictions.
     NESTABLE_LIST_TAGS = { 'ol' : [],
