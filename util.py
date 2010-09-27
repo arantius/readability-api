@@ -78,16 +78,16 @@ def ApplyScore(tag, score, depth=0, name=None):
 def Fetch(url):
   """Fetch a URL, return its contents and any final-after-redirects URL."""
   error = None
-  for _ in xrange(2):
+  for _ in xrange(3):
     try:
       return _Fetch(url)
-    except _FetchError, e:
+    except FetchError, e:
       error = e
       logging.exception(e)
-  return (repr(error), url)
+  if error: raise error
 
 
-class _FetchError(Exception):
+class FetchError(Exception):
   pass
 
 
@@ -97,7 +97,7 @@ def _Fetch(url):
       logging.info('Fetching: %s', url)
     response = urlfetch.fetch(url, allow_truncated=True, deadline=3)
   except urlfetch.DownloadError, e:
-    raise _FetchError(repr(e))
+    raise FetchError(repr(e))
   else:
     final_url = (response.final_url or url)
     final_url = urlparse.urljoin(url, final_url)

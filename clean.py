@@ -97,16 +97,20 @@ def Clean(url):
     return util.RenderTemplate('google-docs.html', {'docid': match.group(1),
                                                     'url': url})
 
-  html, final_url = util.Fetch(url)
-  note = ''
   try:
-    extractor = extract_feed.FeedExtractor(
-        url=url, final_url=final_url, html=html)
-    note = u'<!-- cleaned feed -->\n'
-    soup = extractor.soup
-  except extract_feed.RssError, e:
-    note = u'<!-- cleaned content, %s, %s -->\n' % (e.__class__.__name__, e)
-    soup = extract_content.ExtractFromHtml(url, html)
+    html, final_url = util.Fetch(url)
+  except util.FetchError, e:
+    return repr(e)
+  else:
+    note = ''
+    try:
+      extractor = extract_feed.FeedExtractor(
+          url=url, final_url=final_url, html=html)
+      note = u'<!-- cleaned feed -->\n'
+      soup = extractor.soup
+    except extract_feed.RssError, e:
+      note = u'<!-- cleaned content, %s, %s -->\n' % (e.__class__.__name__, e)
+      soup = extract_content.ExtractFromHtml(url, html)
 
   return note + _Munge(soup, final_url)
 if not util.IS_DEV_APPSERVER:
