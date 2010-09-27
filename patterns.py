@@ -44,7 +44,6 @@ ATTR_POINTS = (
     (-20, 'classid', _ReAny(r'facebook')),
     (-20, 'classid', _ReWord(r'ad(block)?')),
     (-20, 'classid', _ReWord(r'author')),
-    (-20, 'classid', _ReWord(r'bottom')),
     (-20, 'classid', _ReWord(r'delicious')),
     (-20, 'classid', _ReWord(r'featured')),
     (-20, 'classid', _ReWord(r'meta')),
@@ -53,20 +52,21 @@ ATTR_POINTS = (
     (-20, 'classid', _ReWord(r'widget')),
     (-15, 'classid', _ReWord(r'twitter')),
     (-10, 'classid', _ReWord(r'print')),
+    (-5, 'classid', _ReWord(r'bottom')),
     (1, 'classid', _ReWord(r'container')),
     (1, 'classid', _ReWord(r'main')),
-    (5, 'classid', _ReWord(r'body')),
+    (5, 'classid', _ReWord(r'body(text)?')),
     (5, 'classid', _ReWord(r'content')),
     (5, 'classid', _ReWord(r'single')),
     (5, 'classid', _ReWord(r'text')),
     (10, 'classid', _ReWhole(r'main')),
+    (10, 'classid', _ReWhole(r'story')),
     (10, 'classid', _ReWord(r'player')),
     (20, 'classid', _ReAny(r'^article_?body')),
     (20, 'classid', _ReWhole(r'(story)?body')),
     (20, 'classid', _ReWhole(r'page')),
     (20, 'classid', _ReWhole(r'permalink')),
     (20, 'classid', _ReWhole(r'player')),
-    (20, 'classid', _ReWhole(r'story')),
     (20, 'classid', _ReWord(r'post(id)?[-_]?(\d+|body|content)')),
     (20, 'classid', _ReWord(r'h?entry(?!-title)')),
     )
@@ -80,6 +80,7 @@ ATTR_STRIP = (
     ('classid', _ReAny(r'socia(ble|l)')),
     ('classid', _ReAny(r'tool(box|s)')),
 
+    ('classid', _ReWord(r'shopbox')),
     ('classid', _ReWord(r'postmetadata')),
 
     ('classid', _ReWhole(r'author_info')),
@@ -91,6 +92,7 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'prevnext')),
     ('classid', _ReWhole(r'recent-posts')),
     ('classid', _ReWhole(r'respond')),
+    ('classid', _ReWhole(r'rightrail')),
     ('classid', _ReWhole(r'share')),
 
     # tumblr comments
@@ -105,7 +107,7 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'foot(er)?')),
     ('classid', _ReWord(r'hid(den|e)')),
     ('classid', _ReWord(r'inset')),
-    ('classid', _ReWord(r'nav')),
+    ('classid', _ReWord(r'(left|right)?nav(igation)?')),
     ('classid', _ReWord(r'post_share')),
     #('classid', _ReWord(r'print')),  # too much
     ('classid', _ReWord(r'related\d*')),
