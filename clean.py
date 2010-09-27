@@ -136,6 +136,7 @@ def _Munge(soup, url):
   _MungeStripEmpties(soup)
   _MungeStripRelatedList(soup)
   _MungeHyphenate(soup)
+  _MungeHeaderDowngrade(soup)
 
   # Now that we've removed attributes, including style, put back clears
   # on aligned images.
@@ -165,6 +166,11 @@ def _MungeHyphenate(soup):
                  for word in words]
         new_text.append(' '.join(words))
     text.replaceWith(BeautifulSoup.NavigableString(''.join(new_text)))
+
+
+def _MungeHeaderDowngrade(soup):
+  for tag in soup.findAll(extract_content.TAG_NAMES_HEADER):
+    tag.name = 'h%d' % min(6, int(tag.name[1]) + 2)
 
 
 def _MungeImages(soup):
