@@ -28,11 +28,14 @@ import re
 
 import util
 
+
 def _ReAny(pattern):
   return re.compile(pattern, re.I)
 
+
 def _ReWhole(pattern):
   return re.compile(r'^%s$' % pattern, re.I)
+
 
 def _ReWord(pattern):
   return re.compile(r'(_|\b)%s(_|\b)' % pattern, re.I)
@@ -49,6 +52,7 @@ ATTR_POINTS = (
     (-20, 'classid', _ReWord(r'post-meta')),
     (-20, 'classid', _ReWord(r'widget')),
     (-15, 'classid', _ReWord(r'twitter')),
+    (-10, 'classid', _ReWord(r'print')),
     (1, 'classid', _ReWord(r'container')),
     (1, 'classid', _ReWord(r'main')),
     (5, 'classid', _ReWord(r'body')),
@@ -61,6 +65,7 @@ ATTR_POINTS = (
     (20, 'classid', _ReWhole(r'page')),
     (20, 'classid', _ReWhole(r'permalink')),
     (20, 'classid', _ReWhole(r'player')),
+    (20, 'classid', _ReWhole(r'story')),
     (20, 'classid', _ReWord(r'post(id)?[-_]?(\d+|body|content)')),
     (20, 'classid', _ReWord(r'h?entry(?!-title)')),
     (20, 'classid', _ReWord(r'text')),
@@ -87,13 +92,13 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'recent-posts')),
     ('classid', _ReWhole(r'respond')),
     ('classid', _ReWhole(r'share')),
-    
+
     # tumblr comments
     ('classid', _ReWhole(r'notes(-container)?')),
     ('classid', _ReWhole(r'post-notes')),
-    
+
     # word 'share' breaks twitter
-    # word 'head(er)?' breaks some sites that put _all_ content there 
+    # word 'head(er)?' breaks some sites that put _all_ content there
     ('classid', _ReWord(r'ads?')),
     ('classid', _ReWord(r'categor(ies|y)')),
     ('classid', _ReWord(r'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)')),
@@ -102,7 +107,7 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'inset')),
     ('classid', _ReWord(r'nav')),
     ('classid', _ReWord(r'post_share')),
-    ('classid', _ReWord(r'print')),
+    #('classid', _ReWord(r'print')),  # too much
     ('classid', _ReWord(r'related\d*')),
     ('classid', _ReWord(r'sidebar')),
     ('classid', _ReWord(r'tag(ged|s)')),
@@ -163,7 +168,7 @@ def Process(soup):
   # Make a single "class and id" attribute that everything else can test.
   soup['classid'] = soup.get('class', '') + ' ' + soup.get('id', '')
   soup['classid'] = soup['classid'].strip()
-  
+
   _Score(soup)
   if _Strip(soup): return
   for tag in soup.findAll(True, recursive=False):
