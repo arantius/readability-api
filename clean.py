@@ -210,15 +210,18 @@ def _MungeStripEmpties(soup):
 def _MungeStripRelatedList(soup):
   for tag in soup.findAll(('ul', 'ol')):
     previous = tag.findPreviousSibling(True)
-    if previous and RE_RELATED_HEADER.search(previous.text):
-      _StripAfter(previous)
+    search_text = ''
+    if previous:
+      search_text = previous.text
+      strip_node = previous
     elif tag.parent:
-      parent_text = ' '.join(tag.parent.findAll(text=True))
-      if len(parent_text) > 100:
-        # Too-long text means this must not be a header, false positive!
-        continue
-      if RE_RELATED_HEADER.search(parent_text):
-        _StripAfter(tag.parent)
+      search_text = ' '.join(tag.parent.findAll(text=True))
+      strip_node = tag.parent
+    if len(search_text) > 100:
+      # Too-long text means this must not be a header, false positive!
+      continue
+    if RE_RELATED_HEADER.search(search_text):
+      _StripAfter(strip_node)
 
 
 def _StripAfter(strip_tag):

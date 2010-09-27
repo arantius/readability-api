@@ -58,6 +58,7 @@ ATTR_POINTS = (
     (5, 'classid', _ReWord(r'body')),
     (5, 'classid', _ReWord(r'content')),
     (5, 'classid', _ReWord(r'single')),
+    (5, 'classid', _ReWord(r'text')),
     (10, 'classid', _ReWhole(r'main')),
     (10, 'classid', _ReWord(r'player')),
     (20, 'classid', _ReAny(r'^article_?body')),
@@ -68,7 +69,6 @@ ATTR_POINTS = (
     (20, 'classid', _ReWhole(r'story')),
     (20, 'classid', _ReWord(r'post(id)?[-_]?(\d+|body|content)')),
     (20, 'classid', _ReWord(r'h?entry(?!-title)')),
-    (20, 'classid', _ReWord(r'text')),
     )
 ATTR_STRIP = (
     # any '^topic' broke cracked.com
@@ -76,7 +76,7 @@ ATTR_STRIP = (
     ('classid', _ReAny(r'comment')),
     ('classid', _ReAny(r'functions')),
     ('classid', _ReAny(r'popular')),
-    ('classid', _ReAny(r'share(box|this)')),
+    ('classid', _ReAny(r'share(bar|box|this)')),
     ('classid', _ReAny(r'socia(ble|l)')),
     ('classid', _ReAny(r'tool(box|s)')),
 
