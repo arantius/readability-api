@@ -34,7 +34,7 @@ def _ReAny(pattern):
 
 
 def _ReWhole(pattern):
-  return re.compile(r'^%s$' % pattern, re.I)
+  return re.compile(r'(^|!!!)%s($|!!!)' % pattern, re.I)
 
 
 def _ReWord(pattern):
@@ -166,8 +166,8 @@ def _Strip(tag):
 def Process(soup):
   """Process an entire soup, without recursing into stripped nodes."""
   # Make a single "class and id" attribute that everything else can test.
-  soup['classid'] = soup.get('class', '') + ' ' + soup.get('id', '')
-  soup['classid'] = soup['classid'].strip()
+  soup['classid'] = '!!!'.join([soup.get('class', '').strip(),
+                                soup.get('id', '').strip()])
 
   _Score(soup)
   if _Strip(soup): return
