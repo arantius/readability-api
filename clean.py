@@ -119,9 +119,9 @@ if not util.IS_DEV_APPSERVER:
 
 def _FixUrls(parent, base_url):
   for tag in parent.findAll(href=True):
-    tag['href'] = urlparse.urljoin(base_url, tag['href'])
+    tag['href'] = urlparse.urljoin(base_url, tag['href'].strip())
   for tag in parent.findAll(src=True):
-    tag['src'] = urlparse.urljoin(base_url, tag['src'])
+    tag['src'] = urlparse.urljoin(base_url, tag['src'].strip())
 
 
 def _Munge(soup, url):

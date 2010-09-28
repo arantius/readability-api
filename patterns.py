@@ -50,22 +50,29 @@ ATTR_POINTS = (
     (-20, 'classid', _ReWord(r'module')),
     (-20, 'classid', _ReWord(r'post-meta')),
     (-20, 'classid', _ReWord(r'widget')),
+    (-15, 'classid', _ReAny(r'comment')),
     (-15, 'classid', _ReWord(r'twitter')),
     (-10, 'classid', _ReWord(r'print')),
+    (-10, 'classid', _ReWord(r'topics?')),
+    (-5, 'classid', _ReAny(r'menu')),
     (-5, 'classid', _ReWord(r'bottom')),
+    (-2, 'classid', _ReAny(r'right')),
     (1, 'classid', _ReWord(r'container')),
     (1, 'classid', _ReWord(r'main')),
+    (5, 'classid', _ReWhole(r'permalink')),
     (5, 'classid', _ReWord(r'body(text)?')),
     (5, 'classid', _ReWord(r'content')),
+    (5, 'classid', _ReWord(r'post')),
     (5, 'classid', _ReWord(r'single')),
-    (5, 'classid', _ReWord(r'text')),
+    (2, 'classid', _ReWord(r'text')),
     (10, 'classid', _ReWhole(r'main')),
     (10, 'classid', _ReWhole(r'story')),
     (10, 'classid', _ReWord(r'player')),
+    (10, 'classid', _ReWord(r'video')),
     (20, 'classid', _ReAny(r'^article_?body')),
     (20, 'classid', _ReWhole(r'(story)?body')),
+    (20, 'classid', _ReWhole(r'story(block)')),
     (20, 'classid', _ReWhole(r'page')),
-    (20, 'classid', _ReWhole(r'permalink')),
     (20, 'classid', _ReWhole(r'player')),
     (20, 'classid', _ReWord(r'post(id)?[-_]?(\d+|body|content)')),
     (20, 'classid', _ReWord(r'h?entry(?!-title)')),
@@ -78,7 +85,7 @@ ATTR_STRIP = (
     ('classid', _ReAny(r'popular')),
     ('classid', _ReAny(r'share(bar|box|this)')),
     ('classid', _ReAny(r'socia(ble|l)')),
-    ('classid', _ReAny(r'tool(box|s)')),
+    ('classid', _ReAny(r'(controls?|tool)(box|s)')),
 
     ('classid', _ReWord(r'shopbox')),
     ('classid', _ReWord(r'postmetadata')),
@@ -94,6 +101,7 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'respond')),
     ('classid', _ReWhole(r'rightrail')),
     ('classid', _ReWhole(r'share')),
+    ('classid', _ReWhole(r'sidebar')),  # word matches too much
 
     # tumblr comments
     ('classid', _ReWhole(r'notes(-container)?')),
@@ -104,6 +112,7 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'ads?')),
     ('classid', _ReWord(r'categor(ies|y)')),
     ('classid', _ReWord(r'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)')),
+    ('classid', _ReWord(r'cnn_ftrcntnt')),
     ('classid', _ReWord(r'foot(er)?')),
     ('classid', _ReWord(r'hid(den|e)')),
     ('classid', _ReWord(r'inset')),
@@ -111,7 +120,6 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'post_share')),
     #('classid', _ReWord(r'print')),  # too much
     ('classid', _ReWord(r'related\d*')),
-    ('classid', _ReWord(r'sidebar')),
     ('classid', _ReWord(r'tag(ged|s)')),
     ('classid', _ReWord(r'talkback')),
 
@@ -152,6 +160,10 @@ def _Strip(tag):
     return False
 
   if tag.name in STRIP_TAGS:
+    if tag.name == 'form' and 'aspnetForm' in [attr[1] for attr in tag.attrs]:
+      return False
+    if util.IS_DEV_APPSERVER:
+      logging.info('Strip for tag: %s', util.SoupTagOnly(tag))
     tag.extract()
     return True
 
