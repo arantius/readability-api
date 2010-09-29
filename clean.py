@@ -34,7 +34,6 @@ from third_party import hyphenate
 
 import extract_content
 import extract_feed
-import patterns
 import util
 
 RE_ALIGNED = re.compile(
@@ -43,7 +42,6 @@ RE_RELATED_HEADER = re.compile(
     r'\b(for more|most popular|related (posts?|articles?)|see also'
     r'|suggested links)\b', re.I)
 STRIP_ATTRS = {
-    'classid': True,
     'onblur': True,
     'onchange ': True,
     'onclick': True,
@@ -68,6 +66,7 @@ if not util.IS_DEV_APPSERVER:
   STRIP_ATTRS.update({
       'class': util.IS_DEV_APPSERVER,
       'id': util.IS_DEV_APPSERVER,
+      'classid': True,
       'score': util.IS_DEV_APPSERVER,
       })
 
