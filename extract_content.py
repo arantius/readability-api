@@ -123,10 +123,7 @@ def _ScoreBlocks(soup):
   """Score up all leaf block nodes, based on the length of their text."""
   for leaf_block in _FindLeafBlocks(soup):
     # Length of stripped text, with all whitespace collapsed.
-    block_text = leaf_block.text.strip()
-    block_text = re.sub(r'[ \t]+', ' ', block_text)
-    block_text = re.sub(r'&[^;]{2,6};', '', block_text)
-    text_len = len(block_text)
+    text_len = _TextLenNonAnchors(leaf_block)
 
     if text_len == 0:
       continue
@@ -176,6 +173,16 @@ def _StripBefore(strip_tag):
       continue
     tag.extract()
   strip_tag.extract()
+
+
+def _TextLenNonAnchors(tag):
+  """Length of this tag's text, without <a> nodes."""
+  text_nodes = tag.findAll(text=True)
+  text = [unicode(x).strip() for x in text_nodes if not x.findParent('a')]
+  text = ''.join(text)
+  text = re.sub(r'[ \t]+', ' ', text)
+  text = re.sub(r'&[^;]{2,6};', '', text)
+  return len(text)
 
 
 def _TransformDivsToPs(soup):
