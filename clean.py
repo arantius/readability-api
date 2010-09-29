@@ -205,15 +205,21 @@ def _MungeStripAttrs(soup):
 
 
 def _MungeStripEmpties(soup):
-  for tag in soup.findAll(('a', 'div', 'p', 'td', 'span')):
+  stripped = False
+  for tag in soup.findAll(('a', 'div', 'li', 'ol', 'p', 'td', 'span', 'ul')):
     if not tag.text.strip():
       if not tag.find(True):
         tag.extract()
+        stripped = True
       elif not tag.find(lambda tag: tag.name != 'br'):
         tag.extract()
+        stripped = True
   for tag in soup.findAll('table'):
     if not tag.find(('td', 'th')):
       tag.extract()
+      stripped = True
+  if stripped:
+    _MungeStripEmpties(soup)
 
 
 def _MungeStripRelatedList(soup):
