@@ -72,8 +72,7 @@ ATTR_POINTS = (
     (10, 'classid', _ReWord(r'player')),
     (10, 'classid', _ReWord(r'video')),
     (10, 'classid', _ReWord(r'wide')),
-    (20, 'classid', _ReWhole(r'(story)?body')),
-    (20, 'classid', _ReWhole(r'story(block)')),
+    (20, 'classid', _ReWhole(r'story(body|block)')),
     (20, 'classid', _ReWhole(r'page')),
     (20, 'classid', _ReWhole(r'player')),
     (20, 'classid', _ReWord(r'post(id)?[-_]?(\d+|body|content)')),
@@ -90,8 +89,9 @@ ATTR_STRIP = (
     ('classid', _ReAny(r'(controls?|tool)(box|s)')),
 
     ('classid', _ReWord(r'author')),
-    ('classid', _ReWord(r'shopbox')),
     ('classid', _ReWord(r'postmetadata')),
+    ('classid', _ReWord(r'shopbox')),
+    ('classid', _ReWord(r'snap_nopreview')),
 
     ('classid', _ReWhole(r'author_info')),
     ('classid', _ReWhole(r'blippr-nobr')),
