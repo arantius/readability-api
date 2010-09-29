@@ -172,10 +172,20 @@ def _StripBefore(strip_tag):
 
 
 def _TagSize(tag):
-  if not tag.has_key('width') or not tag.has_key('height'):
+  if tag.has_key('width') and tag.has_key('height'):
+    w = tag['width']
+    h = tag['height']
+  elif tag.has_key('style'):
+    try:
+      w = re.search(r'width:\s*(\d+)px', tag['style']).group(1)
+      h = re.search(r'height:\s*(\d+)px', tag['style']).group(1)
+    except AttributeError:
+      return None
+  else:
     return None
+
   try:
-    return int(tag['width']) * int(tag['height'])
+    return int(w) * int(h)
   except ValueError:
     return None
 
