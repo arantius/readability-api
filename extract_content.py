@@ -140,29 +140,25 @@ def _ScoreEmbeds(soup):
   for tag in soup.findAll(EMBED_NAMES):
     if tag.findParent(EMBED_NAMES):
       continue
-    util.ApplyScore(tag, 15, name='has_embed')
+    size = _TagSize(tag)
+    if size > 10000:
+      util.ApplyScore(tag, 15, name='has_embed')
 
 
 def _ScoreImages(soup):
   """Score up images."""
   for tag in soup.findAll('img'):
     util.ApplyScore(tag, 1, name='any_img')
-    if tag.has_key('alt'):
-      util.ApplyScore(tag, 3, name='img_alt')
+    if tag.has_key('alt') and len(tag['alt']) > 50:
+      util.ApplyScore(tag, 2, name='img_alt')
 
-    if not tag.has_key('width') or not tag.has_key('height'):
-      continue
-    try:
-      size = int(tag['width']) * int(tag['height'])
-    except ValueError:
-      continue
-
-    if size == 1:
+    size = _TagSize(tag)
+    if size <= 625:
       util.ApplyScore(tag, -3, name='tiny_img')
-    if size >= 125000:
-      util.ApplyScore(tag, 5, name='has_img')
-    if size >= 500000:
-      util.ApplyScore(tag, 10, name='big_img')
+    if size >= 50000:
+      util.ApplyScore(tag, 3, name='has_img')
+    if size >= 250000:
+      util.ApplyScore(tag, 4, name='big_img')
 
 
 def _StripBefore(strip_tag):
@@ -173,6 +169,15 @@ def _StripBefore(strip_tag):
       continue
     tag.extract()
   strip_tag.extract()
+
+
+def _TagSize(tag):
+  if not tag.has_key('width') or not tag.has_key('height'):
+    return None
+  try:
+    return int(tag['width']) * int(tag['height'])
+  except ValueError:
+    return None
 
 
 def _TextLenNonAnchors(tag):
