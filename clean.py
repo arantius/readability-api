@@ -40,6 +40,7 @@ RE_ALIGNED = re.compile(
     r'(?:_|\b)(?:align|float:\s*)?(left|right)(?:_|\b)', re.I)
 RE_RELATED_HEADER = re.compile(
     r'\b(for more|most popular|related (posts?|articles?)'
+    r'|more(.*)(coverage|resources)'
     r'|read more'
     r'|see also'
     r'|suggested links)\b', re.I)
@@ -138,6 +139,7 @@ def _Munge(soup, url):
   _MungeStripRelatedList(soup)
   _MungeHyphenate(soup)
   _MungeHeaderDowngrade(soup)
+  _MungeStripRules(soup)
 
   # Now that we've removed attributes, including style, put back clears
   # on aligned images.
@@ -194,11 +196,6 @@ def _MungeImages(soup):
         img['align'] = match.group(1)
         continue
 
-#    parent_p = img.findParent('p', limit=1)
-#    if parent_p and not img.findPreviousSibling(name=True):
-#      if parent_p.text or not parent_p.findPreviousSibling('p'):
-#        img['align'] = 'left'
-
 
 def _MungeStripAttrs(soup):
   for tag in soup.findAll(True):
@@ -208,7 +205,8 @@ def _MungeStripAttrs(soup):
 
 def _MungeStripEmpties(soup):
   stripped = False
-  for tag in soup.findAll(('a', 'div', 'li', 'ol', 'p', 'td', 'span', 'ul')):
+  for tag in soup.findAll(
+      ('a', 'center', 'div', 'li', 'ol', 'p', 'td', 'span', 'ul')):
     if not tag.text.strip():
       if not tag.find(True):
         tag.extract()
@@ -225,8 +223,19 @@ def _MungeStripEmpties(soup):
 
 
 def _MungeStripRelatedList(soup):
-  for tag in soup.findAll(('ul', 'ol')):
+  def FakeBlockquoteList(tag):
+    if 'blockquote' != tag.name:
+      return False
+    if re.search(r'(<br.*?> - .*){2,}', unicode(tag)):
+      return True
+    return False
+  lists = soup.findAll(('ul', 'ol'))
+  lists += soup.findAll(FakeBlockquoteList)
+  for tag in lists:
+    logging.info('list %s', util.SoupTagOnly(tag))
     previous = tag.findPreviousSibling(True)
+    if previous.name == 'hr':
+      previous = previous.findPreviousSibling(True)
     search_text = ''
     if previous:
       search_text = previous.text
@@ -239,6 +248,11 @@ def _MungeStripRelatedList(soup):
       continue
     if RE_RELATED_HEADER.search(search_text):
       _StripAfter(strip_node)
+
+
+def _MungeStripRules(soup):
+  while soup.contents[-1].name == 'hr':
+    soup.contents[-1].extract()
 
 
 def _StripAfter(strip_tag):
