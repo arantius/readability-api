@@ -184,7 +184,7 @@ def Process(soup):
   """Process an entire soup, without recursing into stripped nodes."""
   # Make a single "class and id" attribute that everything else can test.
   soup['classid'] = '!!!'.join([soup.get('class', '').strip(),
-                                soup.get('id', '').strip()])
+                                soup.get('id', '').strip()]).strip('!')
 
   _Score(soup)
   if _Strip(soup): return
