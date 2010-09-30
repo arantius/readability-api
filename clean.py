@@ -232,12 +232,11 @@ def _MungeStripRelatedList(soup):
   lists = soup.findAll(('ul', 'ol'))
   lists += soup.findAll(FakeBlockquoteList)
   for tag in lists:
-    logging.info('list %s', util.SoupTagOnly(tag))
     previous = tag.findPreviousSibling(True)
-    if previous.name == 'hr':
-      previous = previous.findPreviousSibling(True)
     search_text = ''
     if previous:
+      if previous.name == 'hr':
+        previous = previous.findPreviousSibling(True)
       search_text = previous.text
       strip_node = previous
     elif tag.parent:
@@ -251,8 +250,11 @@ def _MungeStripRelatedList(soup):
 
 
 def _MungeStripRules(soup):
-  while soup.contents[-1].name == 'hr':
-    soup.contents[-1].extract()
+  try:
+    while soup.contents[-1].name == 'hr':
+      soup.contents[-1].extract()
+  except AttributeError:
+    pass
 
 
 def _StripAfter(strip_tag):
