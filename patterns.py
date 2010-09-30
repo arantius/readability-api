@@ -42,7 +42,6 @@ def _ReWord(pattern):
 
 ATTR_POINTS = (
     (-20, 'classid', _ReAny(r'facebook')),
-    (-20, 'classid', _ReWord(r'ad(block)?')),
     (-20, 'classid', _ReWord(r'delicious')),
     (-20, 'classid', _ReWord(r'featured')),
     (-20, 'classid', _ReWord(r'meta')),
@@ -68,7 +67,7 @@ ATTR_POINTS = (
     (5, 'classid', _ReWord(r'single')),
     (10, 'classid', _ReAny(r'^article_?body')),
     (10, 'classid', _ReWhole(r'story')),
-    (10, 'classid', _ReWord(r'article')),
+    (10, 'classid', _ReWord(r'article(?!_tool)')),
     (10, 'classid', _ReWord(r'player')),
     (10, 'classid', _ReWord(r'video')),
     (10, 'classid', _ReWord(r'wide')),
@@ -88,6 +87,7 @@ ATTR_STRIP = (
     ('classid', _ReAny(r'socia(ble|l)')),
     ('classid', _ReAny(r'(controls?|tool)(box|s)')),
 
+    ('classid', _ReWord(r'ad(block|tag)?')),
     ('classid', _ReWord(r'author')),
     ('classid', _ReWord(r'postmetadata')),
     ('classid', _ReWord(r'shopbox')),

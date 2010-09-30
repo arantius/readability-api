@@ -39,7 +39,7 @@ import util
 RE_ALIGNED = re.compile(
     r'(?:_|\b)(?:align|float:\s*)?(left|right)(?:_|\b)', re.I)
 RE_RELATED_HEADER = re.compile(
-    r'\b(for more|most popular|related (posts?|articles?)'
+    r'\b(for more|most popular|related (articles?|entries|posts?)'
     r'|more(.*)(coverage|resources)'
     r'|read more'
     r'|see also'
