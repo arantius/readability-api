@@ -1,2 +1,2 @@
-* Strip bylines.
+* Detect and strip wordpress style tags (<p>Tags: <a href=".../tag/...">...).
 * Process RSS ourselves -- Pipes strips <iframe> and <embed>!
