@@ -134,6 +134,7 @@ def _Munge(soup, url):
 
   _FixUrls(soup, url)
   _MungeImages(soup)
+  _MungeStripLowScored(soup)
   _MungeStripAttrs(soup)
   _MungeStripRelatedList(soup)
   _MungeHyphenate(soup)
@@ -222,6 +223,11 @@ def _MungeStripEmpties(soup):
 
   for tag in soup.findAll(strip_tags):
     _StripIfEmpty(tag)
+
+
+def _MungeStripLowScored(soup):
+  for tag in soup.findAll(score=True):
+    if tag['score'] < -2:
       tag.extract()
 
 
