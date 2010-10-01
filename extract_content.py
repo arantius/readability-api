@@ -128,7 +128,7 @@ def _ScoreBlocks(soup):
 
     if text_len == 0:
       continue
-    if (text_len < 20) and (leaf_block.name not in TAG_NAMES_HEADER):
+    if text_len < 20:
       util.ApplyScore(leaf_block, -1.5, name='short_text')
     if text_len > 75:
       util.ApplyScore(leaf_block, 6, name='some_text')
