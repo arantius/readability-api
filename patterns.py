@@ -92,13 +92,15 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'postmetadata')),
     ('classid', _ReWord(r'shopbox')),
     ('classid', _ReWord(r'snap_nopreview')),
+    ('classid', _ReWord(r'wdt_button')),
 
     ('classid', _ReWhole(r'author_info')),
     ('classid', _ReWhole(r'blippr-nobr')),
     ('classid', _ReWhole(r'byline')),
+    ('classid', _ReWhole(r'facebook-like')),
     ('classid', _ReWhole(r'more_stories')),
     ('classid', _ReWhole(r'pagination')),
-    ('classid', _ReWhole(r'post(-info|ed_on)')),
+    ('classid', _ReWhole(r'post(-info|ed_on|edby)')),
     ('classid', _ReWhole(r'prevnext')),
     ('classid', _ReWhole(r'recent-posts')),
     ('classid', _ReWhole(r'respond')),
@@ -119,6 +121,7 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'foot(er)?')),
     ('classid', _ReWord(r'hid(den|e)')),
     ('classid', _ReWord(r'inset')),
+    ('classid', _ReWord(r'post-labels?')),
     ('classid', _ReWord(r'(left|right)?nav(igation)?')),
     ('classid', _ReWord(r'post_share')),
     #('classid', _ReWord(r'print')),  # too much
@@ -147,7 +150,8 @@ ATTR_STRIP = (
     ('href', _ReAny(r'^https?://feed[^/]+/(~.{1,3}|1\.0)/')),
     ('src', _ReAny(r'^https?://feed[^/]+/(~.{1,3}|1\.0)/')),
     )
-STRIP_TAGS = ('form', 'iframe', 'link', 'meta', 'noscript', 'script', 'style')
+STRIP_TAGS = ('form', 'iframe', 'link', 'meta', 'noscript', 'script', 'style',
+              'fb:share-button')
 
 
 def _Score(tag):
@@ -158,6 +162,7 @@ def _Score(tag):
 
 
 def _Strip(tag):
+  # Seen: wanted to strip "post-labels" but it has score 5.
   if tag.has_key('score') and tag['score'] > 0:
     # Do not strip positively-scored tags.
     return False
