@@ -35,7 +35,7 @@ import patterns
 import util
 
 EMBED_NAMES = set(('embed', 'object'))
-TAG_NAMES_BLOCK = set(('blockquote', 'div', 'ol', 'p', 'pre', 'td', 'th', 'ul'))
+TAG_NAMES_BLOCK = set(('blockquote', 'div', 'li', 'p', 'pre', 'td', 'th'))
 TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 
 
