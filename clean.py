@@ -135,11 +135,11 @@ def _Munge(soup, url):
   _FixUrls(soup, url)
   _MungeImages(soup)
   _MungeStripAttrs(soup)
-  _MungeStripEmpties(soup)
   _MungeStripRelatedList(soup)
   _MungeHyphenate(soup)
   _MungeHeaderDowngrade(soup)
   _MungeStripRules(soup)
+  _MungeStripEmpties(soup)
 
   # Now that we've removed attributes, including style, put back clears
   # on aligned images.
@@ -204,22 +204,25 @@ def _MungeStripAttrs(soup):
 
 
 def _MungeStripEmpties(soup):
-  stripped = False
-  for tag in soup.findAll(
-      ('a', 'center', 'div', 'li', 'ol', 'p', 'td', 'span', 'ul')):
-    if not tag.text.strip():
-      if not tag.find(True):
-        tag.extract()
-        stripped = True
-      elif not tag.find(lambda tag: tag.name != 'br'):
-        tag.extract()
-        stripped = True
-  for tag in soup.findAll('table'):
-    if not tag.find(('td', 'th')):
+  strip_tags = (
+      'a', 'center', 'div', 'li', 'ol', 'p', 'table', 'td', 'th', 'tr',
+      'span', 'ul')
+
+  def _StripIfEmpty(tag):
+    if not tag or not tag.name or tag.name not in strip_tags:
+      return
+    if tag.text.strip():
+      return
+    if tag.find(lambda tag: tag.name != 'br'):
+      return
+    parent = tag.parent
+    tag.extract()
+    # Also consider the parent, which might now be empty.
+    _StripIfEmpty(parent)
+
+  for tag in soup.findAll(strip_tags):
+    _StripIfEmpty(tag)
       tag.extract()
-      stripped = True
-  if stripped:
-    _MungeStripEmpties(soup)
 
 
 def _MungeStripRelatedList(soup):
