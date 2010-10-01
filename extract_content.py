@@ -77,6 +77,12 @@ def _ExtractFromHtmlGeneric(html):
   _ScoreImages(soup)
   _ScoreEmbeds(soup)
 
+  # If a header repeats the title, strip it and all preceding nodes.
+  title_header = _FindTitleHeader(soup, title)
+  if title_header:
+    util.ApplyScore(title_header, 11, name='title_header')
+    _StripBefore(title_header)
+
   # Get the highest scored nodes.
   scored_nodes = sorted(soup.findAll(attrs={'score': True}),
                         key=lambda x: x['score'])[-15:]
@@ -85,11 +91,6 @@ def _ExtractFromHtmlGeneric(html):
   best_node = scored_nodes[-1]
 
   _TransformDivsToPs(soup)
-
-  # If a header repeats the title, strip it and all preceding nodes.
-  title_header = _FindTitleHeader(best_node, title)
-  if title_header:
-    _StripBefore(title_header)
 
   # For debugging ...
   if util.IS_DEV_APPSERVER:
