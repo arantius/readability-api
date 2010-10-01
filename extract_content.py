@@ -149,11 +149,13 @@ def _ScoreEmbeds(soup):
 def _ScoreImages(soup):
   """Score up images."""
   for tag in soup.findAll('img'):
-    util.ApplyScore(tag, 1, name='any_img')
+    util.ApplyScore(tag, 1.5, name='any_img')
     if tag.has_key('alt') and len(tag['alt']) > 50:
       util.ApplyScore(tag, 2, name='img_alt')
 
     size = _TagSize(tag)
+    if size is None:
+      continue
     if size <= 625:
       util.ApplyScore(tag, -3, name='tiny_img')
     if size >= 50000:
