@@ -46,7 +46,7 @@ ATTR_POINTS = (
     (-20, 'classid', _ReWord(r'featured')),
     (-20, 'classid', _ReWord(r'meta')),
     (-20, 'classid', _ReWord(r'module')),
-    (-20, 'classid', _ReWord(r'post-meta')),
+    (-20, 'classid', _ReWord(r'post-(meta|ratings)')),
     (-20, 'classid', _ReWord(r'widget')),
     (-15, 'classid', _ReAny(r'comment')),
     (-15, 'classid', _ReWord(r'twitter')),
