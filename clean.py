@@ -272,7 +272,7 @@ def _MungeStripRelatedList(soup):
 
 def _MungeStripRules(soup):
   try:
-    while soup.contents[-1].name == 'hr':
+    while soup.contents and soup.contents[-1].name == 'hr':
       soup.contents[-1].extract()
   except AttributeError:
     pass
