@@ -38,6 +38,8 @@ EMBED_NAMES = set(('embed', 'object'))
 TAG_NAMES_BLOCK = set(('blockquote', 'div', 'li', 'p', 'pre', 'td', 'th'))
 TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 
+BR_TO_P_STOP_TAGS = set(list(TAG_NAMES_BLOCK) + list(TAG_NAMES_HEADER) + ['br'])
+
 
 def ExtractFromUrl(url):
   url = url.encode('utf-8')
@@ -72,6 +74,7 @@ def _ExtractFromHtmlGeneric(html):
   title = soup.find('title')
   title = title and title.text.lower() or ''
 
+  _TransformBrsToParagraphs(soup)
   patterns.Process(soup)
   _ScoreBlocks(soup)
   _ScoreImages(soup)
@@ -201,6 +204,43 @@ def _TextLenNonAnchors(tag):
   text = re.sub(r'[ \t]+', ' ', text)
   text = re.sub(r'&[^;]{2,6};', '', text)
   return len(text)
+
+
+def _TransformBrsToParagraphs(soup):
+  for tag in soup.findAll('br'):
+    _TransformBrsToParagraphsInner(soup, tag)
+
+
+def _TransformBrsToParagraphsInner(soup, tag):
+  next = tag
+  while True:
+    next = next.nextSibling
+    if not next:
+      return
+    if isinstance(next, BeautifulSoup.Tag):
+      if next.name == 'br':
+        break
+      else:
+        return
+    elif isinstance(next, BeautifulSoup.NavigableString):
+      if not unicode(next).strip():
+        continue
+      else:
+        return
+
+  contents = []
+  prev = tag
+  while True:
+    prev = prev.previousSibling
+    if not prev: break
+    if hasattr(prev, 'name') and prev.name in BR_TO_P_STOP_TAGS: break
+    contents.append(prev)
+
+  newp = BeautifulSoup.Tag(soup, 'p')
+  for i, newtag in enumerate(contents):
+    newp.insert(i, newtag)
+  next.extract()
+  tag.replaceWith(newp)
 
 
 def _TransformDivsToPs(soup):

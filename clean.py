@@ -134,6 +134,7 @@ def _Munge(soup, url):
 
   _FixUrls(soup, url)
   _MungeImages(soup)
+  _MungeStripBrsAfterPs(soup)
   _MungeStripLowScored(soup)
   _MungeStripAttrs(soup)
   _MungeStripRelatedList(soup)
@@ -202,6 +203,17 @@ def _MungeStripAttrs(soup):
   for tag in soup.findAll(True):
     for attr in STRIP_ATTRS:
       del tag[attr]
+
+
+def _MungeStripBrsAfterPs(soup):
+  for tag in soup.findAll('p'):
+    while True:
+      next = tag.findNextSibling()
+      if not next: break
+      if next.name == 'br':
+        next.extract()
+      else:
+        break
 
 
 def _MungeStripEmpties(soup):
