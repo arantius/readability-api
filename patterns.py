@@ -152,8 +152,23 @@ ATTR_STRIP = (
     ('href', _ReAny(r'^https?://feed[^/]+/(~.{1,3}|1\.0)/')),
     ('src', _ReAny(r'^https?://feed[^/]+/(~.{1,3}|1\.0)/')),
     )
+RE_RELATED_HEADER = re.compile(
+    r'\b(for more|most popular|related (articles?|entries|posts?)'
+    r'|more(.*)(coverage|resources)'
+    r'|read more'
+    r'|see also'
+    r'|suggested links)\b', re.I)
 STRIP_TAGS = ('form', 'iframe', 'link', 'meta', 'noscript', 'script', 'style',
               'fb:share-button')
+
+
+def _IsList(tag):
+  if tag.name == 'ul': return True
+  if tag.name == 'ol': return True
+  if 'blockquote' == tag.name:
+    if re.search(r'(<br.*?> - .*){2,}', unicode(tag)):
+      return True
+  return False
 
 
 def _Score(tag):
@@ -174,6 +189,26 @@ def _Strip(tag):
       return False
     tag.extract()
     return True
+  
+  # Strip "related" lists.
+  if _IsList(tag):
+    previous = tag.findPreviousSibling(True)
+    search_text = ''
+    if previous:
+      if previous.name == 'hr':
+        previous = previous.findPreviousSibling(True)
+      search_text = previous.getText(separator=u' ')
+      strip_node = previous
+    elif tag.parent:
+      search_text = tag.parent.getText(separator=u' ')
+      strip_node = tag.parent
+    logging.info(search_text)
+    # Too-long text means this must not be a header, false positive!
+    if len(search_text) < 100:
+      if RE_RELATED_HEADER.search(search_text):
+        _StripAfter(strip_node)
+        return True
+    
 
   for attr, pattern in ATTR_STRIP:
     if not tag.has_key(attr): continue
@@ -183,6 +218,14 @@ def _Strip(tag):
       tag.extract()
       return True
   return False
+
+
+def _StripAfter(strip_tag):
+  if util.IS_DEV_APPSERVER:
+    logging.info('Strip after: %s', util.SoupTagOnly(strip_tag))
+  for tag in strip_tag.findAllNext():
+    tag.extract()
+  strip_tag.extract()
 
 
 def Process(soup):

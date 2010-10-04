@@ -38,12 +38,6 @@ import util
 
 RE_ALIGNED = re.compile(
     r'(?:_|\b)(?:align|float:\s*)?(left|right)(?:_|\b)', re.I)
-RE_RELATED_HEADER = re.compile(
-    r'\b(for more|most popular|related (articles?|entries|posts?)'
-    r'|more(.*)(coverage|resources)'
-    r'|read more'
-    r'|see also'
-    r'|suggested links)\b', re.I)
 STRIP_ATTRS = {
     'onblur': True,
     'onchange ': True,
@@ -137,7 +131,6 @@ def _Munge(soup, url):
   _MungeStripBrsAfterPs(soup)
   _MungeStripLowScored(soup)
   _MungeStripAttrs(soup)
-  _MungeStripRelatedList(soup)
   _MungeHyphenate(soup)
   _MungeHeaderDowngrade(soup)
   _MungeStripRules(soup)
@@ -243,33 +236,6 @@ def _MungeStripLowScored(soup):
       tag.extract()
 
 
-def _MungeStripRelatedList(soup):
-  def FakeBlockquoteList(tag):
-    if 'blockquote' != tag.name:
-      return False
-    if re.search(r'(<br.*?> - .*){2,}', unicode(tag)):
-      return True
-    return False
-  lists = soup.findAll(('ul', 'ol'))
-  lists += soup.findAll(FakeBlockquoteList)
-  for tag in lists:
-    previous = tag.findPreviousSibling(True)
-    search_text = ''
-    if previous:
-      if previous.name == 'hr':
-        previous = previous.findPreviousSibling(True)
-      search_text = previous.text
-      strip_node = previous
-    elif tag.parent:
-      search_text = ' '.join(tag.parent.findAll(text=True))
-      strip_node = tag.parent
-    if len(search_text) > 100:
-      # Too-long text means this must not be a header, false positive!
-      continue
-    if RE_RELATED_HEADER.search(search_text):
-      _StripAfter(strip_node)
-
-
 def _MungeStripRules(soup):
   try:
     while soup.contents and soup.contents[-1].name == 'hr':
@@ -277,10 +243,3 @@ def _MungeStripRules(soup):
   except AttributeError:
     pass
 
-
-def _StripAfter(strip_tag):
-  if util.IS_DEV_APPSERVER:
-    logging.info('Strip after: %s', util.SoupTagOnly(strip_tag))
-  for tag in strip_tag.findAllNext():
-    tag.extract()
-  strip_tag.extract()
