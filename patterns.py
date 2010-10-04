@@ -41,9 +41,8 @@ def _ReWord(pattern):
   return re.compile(r'(_|\b)%s(_|\b)' % pattern, re.I)
 
 ATTR_POINTS = (
-    (-20, 'classid', _ReAny(r'facebook')),
     (-20, 'classid', _ReWord(r'delicious')),
-    (-20, 'classid', _ReWord(r'featured')),
+    (-20, 'classid', _ReWord(r'featured?')),
     (-20, 'classid', _ReWord(r'meta')),
     (-20, 'classid', _ReWord(r'module')),
     (-20, 'classid', _ReWord(r'post-(meta|ratings)')),
@@ -53,6 +52,7 @@ ATTR_POINTS = (
     (-10, 'classid', _ReWord(r'print')),
     (-10, 'classid', _ReWord(r'topics?')),
     (-5, 'classid', _ReAny(r'menu')),
+    (-5, 'classid', _ReAny(r'socia(ble|l)')),
     (-5, 'classid', _ReWord(r'bottom')),
     (-5, 'classid', _ReWord(r'links')),
     (-2, 'classid', _ReAny(r'right')),
@@ -63,20 +63,21 @@ ATTR_POINTS = (
     (5, 'classid', _ReWhole(r'main')),
     (5, 'classid', _ReWord(r'body(text)?')),
     (5, 'classid', _ReWord(r'content')),
-    (5, 'classid', _ReWord(r'post')),
     (5, 'classid', _ReWord(r'single')),
     (10, 'classid', _ReAny(r'^article_?body')),
     (10, 'classid', _ReWhole(r'story')),
     (10, 'classid', _ReWord(r'article(?!_tool)')),
+    (10, 'classid', _ReWord(r'h?entry(?!-title)')),
     (10, 'classid', _ReWord(r'player')),
+    (10, 'classid', _ReWord(r'post(id)?[-_]?(\d+|body|content)?')),
+    (10, 'classid', _ReWord(r'snap_preview')),
     (10, 'classid', _ReWord(r'video')),
     (10, 'classid', _ReWord(r'wide')),
+    (10, 'classid', _ReWhole(r'post-\d+')),
     (20, 'classid', _ReWhole(r'large-image')),  # imgur.com
     (20, 'classid', _ReWhole(r'story(body|block)')),
     (20, 'classid', _ReWhole(r'page')),
     (20, 'classid', _ReWhole(r'player')),
-    (20, 'classid', _ReWord(r'post(id)?[-_]?(\d+|body|content)')),
-    (20, 'classid', _ReWord(r'h?entry(?!-title)')),
     )
 ATTR_STRIP = (
     # any '^topic' broke cracked.com
@@ -85,12 +86,12 @@ ATTR_STRIP = (
     ('classid', _ReAny(r'functions')),
     ('classid', _ReAny(r'popular')),
     ('classid', _ReAny(r'share(bar|box|this)')),
-    ('classid', _ReAny(r'socia(ble|l)')),
     ('classid', _ReAny(r'(controls?|tool)(box|s)')),
 
     ('classid', _ReWord(r'ad(block|tag)?')),
-    ('classid', _ReWord(r'author')),
+    ('classid', _ReWord(r'(post)?author')),
     ('classid', _ReWord(r'postmetadata')),
+    ('classid', _ReWord(r'replies')),
     ('classid', _ReWord(r'shopbox')),
     ('classid', _ReWord(r'snap_nopreview')),
     ('classid', _ReWord(r'wdt_button')),
@@ -116,7 +117,7 @@ ATTR_STRIP = (
     # word 'share' breaks twitter
     # word 'head(er)?' breaks some sites that put _all_ content there
     ('classid', _ReWord(r'ads?')),
-    ('classid', _ReWord(r'categor(ies|y)')),
+    ('classid', _ReWord(r'(in)?categor(ies|y)')),
     ('classid', _ReWord(r'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)')),
     ('classid', _ReWord(r'cnn(_ftrcntnt|Footer)')),
     ('classid', _ReWord(r'foot(er)?')),
@@ -171,8 +172,6 @@ def _Strip(tag):
   if tag.name in STRIP_TAGS:
     if tag.name == 'form' and 'aspnetForm' in [attr[1] for attr in tag.attrs]:
       return False
-    if util.IS_DEV_APPSERVER:
-      logging.info('Strip for tag: %s', util.SoupTagOnly(tag))
     tag.extract()
     return True
 
