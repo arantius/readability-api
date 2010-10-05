@@ -161,7 +161,7 @@ class FeedExtractor(object):
         return self.entry.content[0]['value']
       # Or, use the text/html type if there's more than one.
       for content in self.entry.content:
-        if 'text/html' == content.type:
+        if ('type' in content) and ('text/html' == content.type):
           return content['value']
     # Otherwise try "summary_detail" and "summary".
     if 'summary_detail' in self.entry:
