@@ -100,7 +100,11 @@ class FeedExtractor(object):
     except util.FetchError, _:
       raise NoRssError('could not download feed')
 
-    self.feed = feedparser.parse(feed_source)
+    try:
+      self.feed = feedparser.parse(feed_source)
+    except LookupError:
+      raise NoRssError('could not parse feed')
+
     self._FindEntry()
 
     self.content = util.PreCleanHtml(self._GetContent())
