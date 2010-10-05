@@ -138,7 +138,9 @@ ATTR_STRIP = (
     ('href', _ReAny(r'^javascript:')),
     ('href', _ReAny(r'addtoany\.com')),
     ('href', _ReAny(r'api\.tweetmeme\.com')),
+    ('href', _ReAny(r'digg.com/tools/diggthis')),
     ('href', _ReAny(r'fusion\.google\.com/add')),
+    ('href', _ReAny(r'google.com/reader/link')),
     ('href', _ReAny(r'twitter\.com/home\?status')),
     ('href', _ReWord(r'share')),
     ('href', _ReWord(r'sponsor')),
@@ -153,11 +155,16 @@ ATTR_STRIP = (
     ('src', _ReAny(r'^https?://feed[^/]+/(~.{1,3}|1\.0)/')),
     )
 RE_RELATED_HEADER = re.compile(
-    r'\b(for more|most popular|related (articles?|entries|posts?)'
-    r'|more(.*)(coverage|resources)'
+    r'\b('
+    r'for more'
+    r'|more.*(coverage|resources)'
+    r'|most popular'
     r'|read more'
+    r'|related (articles?|entries|posts?)'
     r'|see also'
-    r'|suggested links)\b', re.I)
+    r'|suggested links'
+    r')\b'
+    r'|more\.\.\.', re.I)
 STRIP_TAGS = ('form', 'iframe', 'link', 'meta', 'noscript', 'script', 'style',
               'fb:share-button')
 
@@ -202,7 +209,6 @@ def _Strip(tag):
     elif tag.parent:
       search_text = tag.parent.getText(separator=u' ')
       strip_node = tag.parent
-    logging.info(search_text)
     # Too-long text means this must not be a header, false positive!
     if len(search_text) < 100:
       if RE_RELATED_HEADER.search(search_text):
