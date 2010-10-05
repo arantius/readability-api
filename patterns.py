@@ -71,6 +71,7 @@ ATTR_POINTS = (
     (10, 'classid', _ReWord(r'player')),
     (10, 'classid', _ReWord(r'video')),
     (10, 'classid', _ReWord(r'wide')),
+    (20, 'classid', _ReWhole(r'large-image')),  # imgur.com
     (20, 'classid', _ReWhole(r'story(body|block)')),
     (20, 'classid', _ReWhole(r'page')),
     (20, 'classid', _ReWhole(r'player')),
