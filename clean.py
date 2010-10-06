@@ -135,6 +135,7 @@ def _Munge(soup, url):
   _MungeHeaderDowngrade(soup)
   _MungeStripRules(soup)
   _MungeStripEmpties(soup)
+  soup = _MungeStripRootContainers(soup)
 
   # Now that we've removed attributes, including style, put back clears
   # on aligned images.
@@ -241,6 +242,14 @@ def _MungeStripLowScored(soup):
   for tag in soup.findAll(score=True):
     if tag['score'] < -2:
       tag.extract()
+
+
+def _MungeStripRootContainers(soup):
+  # If this container holds only one tag, and empty text, choose that inner tag.
+  child_tags = soup.findAll(True, recursive=False)
+  if len(child_tags) != 1: return soup
+  if ''.join(soup.findAll(text=True, recursive=False)).strip(): return soup
+  return _MungeStripRootContainers(child_tags[0])
 
 
 def _MungeStripRules(soup):
