@@ -43,38 +43,42 @@ def _ReWord(pattern):
 ATTR_POINTS = (
     (-20, 'classid', _ReWord(r'delicious')),
     (-20, 'classid', _ReWord(r'featured?')),
-    (-20, 'classid', _ReWord(r'meta')),
+    #(-20, 'classid', _ReWord(r'meta')),  # too broad
     (-20, 'classid', _ReWord(r'module')),
     (-20, 'classid', _ReWord(r'post-(meta|ratings)')),
     (-20, 'classid', _ReWord(r'widget')),
     (-20, 'classid', _ReWhole(r'post_(\d+_)?info')),
     (-15, 'classid', _ReAny(r'comment')),
+    (-15, 'classid', _ReWhole(r'side')),
     (-15, 'classid', _ReWord(r'twitter')),
     (-10, 'classid', _ReWord(r'print')),
     (-10, 'classid', _ReWord(r'topics?')),
     (-5, 'classid', _ReAny(r'menu')),
     (-5, 'classid', _ReAny(r'socia(ble|l)')),
+    (-5, 'classid', _ReWhole(r'articleInline runaroundLeft')),  # nytimes
     (-5, 'classid', _ReWord(r'bottom')),
     (-5, 'classid', _ReWord(r'links')),
     (-2, 'classid', _ReAny(r'right')),
     (1, 'classid', _ReWord(r'container')),
     (1, 'classid', _ReWord(r'main')),
     (2, 'classid', _ReWord(r'text')),
+    (5, 'classid', _ReAny(r'^article')),
     (5, 'classid', _ReWhole(r'permalink')),
     (5, 'classid', _ReWhole(r'main')),
+    (5, 'classid', _ReWhole(r'articleSpanImage')),  # nytimes
     (5, 'classid', _ReWord(r'body(text)?')),
     (5, 'classid', _ReWord(r'content')),
     (5, 'classid', _ReWord(r'single')),
     (10, 'classid', _ReAny(r'^article_?body')),
     (10, 'classid', _ReWhole(r'story')),
     (10, 'classid', _ReWord(r'article(?!_tool)')),
-    (10, 'classid', _ReWord(r'h?entry(?!-title)')),
     (10, 'classid', _ReWord(r'player')),
     (10, 'classid', _ReWord(r'post(id)?[-_]?(\d+|body|content)?')),
     (10, 'classid', _ReWord(r'snap_preview')),
     (10, 'classid', _ReWord(r'video')),
     (10, 'classid', _ReWord(r'wide')),
     (10, 'classid', _ReWhole(r'post-\d+')),
+    (12, 'classid', _ReWord(r'h?entry(?!-title)')),
     (20, 'classid', _ReWhole(r'large-image')),  # imgur.com
     (20, 'classid', _ReWhole(r'story(body|block)')),
     (20, 'classid', _ReWhole(r'page')),
@@ -97,8 +101,10 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'snap_nopreview')),
     ('classid', _ReWord(r'wdt_button')),
 
+    ('classid', _ReWhole(r'articleInline runaroundLeft')),  # nytimes junk
     ('classid', _ReWhole(r'a(uthor_)?info')),
     ('classid', _ReWhole(r'blippr-nobr')),
+    ('classid', _ReWhole(r'breadcrumb')),
     ('classid', _ReWhole(r'byline')),
     ('classid', _ReWhole(r'facebook-like')),
     ('classid', _ReWhole(r'more_stories')),
@@ -109,8 +115,9 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'recent-posts')),
     ('classid', _ReWhole(r'respond')),
     ('classid', _ReWhole(r'rightrail')),
+    ('classid', _ReWhole(r'search(bar)?')),
     ('classid', _ReWhole(r'share')),
-    ('classid', _ReWhole(r'sidebar\d*')),  # word matches too much
+    ('classid', _ReWhole(r'side(bar)?\d*')),  # word matches too much
 
     # tumblr comments
     ('classid', _ReWhole(r'notes(-container)?')),
@@ -199,6 +206,14 @@ def _Strip(tag):
     tag.extract()
     return True
 
+  for attr, pattern in ATTR_STRIP:
+    if not tag.has_key(attr): continue
+    if pattern.search(tag[attr]):
+      if util.IS_DEV_APPSERVER:
+        logging.info('Strip for %s: %s', attr, util.SoupTagOnly(tag))
+      tag.extract()
+      return True
+
   # Strip "related" lists.
   if _IsList(tag):
     previous = tag.findPreviousSibling(True)
@@ -217,14 +232,6 @@ def _Strip(tag):
         _StripAfter(strip_node)
         return True
 
-
-  for attr, pattern in ATTR_STRIP:
-    if not tag.has_key(attr): continue
-    if pattern.search(tag[attr]):
-      if util.IS_DEV_APPSERVER:
-        logging.info('Strip for %s: %s', attr, util.SoupTagOnly(tag))
-      tag.extract()
-      return True
   return False
 
 
