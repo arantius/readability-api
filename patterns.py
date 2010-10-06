@@ -47,6 +47,7 @@ ATTR_POINTS = (
     (-20, 'classid', _ReWord(r'module')),
     (-20, 'classid', _ReWord(r'post-(meta|ratings)')),
     (-20, 'classid', _ReWord(r'widget')),
+    (-20, 'classid', _ReWhole(r'post_(\d+_)?info')),
     (-15, 'classid', _ReAny(r'comment')),
     (-15, 'classid', _ReWord(r'twitter')),
     (-10, 'classid', _ReWord(r'print')),
@@ -96,19 +97,20 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'snap_nopreview')),
     ('classid', _ReWord(r'wdt_button')),
 
-    ('classid', _ReWhole(r'author_info')),
+    ('classid', _ReWhole(r'a(uthor_)?info')),
     ('classid', _ReWhole(r'blippr-nobr')),
     ('classid', _ReWhole(r'byline')),
     ('classid', _ReWhole(r'facebook-like')),
     ('classid', _ReWhole(r'more_stories')),
     ('classid', _ReWhole(r'pagination')),
     ('classid', _ReWhole(r'post(-info|ed_on|edby)')),
+    ('classid', _ReWhole(r'post_(\d+_)?info')),
     ('classid', _ReWhole(r'prevnext')),
     ('classid', _ReWhole(r'recent-posts')),
     ('classid', _ReWhole(r'respond')),
     ('classid', _ReWhole(r'rightrail')),
     ('classid', _ReWhole(r'share')),
-    ('classid', _ReWhole(r'sidebar')),  # word matches too much
+    ('classid', _ReWhole(r'sidebar\d*')),  # word matches too much
 
     # tumblr comments
     ('classid', _ReWhole(r'notes(-container)?')),
@@ -196,7 +198,7 @@ def _Strip(tag):
       return False
     tag.extract()
     return True
-  
+
   # Strip "related" lists.
   if _IsList(tag):
     previous = tag.findPreviousSibling(True)
@@ -214,7 +216,7 @@ def _Strip(tag):
       if RE_RELATED_HEADER.search(search_text):
         _StripAfter(strip_node)
         return True
-    
+
 
   for attr, pattern in ATTR_STRIP:
     if not tag.has_key(attr): continue
