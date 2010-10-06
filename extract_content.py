@@ -234,7 +234,7 @@ def _TransformBrsToParagraphsInner(soup, tag):
     prev = prev.previousSibling
     if not prev: break
     if hasattr(prev, 'name') and prev.name in BR_TO_P_STOP_TAGS: break
-    contents.append(prev)
+    contents.insert(0, prev)
 
   newp = BeautifulSoup.Tag(soup, 'p')
   for i, newtag in enumerate(contents):
