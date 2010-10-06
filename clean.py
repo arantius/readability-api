@@ -142,7 +142,14 @@ def _Munge(soup, url):
     img['style'] = 'clear: both'
 
   # Serialize the soup, and apply full justification.
-  return u"<div style='text-align: justify;'>%s</div>" % unicode(soup)
+  if isinstance(soup, BeautifulSoup.BeautifulStoneSoup):
+    # Wrap in a div, to have a tag to justify, if necessary.
+    wrap = BeautifulSoup.Tag(soup, 'div')
+    wrap.insert(0, soup)
+    soup = wrap
+  soup['style'] = 'text-align: justify;'
+
+  return unicode(soup)
 
 
 def _MungeHyphenate(soup):
