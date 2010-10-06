@@ -130,13 +130,15 @@ def _ScoreBlocks(soup):
     text_len = _TextLenNonAnchors(leaf_block)
 
     if text_len == 0:
+      if leaf_block.find('a'):
+        util.ApplyScore(leaf_block, -2, name='only_anchor')
       continue
     if text_len < 20:
-      util.ApplyScore(leaf_block, -1.5, name='short_text')
+      util.ApplyScore(leaf_block, -0.75, name='short_text')
     if text_len > 75:
-      util.ApplyScore(leaf_block, 6, name='some_text')
+      util.ApplyScore(leaf_block, 3, name='some_text')
     if text_len > 250:
-      util.ApplyScore(leaf_block, 8, name='more_text')
+      util.ApplyScore(leaf_block, 4, name='more_text')
 
 
 def _ScoreEmbeds(soup):
