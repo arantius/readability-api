@@ -57,7 +57,6 @@ STRIP_ATTRS = {
     'onselect': True,
     'onsubmit': True,
     'onunload': True,
-    'style': True,
     }
 if not util.IS_DEV_APPSERVER:
   STRIP_ATTRS.update({
