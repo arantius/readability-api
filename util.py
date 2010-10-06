@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import Cookie
 import logging
 import os
 import re
@@ -90,17 +91,26 @@ class FetchError(Exception):
   pass
 
 
-def _Fetch(url):
-  try:
-    if IS_DEV_APPSERVER:
-      logging.info('Fetching: %s', url)
-    response = urlfetch.fetch(url, allow_truncated=True, deadline=3)
-  except urlfetch.DownloadError, e:
-    raise FetchError(repr(e))
-  else:
-    final_url = (response.final_url or url)
-    final_url = urlparse.urljoin(url, final_url)
-    return (response.content, final_url)
+def _Fetch(orig_url):
+  cookie = Cookie.SimpleCookie()
+  redirect_limit = 10
+  redirects = 0
+  url = orig_url
+  while url and redirects < redirect_limit:
+    redirects += 1
+    try:
+      if IS_DEV_APPSERVER:
+        logging.info('Fetching: %s', url)
+      final_url = url
+      response = urlfetch.fetch(
+          url, allow_truncated=True, follow_redirects=False, deadline=3,
+          headers={'Cookie': cookie.output(attrs=(), header='', sep='; ')})
+      cookie.load(response.headers.get('Set-Cookie', ''))
+      url = response.headers.get('Location')
+    except urlfetch.DownloadError, e:
+      raise FetchError(repr(e))
+  final_url = urlparse.urljoin(orig_url, final_url)
+  return (response.content, final_url)
 
 
 def PreCleanHtml(html):
