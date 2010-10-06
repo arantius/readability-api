@@ -102,13 +102,15 @@ def Clean(url):
     try:
       extractor = extract_feed.FeedExtractor(
           url=url, final_url=final_url, html=html)
-      note = u'<!-- cleaned feed -->\n'
+      note = 'cleaned feed'
       soup = extractor.soup
     except extract_feed.RssError, e:
-      note = u'<!-- cleaned content, %s, %s -->\n' % (e.__class__.__name__, e)
+      note = 'cleaned content, %s, %s' % (e.__class__.__name__, e)
       soup = extract_content.ExtractFromHtml(url, html)
 
-  return note + _Munge(soup, final_url)
+  if util.IS_DEV_APPSERVER:
+    logging.info(note)
+  return _Munge(soup, final_url)
 if not util.IS_DEV_APPSERVER:
   Clean = util.Memoize('Clean_%s', 60*60*24)(Clean)  # pylint: disable-msg=C6409
 
