@@ -127,16 +127,17 @@ def _Munge(soup, url):
   if isinstance(soup, basestring):
     return soup
 
-  _FixUrls(soup, url)
-  _MungeImages(soup)
-  _MungeStripBrsAfterPs(soup)
   _MungeStripLowScored(soup)
+  _MungeStripBrsAfterPs(soup)
   _MungeStripAttrs(soup)
-  _MungeHyphenate(soup)
-  _MungeHeaderDowngrade(soup)
   _MungeStripRules(soup)
   _MungeStripEmpties(soup)
   soup = _MungeStripRootContainers(soup)
+
+  _FixUrls(soup, url)
+  _MungeImages(soup)
+  _MungeHeaderDowngrade(soup)
+  _MungeHyphenate(soup)
 
   # Now that we've removed attributes, including style, put back clears
   # on aligned images.

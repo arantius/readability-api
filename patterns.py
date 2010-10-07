@@ -44,12 +44,13 @@ ATTR_POINTS = (
     (-20, 'classid', _ReWord(r'delicious')),
     (-20, 'classid', _ReWord(r'featured?')),
     #(-20, 'classid', _ReWord(r'meta')),  # too broad
-    (-20, 'classid', _ReWord(r'module')),
+    #(-20, 'classid', _ReWord(r'module')),  # too broad?
     (-20, 'classid', _ReWord(r'post-(meta|ratings)')),
     (-20, 'classid', _ReWord(r'widget')),
     (-20, 'classid', _ReWhole(r'post_(\d+_)?info')),
     (-15, 'classid', _ReAny(r'comment')),
     (-15, 'classid', _ReWhole(r'side')),
+    (-15, 'classid', _ReWord(r'email')),
     (-15, 'classid', _ReWord(r'twitter')),
     (-10, 'classid', _ReWord(r'print')),
     (-10, 'classid', _ReWord(r'topics?')),
@@ -57,21 +58,23 @@ ATTR_POINTS = (
     (-5, 'classid', _ReAny(r'socia(ble|l)')),
     (-5, 'classid', _ReWhole(r'articleInline runaroundLeft')),  # nytimes
     (-5, 'classid', _ReWord(r'bottom')),
+    (-5, 'classid', _ReWord(r'icons')),
     (-5, 'classid', _ReWord(r'links')),
+    (-3, 'classid', _ReWord(r'metadata')),
     (-2, 'classid', _ReAny(r'right')),
     (1, 'classid', _ReWord(r'container')),
     (1, 'classid', _ReWord(r'main')),
     (2, 'classid', _ReWord(r'text')),
+    (4, 'classid', _ReWord(r'article(?!_tool)')),
     (5, 'classid', _ReAny(r'^article')),
-    (5, 'classid', _ReWhole(r'permalink')),
-    (5, 'classid', _ReWhole(r'main')),
     (5, 'classid', _ReWhole(r'articleSpanImage')),  # nytimes
+    (5, 'classid', _ReWhole(r'main')),
+    (5, 'classid', _ReWhole(r'permalink')),
     (5, 'classid', _ReWord(r'body(text)?')),
     (5, 'classid', _ReWord(r'content')),
     (5, 'classid', _ReWord(r'single')),
     (10, 'classid', _ReAny(r'^article_?body')),
     (10, 'classid', _ReWhole(r'story')),
-    (10, 'classid', _ReWord(r'article(?!_tool)')),
     (10, 'classid', _ReWord(r'player')),
     (10, 'classid', _ReWord(r'post(id)?[-_]?(\d+|body|content)?')),
     (10, 'classid', _ReWord(r'snap_preview')),
@@ -94,6 +97,7 @@ ATTR_STRIP = (
     ('classid', _ReAny(r'(controls?|tool)(box|s)')),
 
     ('classid', _ReWord(r'ad(block|tag)?')),
+    ('classid', _ReWord(r'icons')),
     ('classid', _ReWord(r'(post)?author')),
     ('classid', _ReWord(r'postmetadata')),
     ('classid', _ReWord(r'replies')),
@@ -145,7 +149,7 @@ ATTR_STRIP = (
     ('href', _ReAny(r'(facebook|linkedin)\.com/share')),
     ('href', _ReAny(r'(newsvine|yahoo)\.com/buzz')),
     ('href', _ReAny(r'^javascript:')),
-    ('href', _ReAny(r'addtoany\.com')),
+    ('href', _ReAny(r'add(this|toany)\.com')),
     ('href', _ReAny(r'api\.tweetmeme\.com')),
     ('href', _ReAny(r'digg.com/tools/diggthis')),
     ('href', _ReAny(r'fusion\.google\.com/add')),
@@ -169,7 +173,7 @@ RE_RELATED_HEADER = re.compile(
     r'|more.*(coverage|resources)'
     r'|most popular'
     r'|read more'
-    r'|related (articles?|entries|posts?)'
+    r'|related (articles?|entries|posts?|stories)'
     r'|see also'
     r'|suggested links'
     r')\b'
@@ -188,6 +192,7 @@ def _IsList(tag):
 
 
 def _Score(tag):
+  if tag.name == 'body': return
   for points, attr, pattern in ATTR_POINTS:
     if not tag.has_key(attr): continue
     if pattern.search(tag[attr]):
@@ -238,7 +243,7 @@ def _Strip(tag):
 def _StripAfter(strip_tag):
   if util.IS_DEV_APPSERVER:
     logging.info('Strip after: %s', util.SoupTagOnly(strip_tag))
-  for tag in strip_tag.findAllNext():
+  for tag in strip_tag.findNextSiblings():
     tag.extract()
   strip_tag.extract()
 

@@ -117,7 +117,7 @@ def _FindTitleHeader(soup, title_text):
   headers = soup.findAll(TAG_NAMES_HEADER)
   for header in headers:
     header_text = header.text.lower()
-    if len(header_text) < 10:
+    if len(header_text) < 20:
       continue  # avoid false positives thanks to short/empty headers
     if (title_text in header_text) or (header_text in title_text):
       return header
@@ -135,7 +135,7 @@ def _ScoreBlocks(soup):
       continue
     if text_len < 20:
       util.ApplyScore(leaf_block, -0.75, name='short_text')
-    if text_len > 75:
+    if text_len > 50:
       util.ApplyScore(leaf_block, 3, name='some_text')
     if text_len > 250:
       util.ApplyScore(leaf_block, 4, name='more_text')
@@ -162,7 +162,7 @@ def _ScoreImages(soup):
     if size is None:
       continue
     if size <= 625:
-      util.ApplyScore(tag, -3, name='tiny_img')
+      util.ApplyScore(tag, -1.5, name='tiny_img')
     if size >= 50000:
       util.ApplyScore(tag, 3, name='has_img')
     if size >= 250000:
@@ -170,6 +170,8 @@ def _ScoreImages(soup):
 
 
 def _StripBefore(strip_tag):
+  if util.IS_DEV_APPSERVER:
+    logging.info('Strip before: %s', util.SoupTagOnly(strip_tag))
   ancestors = strip_tag.findParents(True)
   for tag in strip_tag.findAllPrevious():
     if tag in ancestors:
