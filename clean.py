@@ -241,7 +241,7 @@ def _MungeStripEmpties(soup):
 
 def _MungeStripLowScored(soup):
   for tag in soup.findAll(score=True):
-    if tag['score'] < -2:
+    if tag['score'] <= -2:
       tag.extract()
 
 
