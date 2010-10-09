@@ -21,7 +21,7 @@ handlers:
   secure: always
 
 - url: /_ah/queue/deferred
-  script: $PYTHON_LIB/google/appengine/ext/deferred/deferred.py
+  script: $PYTHON_LIB/google/appengine/ext/deferred/handler.py
   login: admin
 
 - url: /.*

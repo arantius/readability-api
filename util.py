@@ -30,6 +30,8 @@ from google.appengine.api import memcache
 from google.appengine.api import urlfetch
 from google.appengine.ext.webapp import template
 
+from third_party import feedparser
+
 IS_DEV_APPSERVER = 'Development' in os.environ.get('SERVER_SOFTWARE', '')
 MAX_SCORE_DEPTH = 5
 RE_DOCTYPE = re.compile(r'<!DOCTYPE.*?>', re.S)
@@ -74,7 +76,7 @@ def ApplyScore(tag, score, depth=0, name=None):
   ApplyScore(tag.parent, score, depth + 1, name=name)
 
 
-@Memoize('Fetch_%s', 60*60*24)
+@Memoize('Fetch_%s', 60 * 60 * 24)
 def Fetch(url):
   """Fetch a URL, return its contents and any final-after-redirects URL."""
   error = None
@@ -113,6 +115,20 @@ def _Fetch(orig_url):
   return (response.content, final_url)
 
 
+@Memoize('parsed_feed_by_url_%s', 60 * 15)
+def ParseFeedAtUrl(url):
+  try:
+    source, _ = Fetch(url)
+  except FetchError:
+    return None
+  try:
+    feed_feedparser = feedparser.parse(source)
+  except LookupError:
+    return None
+  else:
+    return feed_feedparser
+
+
 def PreCleanHtml(html):
   # Remove all HTML comments, doctypes.
   html = re.sub(RE_HTML_COMMENTS, '', html)
@@ -121,10 +137,11 @@ def PreCleanHtml(html):
   return html
 
 
-def RenderTemplate(template_name, template_values):
-  template_base = os.path.join(os.path.dirname(__file__), 'templates')
-  return template.render(os.path.join(template_base, template_name),
-                         template_values)
+def RenderTemplate(template_name, template_values=None):
+  template_values = template_values or {}
+  template_file = os.path.join(
+      os.path.dirname(__file__), 'templates', template_name)
+  return template.render(template_file, template_values)
 
 
 def SoupTagOnly(tag):

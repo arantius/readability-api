@@ -95,15 +95,10 @@ class FeedExtractor(object):
       self.html, self.final_url = util.Fetch(url)
 
     feed_url = self._DetectFeed()
-    try:
-      feed_source, _ = util.Fetch(feed_url)
-    except util.FetchError, _:
-      raise NoRssError('could not download feed')
 
-    try:
-      self.feed = feedparser.parse(feed_source)
-    except LookupError:
-      raise NoRssError('could not parse feed')
+    self.feed = util.ParseFeedAtUrl(feed_url)
+    if not self.feed:
+      raise NoRssError('could not download/parse feed')
 
     self._FindEntry()
 

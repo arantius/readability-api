@@ -7,8 +7,8 @@
 </head>
 <body>
 
-<p>Clean it up:</p>
-<form method='get' action='/clean'>
+<p>Clean up a page:</p>
+<form method='get' action='/page'>
 URL: <input type='text' name='url' size='50'>
 <input type='submit'><br>
 <label>
@@ -27,9 +27,11 @@ URL: <input type='text' name='url' size='50'>
 
 <hr>
 
-<p>For a usage example, see
-<a href='http://pipes.yahoo.com/pipes/pipe.info?_id=49cf01e39a05575a1d9c2c5b921f6bed'>Delicious Popular: Embedded</a>
-via Yahoo! Pipes.</p>
+<p>Clean up a feed:</p>
+<form method='get' action='/feed'>
+URL: <input type='text' name='url' size='50'>
+<input type='submit'>
+</form>
 
 </body>
 </html>
