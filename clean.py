@@ -139,11 +139,6 @@ def _Munge(soup, url):
   _MungeHeaderDowngrade(soup)
   _MungeHyphenate(soup)
 
-  # Now that we've removed attributes, including style, put back clears
-  # on aligned images.
-  for img in soup.findAll('img', attrs={'align': True}):
-    img['style'] = 'clear: both'
-
   # Serialize the soup, and apply full justification.
   if isinstance(soup, BeautifulSoup.BeautifulStoneSoup):
     # Wrap in a div, to have a tag to justify, if necessary.
