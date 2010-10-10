@@ -56,7 +56,6 @@ ATTR_POINTS = (
     (-10, 'classid', _ReWord(r'topics?')),
     (-5, 'classid', _ReAny(r'menu')),
     (-5, 'classid', _ReAny(r'socia(ble|l)')),
-    (-5, 'classid', _ReWhole(r'articleInline runaroundLeft')),  # nytimes
     (-5, 'classid', _ReWord(r'bottom')),
     (-5, 'classid', _ReWord(r'icons')),
     (-5, 'classid', _ReWord(r'links')),
@@ -67,7 +66,6 @@ ATTR_POINTS = (
     (2, 'classid', _ReWord(r'text')),
     (4, 'classid', _ReWord(r'article(?!_tool)')),
     (5, 'classid', _ReAny(r'^article')),
-    (5, 'classid', _ReWhole(r'articleSpanImage')),  # nytimes
     (5, 'classid', _ReWhole(r'main')),
     (5, 'classid', _ReWhole(r'permalink')),
     (5, 'classid', _ReWord(r'body(text)?')),
@@ -81,6 +79,7 @@ ATTR_POINTS = (
     (10, 'classid', _ReWord(r'video')),
     (10, 'classid', _ReWord(r'wide')),
     (10, 'classid', _ReWhole(r'post-\d+')),
+    (12, 'classid', _ReWhole(r'articleSpanImage')),  # nytimes
     (12, 'classid', _ReWord(r'h?entry(?!-title)')),
     (20, 'classid', _ReWhole(r'large-image')),  # imgur.com
     (20, 'classid', _ReWhole(r'story(body|block)')),
@@ -97,8 +96,10 @@ ATTR_STRIP = (
     ('classid', _ReAny(r'(controls?|tool)(box|s)')),
 
     ('classid', _ReWord(r'ad(block|tag)?')),
+    ('classid', _ReWord(r'horizontal_posts')),  # mashable
     ('classid', _ReWord(r'icons')),
-    ('classid', _ReWord(r'(post)?author')),
+    ('classid', _ReWord(r'ilikethis')),
+    ('classid', _ReWord(r'(post)?author|authdesc')),
     ('classid', _ReWord(r'postmetadata')),
     ('classid', _ReWord(r'replies')),
     ('classid', _ReWord(r'shopbox')),
@@ -116,12 +117,14 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'post(-info|ed_on|edby)')),
     ('classid', _ReWhole(r'post_(\d+_)?info')),
     ('classid', _ReWhole(r'prevnext')),
+    ('classid', _ReWhole(r'promoColumn')),
     ('classid', _ReWhole(r'recent-posts')),
     ('classid', _ReWhole(r'respond')),
     ('classid', _ReWhole(r'rightrail')),
     ('classid', _ReWhole(r'search(bar)?')),
     ('classid', _ReWhole(r'share')),
     ('classid', _ReWhole(r'side(bar)?\d*')),  # word matches too much
+    ('classid', _ReWhole(r'story-date')),
 
     # tumblr comments
     ('classid', _ReWhole(r'notes(-container)?')),
@@ -169,10 +172,10 @@ ATTR_STRIP = (
     )
 RE_RELATED_HEADER = re.compile(
     r'\b('
-    r'for more'
+    r'also on'
+    r'|(for|read) more'
     r'|more.*(coverage|resources)'
     r'|most popular'
-    r'|read more'
     r'|related (articles?|entries|posts?|stories)'
     r'|see also'
     r'|suggested links'
@@ -200,24 +203,11 @@ def _Score(tag):
 
 
 def _Strip(tag):
-  # Seen: wanted to strip "post-labels" but it has score 5.
-  if tag.has_key('score') and tag['score'] > 0:
-    # Do not strip positively-scored tags.
-    return False
-
   if tag.name in STRIP_TAGS:
     if tag.name == 'form' and 'aspnetForm' in [attr[1] for attr in tag.attrs]:
       return False
     tag.extract()
     return True
-
-  for attr, pattern in ATTR_STRIP:
-    if not tag.has_key(attr): continue
-    if pattern.search(tag[attr]):
-      if util.IS_DEV_APPSERVER:
-        logging.info('Strip for %s: %s', attr, util.SoupTagOnly(tag))
-      tag.extract()
-      return True
 
   # Strip "related" lists.
   if _IsList(tag):
@@ -228,14 +218,27 @@ def _Strip(tag):
         previous = previous.findPreviousSibling(True)
       search_text = previous.getText(separator=u' ')
       strip_node = previous
-    elif tag.parent:
-      search_text = tag.parent.getText(separator=u' ')
-      strip_node = tag.parent
+    else:
+      search_text = ' '.join(tag.findPreviousSiblings(text=True))
     # Too-long text means this must not be a header, false positive!
     if len(search_text) < 100:
       if RE_RELATED_HEADER.search(search_text):
+        logging.info(search_text)
+        logging.info(tag.parent)
         _StripAfter(strip_node)
         return True
+
+  if tag.has_key('score') and tag['score'] > 0:
+    # Do not strip positively-scored tags.
+    return False
+
+  for attr, pattern in ATTR_STRIP:
+    if not tag.has_key(attr): continue
+    if pattern.search(tag[attr]):
+      if util.IS_DEV_APPSERVER:
+        logging.info('Strip for %s: %s', attr, util.SoupTagOnly(tag))
+      tag.extract()
+      return True
 
   return False
 
