@@ -117,6 +117,7 @@ def PreCleanHtml(html):
   # Remove all HTML comments, doctypes.
   html = re.sub(RE_HTML_COMMENTS, '', html)
   html = re.sub(RE_DOCTYPE, '', html)
+  html = html.replace('&nbsp;', ' ')
 
   return html
 
