@@ -70,10 +70,9 @@ def ExtractFromHtml(url, html):
 
 
 def _ExtractFromHtmlGeneric(html):
+  html = util.PreCleanHtml(html)
   try:
-    soup = BeautifulSoup.BeautifulSoup(
-        util.PreCleanHtml(html),
-        convertEntities=BeautifulSoup.BeautifulStoneSoup.ALL_ENTITIES)
+    soup = BeautifulSoup.BeautifulSoup(html)
   except HTMLParser.HTMLParseError, e:
     logging.exception(e)
     return u''
