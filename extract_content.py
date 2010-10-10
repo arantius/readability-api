@@ -58,6 +58,13 @@ def ExtractFromHtml(url, html):
         attrs={'class': re.compile(r'thing.*link')})
     soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)
     return unicode(soup.find(attrs={'class': 'usertext-body'}))
+  elif re.search(r'^http://(www\.)?xkcd\.com/\d+', url, re.I):
+    soup = BeautifulSoup.BeautifulSoup(html)
+    img = soup.find(alt=True, title=True)
+    cont = img.parent.parent
+    for tag in cont.findAll(('br', 'div')):
+      tag.extract()
+    return cont
   else:
     return _ExtractFromHtmlGeneric(html)
 
