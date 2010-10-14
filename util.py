@@ -136,7 +136,6 @@ def _Fetch(orig_url):
   return (response.content, final_url)
 
 
-@Memoize('parsed_feed_by_url_%s', 60 * 15)
 def ParseFeedAtUrl(url):
   try:
     source, _ = Fetch(url)
