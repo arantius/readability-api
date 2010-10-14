@@ -24,6 +24,8 @@ from google.appengine.ext import db
 from google.appengine.ext.blobstore import blobstore
 
 
+_MAX_ENTRIES_PER_FEED = 20
+
 class Feed(db.Model):
   url = db.StringProperty(required=True)
   title = db.StringProperty(required=True)
@@ -33,7 +35,13 @@ class Feed(db.Model):
 
   @property
   def entries(self):
-    return self.entry_set.order('-updated').fetch(20)
+    """List of active entries in the feed."""
+    return self.entry_set.order('-updated').fetch(_MAX_ENTRIES_PER_FEED)
+
+  @property
+  def stale_entries(self):
+    """List of stale entries that should be removed."""
+    return self.entry_set.order('-updated').fetch(999, _MAX_ENTRIES_PER_FEED)
 
   @property
   def updated(self):

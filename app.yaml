@@ -24,5 +24,9 @@ handlers:
   script: $PYTHON_LIB/google/appengine/ext/deferred/handler.py
   login: admin
 
+- url: /crons/.*
+  script: crons.py
+  login: admin
+
 - url: /.*
   script: main.py
