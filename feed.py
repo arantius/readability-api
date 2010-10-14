@@ -35,10 +35,11 @@ import clean
 import models
 import util
 
-_EMPTY_ENTRY = models.Entry(
-    title = 'Processing ...',
-    link = 'about:blank',
-    content = 'Please wait while this feed is fetched and processed.')
+_EMPTY_ENTRY = {
+    'key': {'name': ''},
+    'title': 'Processing ...',
+    'link': 'about:blank',
+    'content': 'Please wait while this feed is fetched and processed.'}
 
 
 @util.DeferredRetryLimit()

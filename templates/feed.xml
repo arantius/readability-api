@@ -3,7 +3,7 @@
   <title>{{ feed.title|escape }}</title>
   <link href="{{ feed.link|escape }}"/>
   <updated>{{ feed.updated|date:"Y-m-d\TH:i:s\Z" }}</updated>
-  <id>urn:uuid:60a76c80-d399-11d9-b93C-0003939e0af6</id>
+  <id>{{ feed.key.name }}</id>
   {% for entry in feed.entries %}
   <entry>
     <title>{{ entry.title|escape }}</title>
