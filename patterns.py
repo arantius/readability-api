@@ -56,7 +56,7 @@ ATTR_POINTS = (
     (-10, 'classid', _ReWord(r'topics?')),
     (-5, 'classid', _ReAny(r'menu')),
     (-5, 'classid', _ReAny(r'socia(ble|l)')),
-    (-5, 'classid', _ReWord(r'bottom')),
+    (-5, 'classid', _ReWord(r'(?<!padding-)bottom')),
     (-5, 'classid', _ReWord(r'icons')),
     (-5, 'classid', _ReWord(r'links')),
     (-3, 'classid', _ReWord(r'metadata')),
