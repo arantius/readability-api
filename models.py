@@ -33,9 +33,7 @@ class Feed(db.Model):
 
   @property
   def entries(self):
-    return sorted(self.entry_set.fetch(20),
-                  key=lambda entry: entry.updated,
-                  reverse=True)
+    return self.entry_set.order('-updated').fetch(20)
 
   @property
   def updated(self):
