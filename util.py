@@ -86,7 +86,7 @@ def ApplyScore(tag, score, depth=0, name=None):
   decayed_score = score * _DEPTH_SCORE_DECAY[depth]
 
   if not tag.has_key('score'): tag['score'] = 0.0
-  tag['score'] = tag['score'] + decayed_score
+  tag['score'] += decayed_score
 
   if IS_DEV_APPSERVER and name:
     name_key = 'score_%s' % name
@@ -137,6 +137,7 @@ def _Fetch(orig_url):
 
 
 def ParseFeedAtUrl(url):
+  """Fetch a URL's contents, and parse it as a feed."""
   try:
     source, _ = Fetch(url)
   except FetchError:
