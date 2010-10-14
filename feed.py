@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import base64
 import datetime
 import hashlib
+import logging
 import re
 import urlparse
 
@@ -40,6 +41,7 @@ _EMPTY_ENTRY = models.Entry(
     content = 'Please wait while this feed is fetched and processed.')
 
 
+@util.DeferredRetryLimit()
 def _CleanEntry(feed_entity, entry_feedparser):
   """Given a parsed feed entry, turn it into a cleaned entry entity."""
   entry_entity = models.Entry(
@@ -58,15 +60,6 @@ def _EntryId(entry_feedparser):
   return base64.b64encode(entry_id)
 
 
-def _UpdateFeed(feed_entity, feed_feedparser=None):
-  if not feed_feedparser:
-    feed_feedparser = util.ParseFeedAtUrl(feed_entity.url)
-  for entry_feedparser in feed_feedparser.entries:
-    entry_entity = models.Entry.get_by_key_name(_EntryId(entry_feedparser))
-    if not entry_entity:
-      deferred.defer(_CleanEntry, feed_entity, entry_feedparser, _queue='fetch')
-
-
 def CreateFeed(url):
   feed_feedparser = util.ParseFeedAtUrl(url)
   feed_entity = models.Feed(
@@ -74,9 +67,18 @@ def CreateFeed(url):
       url = url,
       title = feed_feedparser.feed.title,
       link = feed_feedparser.feed.link)
-  _UpdateFeed(feed_entity, feed_feedparser)
+  UpdateFeed(feed_entity, feed_feedparser)
   feed_entity.put()
   return feed_entity
+
+
+@util.DeferredRetryLimit()
+def UpdateFeed(feed_entity, feed_feedparser=None):
+  if not feed_feedparser:
+    feed_feedparser = util.ParseFeedAtUrl(feed_entity.url)
+  for entry_feedparser in feed_feedparser.entries:
+    if not models.Entry.get_by_key_name(_EntryId(entry_feedparser)):
+      deferred.defer(_CleanEntry, feed_entity, entry_feedparser, _queue='fetch')
 
 
 def PrintFeed(feed_entity):

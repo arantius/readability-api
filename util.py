@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import Cookie
+import functools
 import logging
 import os
 import re
@@ -39,11 +40,30 @@ RE_HTML_COMMENTS = re.compile(r'<!--.*?-->', re.S)
 
 _DEPTH_SCORE_DECAY = [(1 - d / 12.0) ** 5 for d in range(MAX_SCORE_DEPTH + 1)]
 
+################################## DECORATORS ##################################
+
+def DeferredRetryLimit(max_retries=5):
+  """Catch and log all exceptions, but limit reraises to force retry."""
+  def Decorator(func):
+    @functools.wraps(func)
+    def InnerDecorator(*args, **kwargs):
+      try:
+        func(*args, **kwargs)
+      except:
+        try:
+          if int(os.environ['HTTP_X_APPENGINE_TASKRETRYCOUNT']) < max_retries:
+            raise
+        except ValueError:
+          pass
+    return InnerDecorator
+  return Decorator
+
 
 def Memoize(formatted_key, time=60*60):
   """Decorator to store a function call result in App Engine memcache."""
 
   def Decorator(func):
+    @functools.wraps(func)
     def InnerDecorator(*args, **kwargs):
       key = formatted_key % args[0:formatted_key.count('%')]
       result = memcache.get_multi([key])
@@ -55,6 +75,7 @@ def Memoize(formatted_key, time=60*60):
     return InnerDecorator
   return Decorator
 
+################################### HELPERS ####################################
 
 def ApplyScore(tag, score, depth=0, name=None):
   """Recursively apply a decaying score to each parent up the tree."""
@@ -76,7 +97,7 @@ def ApplyScore(tag, score, depth=0, name=None):
   ApplyScore(tag.parent, score, depth + 1, name=name)
 
 
-@Memoize('Fetch_%s', 60 * 60 * 24)
+@Memoize('Fetch_%s', 60 * 15)
 def Fetch(url):
   """Fetch a URL, return its contents and any final-after-redirects URL."""
   error = None

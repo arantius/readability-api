@@ -20,12 +20,19 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import datetime
+import logging
+
 from google.appengine.ext import db
+from google.appengine.ext import deferred
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 
+import feed
 import models
 import util
+
+_MIN_UPDATE_INTERVAL = datetime.timedelta(days=1)
 
 
 class CleanStaleEntries(webapp.RequestHandler):
@@ -33,13 +40,34 @@ class CleanStaleEntries(webapp.RequestHandler):
   response = None
 
   def get(self):
-    for feed in models.Feed.all():
-      db.delete(feed.stale_entries)
+    for feed_entity in models.Feed.all():
+      db.delete(feed_entity.stale_entries)
+
+
+class UpdateFeeds(webapp.RequestHandler):
+  request = None
+  response = None
+
+  def get(self):
+    for feed_entity in models.Feed.all().order('last_fetch_time'):
+      # Figure the average interval between updates.
+      entries = feed_entity.entries
+      do_update = True
+      if entries:
+        interval = (entries[0].created - entries[-1].created) / len(entries)
+        interval = min(_MIN_UPDATE_INTERVAL, interval)
+        # If the newest update + the update interval > now, skip updating.
+        if datetime.datetime.now() < entries[0].created + interval:
+          do_update = False
+      if do_update:
+        # Update this feed!
+        deferred.defer(feed.UpdateFeed, feed_entity, _queue='update')
 
 
 def main():
   application = webapp.WSGIApplication(
       [('/crons/clean_stale_entries', CleanStaleEntries),
+       ('/crons/update_feeds', UpdateFeeds),
       ],
       debug=util.IS_DEV_APPSERVER)
   run_wsgi_app(application)
