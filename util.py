@@ -47,6 +47,7 @@ def DeferredRetryLimit(max_retries=5):
   def Decorator(func):
     @functools.wraps(func)
     def InnerDecorator(*args, **kwargs):
+      # (no exception specified) pylint: disable-msg=W0702
       try:
         func(*args, **kwargs)
       except:
@@ -111,7 +112,7 @@ def Fetch(url):
     except FetchError, e:
       error = e
       logging.exception(e)
-  if error: raise error
+  if error: raise error  # pylint: disable-msg=W0706
 
 
 class FetchError(Exception):

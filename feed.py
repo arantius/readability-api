@@ -24,13 +24,9 @@ import base64
 import datetime
 import hashlib
 import logging
-import re
-import urlparse
 
 from google.appengine.ext import db
 from google.appengine.ext import deferred
-
-from third_party import feedparser
 
 import clean
 import models
@@ -51,13 +47,13 @@ def _CleanEntry(feed_entity, entry_feedparser):
   except AttributeError:
     updated = datetime.datetime.now()
   entry_entity = models.Entry(
-    key_name = _EntryId(entry_feedparser),
-    feed = feed_entity,
-    title = entry_feedparser.title,
-    link = entry_feedparser.link,
-    updated = updated,
-    content = clean.Clean(entry_feedparser.link),
-    original_content = util.GetFeedEntryContent(entry_feedparser))
+      key_name=_EntryId(entry_feedparser),
+      feed=feed_entity,
+      title=entry_feedparser.title,
+      link=entry_feedparser.link,
+      updated=updated,
+      content=clean.Clean(entry_feedparser.link),
+      original_content=util.GetFeedEntryContent(entry_feedparser))
   entry_entity.put()
 
 
@@ -73,10 +69,10 @@ def _EntryId(entry_feedparser):
 def CreateFeed(url):
   feed_feedparser = util.ParseFeedAtUrl(url)
   feed_entity = models.Feed(
-      key_name = url,
-      url = url,
-      title = feed_feedparser.feed.title,
-      link = feed_feedparser.feed.link)
+      key_name=url,
+      url=url,
+      title=feed_feedparser.feed.title,
+      link=feed_feedparser.feed.link)
   UpdateFeed(feed_entity, feed_feedparser)
   feed_entity.put()
   return feed_entity
