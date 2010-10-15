@@ -36,6 +36,8 @@ import extract_content
 import extract_feed
 import util
 
+_MAX_URL_DISPLAY_LEN = 60
+
 RE_ALIGNED = re.compile(
     r'(?:_|\b)(?:align|float:\s*)?(left|right)(?:_|\b)', re.I)
 STRIP_ATTRS = {
@@ -147,7 +149,11 @@ def _Munge(soup, url):
     soup = wrap
   soup['style'] = 'text-align: justify;'
 
-  return unicode(soup)
+  truncate_url = url
+  if len(url) > _MAX_URL_DISPLAY_LEN:
+    truncate_url = url[0:60] + u'…'
+  return u"Content extracted from: <a href='%s'>%s</a><hr>%s" % (
+      url, truncate_url, unicode(soup))
 
 
 def _MungeHyphenate(soup):
