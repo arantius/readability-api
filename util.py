@@ -129,7 +129,10 @@ def _Fetch(orig_url):
           url, allow_truncated=True, follow_redirects=False, deadline=3,
           headers={'Cookie': cookie.output(attrs=(), header='', sep='; ')})
       cookie.load(response.headers.get('Set-Cookie', ''))
+      previous_url = url
       url = response.headers.get('Location')
+      if url:
+        url = urlparse.urljoin(previous_url, url)
     except urlfetch.DownloadError, e:
       raise FetchError(repr(e))
   final_url = urlparse.urljoin(orig_url, final_url)
