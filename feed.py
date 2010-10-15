@@ -80,6 +80,8 @@ def UpdateFeed(feed_entity, feed_feedparser=None):
   for entry_feedparser in feed_feedparser.entries:
     if not models.Entry.get_by_key_name(_EntryId(entry_feedparser)):
       deferred.defer(_CleanEntry, feed_entity, entry_feedparser, _queue='fetch')
+  feed_entity.last_fetch_time = datetime.datetime.now()
+  feed_entity.put()
 
 
 def PrintFeed(feed_entity):
