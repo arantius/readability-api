@@ -228,8 +228,6 @@ def _Strip(tag):
     # Too-long text means this must not be a header, false positive!
     if strip_node and len(search_text) < 100:
       if RE_RELATED_HEADER.search(search_text):
-        logging.info(search_text)
-        logging.info(tag.parent)
         _StripAfter(strip_node)
         return True
 
