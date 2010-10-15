@@ -49,23 +49,13 @@ class CleanPage(webapp.RequestHandler):
 
   def get(self):
     url = self.request.get('url') or self.request.get('link')
-    wrap = self.request.get('wrap', None)
-    if wrap and (self.request.get('html_wrap', 'False') == 'True'):
-      wrap = 'html'
-    mimetype = 'text/html; charset=UTF-8'
 
     if url:
       output = clean.Clean(url)
-      if wrap == 'html':
-        output = u'<html><body>\n%s\n</body></html>' % output
-      elif wrap == 'rss':
-        mimetype = 'text/xml; charset=UTF-8'
-        output = _RenderTemplate('single-item-feed.xml',
-                                 {'content': output})
     else:
       output = 'Provide "url" parameter!'
 
-    self.response.headers['Content-Type'] = mimetype
+    self.response.headers['Content-Type'] = 'text/html; charset=UTF-8'
     self.response.headers['Cache-Control'] = 'max-age=3600'
     self.response.headers['Expires'] = email_utils.formatdate(
         timeval=time.time() + 3600, usegmt=True)
