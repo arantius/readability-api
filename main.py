@@ -29,13 +29,9 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 
 import clean
+import feed
+import models
 import util
-
-
-def _RenderTemplate(template_name, context=None):
-  context = context or {}
-  path = os.path.join(os.path.dirname(__file__), 'templates', template_name)
-  return template.render(path, context)
 
 
 class MainPage(webapp.RequestHandler):
@@ -44,41 +40,53 @@ class MainPage(webapp.RequestHandler):
 
   def get(self):
     self.response.headers['Content-Type'] = 'text/html'
-    self.response.out.write(_RenderTemplate('main.html'))
+    self.response.out.write(util.RenderTemplate('main.html'))
 
 
-class Clean(webapp.RequestHandler):
+class CleanPage(webapp.RequestHandler):
   request = None
   response = None
 
   def get(self):
     url = self.request.get('url') or self.request.get('link')
-    wrap = self.request.get('wrap', None)
-    if wrap and (self.request.get('html_wrap', 'False') == 'True'):
-      wrap = 'html'
-    mimetype = 'text/html; charset=UTF-8'
 
     if url:
       output = clean.Clean(url)
-      if wrap == 'html':
-        output = u'<html><body>\n%s\n</body></html>' % output
-      elif wrap == 'rss':
-        mimetype = 'text/xml; charset=UTF-8'
-        output = _RenderTemplate('single-item-feed.xml',
-                                 {'content': output})
     else:
-      output = 'Provide either "url" or "feed" parameters!'
+      output = 'Provide "url" parameter!'
 
-    self.response.headers['Content-Type'] = mimetype
+    self.response.headers['Content-Type'] = 'text/html; charset=UTF-8'
     self.response.headers['Cache-Control'] = 'max-age=3600'
     self.response.headers['Expires'] = email_utils.formatdate(
         timeval=time.time() + 3600, usegmt=True)
     self.response.out.write(output)
 
 
+class CleanFeed(webapp.RequestHandler):
+  request = None
+  response = None
+
+  def get(self):
+    url = self.request.get('url') or self.request.get('link')
+    include_original = self.request.get('include', None) == 'True'
+
+    if not url:
+      self.response.headers['Content-Type'] = 'text/plain; charset=UTF-8'
+      self.response.out.write('Provide "url" parameter!')
+      return
+
+    feed_entity = models.Feed.get_by_key_name(url)
+    if not feed_entity:
+      feed_entity = feed.CreateFeed(url)
+    self.response.headers['Content-Type'] = 'application/atom+xml; charset=UTF-8'
+    self.response.out.write(feed.PrintFeed(feed_entity, include_original))
+
+
 def main():
   application = webapp.WSGIApplication(
-      [('/', MainPage), ('/clean', Clean)],
+      [('/', MainPage), ('/page', CleanPage), ('/feed', CleanFeed),
+       ('/clean', CleanPage),  # legacy
+      ],
       debug=util.IS_DEV_APPSERVER)
   run_wsgi_app(application)
 

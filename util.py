@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import Cookie
+import functools
 import logging
 import os
 import re
@@ -30,6 +31,8 @@ from google.appengine.api import memcache
 from google.appengine.api import urlfetch
 from google.appengine.ext.webapp import template
 
+from third_party import feedparser
+
 IS_DEV_APPSERVER = 'Development' in os.environ.get('SERVER_SOFTWARE', '')
 MAX_SCORE_DEPTH = 5
 RE_DOCTYPE = re.compile(r'<!DOCTYPE.*?>', re.S)
@@ -37,11 +40,30 @@ RE_HTML_COMMENTS = re.compile(r'<!--.*?-->', re.S)
 
 _DEPTH_SCORE_DECAY = [(1 - d / 12.0) ** 5 for d in range(MAX_SCORE_DEPTH + 1)]
 
+################################## DECORATORS ##################################
+
+def DeferredRetryLimit(max_retries=5):
+  """Catch and log all exceptions, but limit reraises to force retry."""
+  def Decorator(func):
+    @functools.wraps(func)
+    def InnerDecorator(*args, **kwargs):
+      try:
+        func(*args, **kwargs)
+      except:
+        try:
+          if int(os.environ['HTTP_X_APPENGINE_TASKRETRYCOUNT']) < max_retries:
+            raise
+        except (KeyError, ValueError):
+          pass
+    return InnerDecorator
+  return Decorator
+
 
 def Memoize(formatted_key, time=60*60):
   """Decorator to store a function call result in App Engine memcache."""
 
   def Decorator(func):
+    @functools.wraps(func)
     def InnerDecorator(*args, **kwargs):
       key = formatted_key % args[0:formatted_key.count('%')]
       result = memcache.get_multi([key])
@@ -53,6 +75,7 @@ def Memoize(formatted_key, time=60*60):
     return InnerDecorator
   return Decorator
 
+################################### HELPERS ####################################
 
 def ApplyScore(tag, score, depth=0, name=None):
   """Recursively apply a decaying score to each parent up the tree."""
@@ -63,7 +86,7 @@ def ApplyScore(tag, score, depth=0, name=None):
   decayed_score = score * _DEPTH_SCORE_DECAY[depth]
 
   if not tag.has_key('score'): tag['score'] = 0.0
-  tag['score'] = tag['score'] + decayed_score
+  tag['score'] += decayed_score
 
   if IS_DEV_APPSERVER and name:
     name_key = 'score_%s' % name
@@ -74,7 +97,7 @@ def ApplyScore(tag, score, depth=0, name=None):
   ApplyScore(tag.parent, score, depth + 1, name=name)
 
 
-@Memoize('Fetch_%s', 60*60*24)
+@Memoize('Fetch_%s', 60 * 15)
 def Fetch(url):
   """Fetch a URL, return its contents and any final-after-redirects URL."""
   error = None
@@ -106,11 +129,47 @@ def _Fetch(orig_url):
           url, allow_truncated=True, follow_redirects=False, deadline=3,
           headers={'Cookie': cookie.output(attrs=(), header='', sep='; ')})
       cookie.load(response.headers.get('Set-Cookie', ''))
+      previous_url = url
       url = response.headers.get('Location')
+      if url:
+        url = urlparse.urljoin(previous_url, url)
     except urlfetch.DownloadError, e:
       raise FetchError(repr(e))
   final_url = urlparse.urljoin(orig_url, final_url)
   return (response.content, final_url)
+
+
+def GetFeedEntryContent(entry):
+  """Figure out the best content for this entry."""
+  # Prefer "content".
+  if 'content' in entry:
+    # If there's only one, use it.
+    if len(entry.content) == 1:
+      return entry.content[0]['value']
+    # Or, use the text/html type if there's more than one.
+    for content in entry.content:
+      if ('type' in content) and ('text/html' == content.type):
+        return content['value']
+  # Otherwise try "summary_detail" and "summary".
+  if 'summary_detail' in entry:
+    return entry.summary_detail['value']
+  if 'summary' in entry:
+    return entry.summary
+  return ''
+
+
+def ParseFeedAtUrl(url):
+  """Fetch a URL's contents, and parse it as a feed."""
+  try:
+    source, _ = Fetch(url)
+  except FetchError:
+    return None
+  try:
+    feed_feedparser = feedparser.parse(source)
+  except LookupError:
+    return None
+  else:
+    return feed_feedparser
 
 
 def PreCleanHtml(html):
@@ -122,10 +181,11 @@ def PreCleanHtml(html):
   return html
 
 
-def RenderTemplate(template_name, template_values):
-  template_base = os.path.join(os.path.dirname(__file__), 'templates')
-  return template.render(os.path.join(template_base, template_name),
-                         template_values)
+def RenderTemplate(template_name, template_values=None):
+  template_values = template_values or {}
+  template_file = os.path.join(
+      os.path.dirname(__file__), 'templates', template_name)
+  return template.render(template_file, template_values)
 
 
 def SoupTagOnly(tag):

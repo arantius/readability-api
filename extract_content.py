@@ -57,7 +57,7 @@ def ExtractFromHtml(url, html):
     strainer = BeautifulSoup.SoupStrainer(
         attrs={'class': re.compile(r'thing.*link')})
     soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)
-    return unicode(soup.find(attrs={'class': 'usertext-body'}))
+    return soup.find(attrs={'class': 'usertext-body'})
   elif re.search(r'^http://(www\.)?xkcd\.com/\d+', url, re.I):
     soup = BeautifulSoup.BeautifulSoup(html)
     img = soup.find(alt=True, title=True)

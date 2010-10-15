@@ -7,29 +7,21 @@
 </head>
 <body>
 
-<p>Clean it up:</p>
-<form method='get' action='/clean'>
+<p>Clean up a page:</p>
+<form method='get' action='/page'>
+URL: <input type='text' name='url' size='50'>
+<input type='submit'><br>
+</form>
+
+<p>Clean up a feed:</p>
+<form method='get' action='/feed'>
 URL: <input type='text' name='url' size='50'>
 <input type='submit'><br>
 <label>
-  <input type='radio' name='wrap' value=''>
-  No wrapping
-</label><br>
-<label>
-  <input type='radio' name='wrap' value='html'>
-  Wrap contents in &lt;html&gt; and &lt;body&gt; tags
-</label><br>
-<label>
-  <input type='radio' name='wrap' value='rss'>
-  Wrap contents in a dummy RSS feed
-</label><br>
+  <input type='checkbox' name='include' value='True'>
+  Include original feed content
+</label>
 </form>
-
-<hr>
-
-<p>For a usage example, see
-<a href='http://pipes.yahoo.com/pipes/pipe.info?_id=49cf01e39a05575a1d9c2c5b921f6bed'>Delicious Popular: Embedded</a>
-via Yahoo! Pipes.</p>
 
 </body>
 </html>

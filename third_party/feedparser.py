@@ -1746,96 +1746,6 @@ class _FeedURLHandler(urllib2.HTTPDigestAuthHandler, urllib2.HTTPRedirectHandler
         except:
             return self.http_error_default(req, fp, code, msg, headers)
 
-def _open_resource(url_file_stream_or_string, etag, modified, agent, referrer, handlers):
-    """URL, filename, or string --> stream
-
-    This function lets you define parsers that take any input source
-    (URL, pathname to local or network file, or actual data as a string)
-    and deal with it in a uniform manner.  Returned object is guaranteed
-    to have all the basic stdio read methods (read, readline, readlines).
-    Just .close() the object when you're done with it.
-
-    If the etag argument is supplied, it will be used as the value of an
-    If-None-Match request header.
-
-    If the modified argument is supplied, it must be a tuple of 9 integers
-    as returned by gmtime() in the standard Python time module. This MUST
-    be in GMT (Greenwich Mean Time). The formatted date/time will be used
-    as the value of an If-Modified-Since request header.
-
-    If the agent argument is supplied, it will be used as the value of a
-    User-Agent request header.
-
-    If the referrer argument is supplied, it will be used as the value of a
-    Referer[sic] request header.
-
-    If handlers is supplied, it is a list of handlers used to build a
-    urllib2 opener.
-    """
-
-    if hasattr(url_file_stream_or_string, 'read'):
-        return url_file_stream_or_string
-
-    if url_file_stream_or_string == '-':
-        return sys.stdin
-
-    if urlparse.urlparse(url_file_stream_or_string)[0] in ('http', 'https', 'ftp'):
-        if not agent:
-            agent = USER_AGENT
-        # test for inline user:password for basic auth
-        auth = None
-        if base64:
-            urltype, rest = urllib.splittype(url_file_stream_or_string)
-            realhost, rest = urllib.splithost(rest)
-            if realhost:
-                user_passwd, realhost = urllib.splituser(realhost)
-                if user_passwd:
-                    url_file_stream_or_string = '%s://%s%s' % (urltype, realhost, rest)
-                    auth = base64.encodestring(user_passwd).strip()
-        # try to open with urllib2 (to use optional headers)
-        request = urllib2.Request(url_file_stream_or_string)
-        request.add_header('User-Agent', agent)
-        if etag:
-            request.add_header('If-None-Match', etag)
-        if modified:
-            # format into an RFC 1123-compliant timestamp. We can't use
-            # time.strftime() since the %a and %b directives can be affected
-            # by the current locale, but RFC 2616 states that dates must be
-            # in English.
-            short_weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-            months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-            request.add_header('If-Modified-Since', '%s, %02d %s %04d %02d:%02d:%02d GMT' % (short_weekdays[modified[6]], modified[2], months[modified[1] - 1], modified[0], modified[3], modified[4], modified[5]))
-        if referrer:
-            request.add_header('Referer', referrer)
-        if gzip and zlib:
-            request.add_header('Accept-encoding', 'gzip, deflate')
-        elif gzip:
-            request.add_header('Accept-encoding', 'gzip')
-        elif zlib:
-            request.add_header('Accept-encoding', 'deflate')
-        else:
-            request.add_header('Accept-encoding', '')
-        if auth:
-            request.add_header('Authorization', 'Basic %s' % auth)
-        if ACCEPT_HEADER:
-            request.add_header('Accept', ACCEPT_HEADER)
-        request.add_header('A-IM', 'feed') # RFC 3229 support
-        opener = apply(urllib2.build_opener, tuple([_FeedURLHandler()] + handlers))
-        opener.addheaders = [] # RMK - must clear so we only send our custom User-Agent
-        try:
-            return opener.open(request)
-        finally:
-            opener.close() # JohnD
-    
-    # try to open with native open function (if url_file_stream_or_string is a filename)
-    try:
-        return open(url_file_stream_or_string)
-    except:
-        pass
-
-    # treat url_file_stream_or_string as string
-    return _StringIO(str(url_file_stream_or_string))
-
 _date_handlers = []
 def registerDateHandler(func):
     '''Register a date handler function (takes string, returns 9-tuple date in GMT)'''
@@ -2452,61 +2362,13 @@ def _stripDoctype(data):
     data = doctype_pattern.sub('', data)
     return version, data
     
-def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, referrer=None, handlers=[]):
-    '''Parse a feed from a URL, file, stream, or string'''
+def parse(data):
+    '''Parse a feed from a string'''
     result = FeedParserDict()
     result['feed'] = FeedParserDict()
     result['entries'] = []
     if _XML_AVAILABLE:
         result['bozo'] = 0
-    if type(handlers) == types.InstanceType:
-        handlers = [handlers]
-    try:
-        f = _open_resource(url_file_stream_or_string, etag, modified, agent, referrer, handlers)
-        data = f.read()
-    except Exception, e:
-        result['bozo'] = 1
-        result['bozo_exception'] = e
-        data = ''
-        f = None
-
-    # if feed is gzip-compressed, decompress it
-    if f and data and hasattr(f, 'headers'):
-        if gzip and f.headers.get('content-encoding', '') == 'gzip':
-            try:
-                data = gzip.GzipFile(fileobj=_StringIO(data)).read()
-            except Exception, e:
-                # Some feeds claim to be gzipped but they're not, so
-                # we get garbage.  Ideally, we should re-request the
-                # feed without the 'Accept-encoding: gzip' header,
-                # but we don't.
-                result['bozo'] = 1
-                result['bozo_exception'] = e
-                data = ''
-        elif zlib and f.headers.get('content-encoding', '') == 'deflate':
-            try:
-                data = zlib.decompress(data, -zlib.MAX_WBITS)
-            except Exception, e:
-                result['bozo'] = 1
-                result['bozo_exception'] = e
-                data = ''
-
-    # save HTTP headers
-    if hasattr(f, 'info'):
-        info = f.info()
-        result['etag'] = info.getheader('ETag')
-        last_modified = info.getheader('Last-Modified')
-        if last_modified:
-            result['modified'] = _parse_date(last_modified)
-    if hasattr(f, 'url'):
-        result['href'] = f.url
-        result['status'] = 200
-    if hasattr(f, 'status'):
-        result['status'] = f.status
-    if hasattr(f, 'headers'):
-        result['headers'] = f.headers.dict
-    if hasattr(f, 'close'):
-        f.close()
 
     # there are four encodings to keep track of:
     # - http_encoding is the encoding declared in the Content-Type HTTP header

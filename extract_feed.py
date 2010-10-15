@@ -95,19 +95,14 @@ class FeedExtractor(object):
       self.html, self.final_url = util.Fetch(url)
 
     feed_url = self._DetectFeed()
-    try:
-      feed_source, _ = util.Fetch(feed_url)
-    except util.FetchError, _:
-      raise NoRssError('could not download feed')
 
-    try:
-      self.feed = feedparser.parse(feed_source)
-    except LookupError:
-      raise NoRssError('could not parse feed')
+    self.feed = util.ParseFeedAtUrl(feed_url)
+    if not self.feed:
+      raise NoRssError('could not download/parse feed')
 
     self._FindEntry()
 
-    self.content = util.PreCleanHtml(self._GetContent())
+    self.content = util.PreCleanHtml(util.GetFeedEntryContent(self.entry))
     if not self.content:
       raise NoRssContentError('no content found')
 
@@ -156,19 +151,3 @@ class FeedExtractor(object):
       url1 = TrimQuery(url1)
     return url1 == url2
 
-  def _GetContent(self):
-    """Figure out the best content for this entry."""
-    # Prefer "content".
-    if 'content' in self.entry:
-      # If there's only one, use it.
-      if len(self.entry.content) == 1:
-        return self.entry.content[0]['value']
-      # Or, use the text/html type if there's more than one.
-      for content in self.entry.content:
-        if ('type' in content) and ('text/html' == content.type):
-          return content['value']
-    # Otherwise try "summary_detail" and "summary".
-    if 'summary_detail' in self.entry:
-      return self.entry.summary_detail['value']
-    if 'summary' in self.entry:
-      return self.entry.summary
