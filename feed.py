@@ -27,6 +27,7 @@ import logging
 import re
 import urlparse
 
+from google.appengine.ext import db
 from google.appengine.ext import deferred
 
 from third_party import feedparser
@@ -83,6 +84,8 @@ def CreateFeed(url):
 
 @util.DeferredRetryLimit()
 def UpdateFeed(feed_entity, feed_feedparser=None):
+  if isinstance(feed_entity, db.Key):
+    feed_entity = db.get(feed_entity)
   if not feed_feedparser:
     feed_feedparser = util.ParseFeedAtUrl(feed_entity.url)
   for entry_feedparser in feed_feedparser.entries:

@@ -61,7 +61,7 @@ class UpdateFeeds(webapp.RequestHandler):
           do_update = False
       if do_update:
         # Update this feed!
-        deferred.defer(feed.UpdateFeed, feed_entity, _queue='update')
+        deferred.defer(feed.UpdateFeed, feed_entity.key(), _queue='update')
 
 
 def main():
