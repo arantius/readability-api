@@ -53,7 +53,7 @@ def DeferredRetryLimit(max_retries=5):
         try:
           if int(os.environ['HTTP_X_APPENGINE_TASKRETRYCOUNT']) < max_retries:
             raise
-        except ValueError:
+        except (KeyError, ValueError):
           pass
     return InnerDecorator
   return Decorator
@@ -134,6 +134,25 @@ def _Fetch(orig_url):
       raise FetchError(repr(e))
   final_url = urlparse.urljoin(orig_url, final_url)
   return (response.content, final_url)
+
+
+def GetFeedEntryContent(entry):
+  """Figure out the best content for this entry."""
+  # Prefer "content".
+  if 'content' in entry:
+    # If there's only one, use it.
+    if len(entry.content) == 1:
+      return entry.content[0]['value']
+    # Or, use the text/html type if there's more than one.
+    for content in entry.content:
+      if ('type' in content) and ('text/html' == content.type):
+        return content['value']
+  # Otherwise try "summary_detail" and "summary".
+  if 'summary_detail' in entry:
+    return entry.summary_detail['value']
+  if 'summary' in entry:
+    return entry.summary
+  return ''
 
 
 def ParseFeedAtUrl(url):

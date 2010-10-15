@@ -57,5 +57,6 @@ class Entry(db.Model):
   link = db.StringProperty(required=True)
   updated = db.DateTimeProperty()
   content = db.TextProperty()
+  original_content = db.TextProperty()
 
   created = db.DateTimeProperty(auto_now_add=True)

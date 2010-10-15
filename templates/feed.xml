@@ -10,7 +10,10 @@
     <link href="{{ entry.link|escape }}"/>
     <id>tag:{{ entry.key.name }}</id>
     <updated>{{ entry.updated|date:"Y-m-d\TH:i:s\Z" }}</updated>
-    <content type="html"><![CDATA[{{ entry.content }}]]></content>
+    <content type="html"><![CDATA[
+      {% if include_original %}{{ entry.original_content}}<hr>{% endif %}
+      {{ entry.content }}
+    ]]></content>
   </entry>
   {% endfor %}
 </feed>

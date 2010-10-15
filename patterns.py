@@ -220,10 +220,13 @@ def _Strip(tag):
       strip_node = previous
     else:
       previous = tag.findPreviousSiblings(text=True)
-      search_text = ' '.join(previous)
-      strip_node = previous[0]
+      if previous:
+        search_text = ' '.join(previous)
+        strip_node = previous[0]
+      else:
+        strip_node = None
     # Too-long text means this must not be a header, false positive!
-    if len(search_text) < 100:
+    if strip_node and len(search_text) < 100:
       if RE_RELATED_HEADER.search(search_text):
         logging.info(search_text)
         logging.info(tag.parent)

@@ -68,6 +68,7 @@ class CleanFeed(webapp.RequestHandler):
 
   def get(self):
     url = self.request.get('url') or self.request.get('link')
+    include_original = self.request.get('include', None) == 'True'
 
     if not url:
       self.response.headers['Content-Type'] = 'text/plain; charset=UTF-8'
@@ -78,7 +79,7 @@ class CleanFeed(webapp.RequestHandler):
     if not feed_entity:
       feed_entity = feed.CreateFeed(url)
     self.response.headers['Content-Type'] = 'application/atom+xml; charset=UTF-8'
-    self.response.out.write(feed.PrintFeed(feed_entity))
+    self.response.out.write(feed.PrintFeed(feed_entity, include_original))
 
 
 def main():

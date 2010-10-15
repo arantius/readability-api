@@ -45,18 +45,26 @@ _EMPTY_ENTRY = {
 @util.DeferredRetryLimit()
 def _CleanEntry(feed_entity, entry_feedparser):
   """Given a parsed feed entry, turn it into a cleaned entry entity."""
+  try:
+    updated = datetime.datetime(*entry_feedparser.updated_parsed[:6])
+  except AttributeError:
+    updated = datetime.datetime.now()
   entry_entity = models.Entry(
     key_name = _EntryId(entry_feedparser),
     feed = feed_entity,
     title = entry_feedparser.title,
     link = entry_feedparser.link,
-    updated = datetime.datetime(*entry_feedparser.updated_parsed[:6]),
-    content = clean.Clean(entry_feedparser.link))
+    updated = updated,
+    content = clean.Clean(entry_feedparser.link),
+    original_content = util.GetFeedEntryContent(entry_feedparser))
   entry_entity.put()
 
 
 def _EntryId(entry_feedparser):
-  entry_id = entry_feedparser.id or entry_feedparser.link
+  try:
+    entry_id = entry_feedparser.id
+  except AttributeError:
+    entry_id = entry_feedparser.link
   entry_id = hashlib.sha256(entry_id).digest()
   return base64.b64encode(entry_id)
 
@@ -84,11 +92,12 @@ def UpdateFeed(feed_entity, feed_feedparser=None):
   feed_entity.put()
 
 
-def PrintFeed(feed_entity):
+def PrintFeed(feed_entity, include_original=False):
   if not feed_entity.entries:
     feed_entity = {
         'title': feed_entity.title,
         'link': feed_entity.title,
         'entries': [_EMPTY_ENTRY],
         }
-  return util.RenderTemplate('feed.xml', {'feed': feed_entity})
+  return util.RenderTemplate(
+      'feed.xml', {'feed': feed_entity, 'include_original': include_original})
