@@ -70,7 +70,11 @@ def Memoize(formatted_key, time=60*60):
       if key in result:
         return result[key]
       result = func(*args, **kwargs)
-      memcache.set(key, result, time)
+      try:
+        memcache.set(key, result, time)
+      except ValueError:
+        # Silently ignore ValueError which is probably too-long-value.
+        pass
       return result
     return InnerDecorator
   return Decorator

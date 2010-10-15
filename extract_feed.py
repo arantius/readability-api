@@ -140,8 +140,9 @@ class FeedExtractor(object):
 
   def _FindEntryMatching(self, url, trim_query=False):
     for entry in self.feed.entries:
-      if self._UrlsMatch(entry.link, url, trim_query):
-        return entry
+      if 'link' in entry:
+        if self._UrlsMatch(entry.link, url, trim_query):
+          return entry
       if 'feedburner_origlink' in entry:
         if self._UrlsMatch(entry.feedburner_origlink, url, trim_query):
           return entry
