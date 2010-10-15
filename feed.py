@@ -84,9 +84,12 @@ def UpdateFeed(feed_entity, feed_feedparser=None):
     feed_entity = db.get(feed_entity)
   if not feed_feedparser:
     feed_feedparser = util.ParseFeedAtUrl(feed_entity.url)
+  delay = 0
   for entry_feedparser in feed_feedparser.entries:
     if not models.Entry.get_by_key_name(_EntryId(entry_feedparser)):
-      deferred.defer(_CleanEntry, feed_entity, entry_feedparser, _queue='fetch')
+      deferred.defer(_CleanEntry, feed_entity, entry_feedparser,
+                     _countdown=delay, _queue='fetch')
+      delay += 3
   feed_entity.last_fetch_time = datetime.datetime.now()
   feed_entity.put()
 
