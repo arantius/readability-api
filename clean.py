@@ -96,8 +96,14 @@ def Clean(url):
 
   try:
     html, final_url = util.Fetch(url)
+    if not html:
+      raise ValueError('Url %s provided no HTML' % url)
   except util.FetchError, e:
     return repr(e)
+  except ValueError, e:
+    logging.exception(e)
+    note = str(e)
+    soup = str(e)
   else:
     note = ''
     try:
