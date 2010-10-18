@@ -213,9 +213,9 @@ def _Strip(tag):
   if _IsList(tag):
     previous = tag.findPreviousSibling(True)
     search_text = ''
+    if previous and previous.name == 'hr':
+      previous = previous.findPreviousSibling(True)
     if previous:
-      if previous.name == 'hr':
-        previous = previous.findPreviousSibling(True)
       search_text = previous.getText(separator=u' ')
       strip_node = previous
     else:
