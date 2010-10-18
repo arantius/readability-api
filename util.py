@@ -42,7 +42,7 @@ _DEPTH_SCORE_DECAY = [(1 - d / 12.0) ** 5 for d in range(MAX_SCORE_DEPTH + 1)]
 
 ################################## DECORATORS ##################################
 
-def DeferredRetryLimit(max_retries=5):
+def DeferredRetryLimit(max_retries=5, failure_callback=None):
   """Catch and log all exceptions, but limit reraises to force retry."""
   def Decorator(func):
     @functools.wraps(func)
@@ -50,10 +50,14 @@ def DeferredRetryLimit(max_retries=5):
       # (no exception specified) pylint: disable-msg=W0702
       try:
         func(*args, **kwargs)
-      except:
+      except Exception, e:
         try:
           if int(os.environ['HTTP_X_APPENGINE_TASKRETRYCOUNT']) < max_retries:
             raise
+          elif failure_callback:
+            logging.error('Permanent failure, falling back; %s', e)
+            kwargs['exception'] = e
+            failure_callback(*args, **kwargs)
         except (KeyError, ValueError):
           pass
     return InnerDecorator

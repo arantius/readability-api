@@ -39,9 +39,7 @@ _EMPTY_ENTRY = {
     'content': 'Please wait while this feed is fetched and processed.'}
 
 
-@util.DeferredRetryLimit()
-def _CleanEntry(feed_entity, entry_feedparser):
-  """Given a parsed feed entry, turn it into a cleaned entry entity."""
+def _CleanEntryBase(feed_entity, entry_feedparser, content):
   try:
     updated = datetime.datetime(*entry_feedparser.updated_parsed[:6])
   except AttributeError:
@@ -52,10 +50,20 @@ def _CleanEntry(feed_entity, entry_feedparser):
       title=entry_feedparser.title,
       link=entry_feedparser.link,
       updated=updated,
-      content=clean.Clean(entry_feedparser.link),
+      content=content,
       original_content=util.GetFeedEntryContent(entry_feedparser))
   entry_entity.put()
 
+
+def _CleanEntryFailure(feed_entity, entry_feedparser, exception):
+  _CleanEntryBase(feed_entity, entry_feedparser, content=str(exception))
+
+
+@util.DeferredRetryLimit(_CleanEntryFailure)
+def _CleanEntry(feed_entity, entry_feedparser):
+  """Given a parsed feed entry, turn it into a cleaned entry entity."""
+  _CleanEntryBase(feed_entity, entry_feedparser,
+                  content=clean.Clean(entry_feedparser.link))
 
 def _EntryId(entry_feedparser):
   try:
