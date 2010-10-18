@@ -48,7 +48,7 @@ ATTR_POINTS = (
     (-20, 'classid', _ReWord(r'post-(meta|ratings)')),
     (-20, 'classid', _ReWord(r'widget')),
     (-20, 'classid', _ReWhole(r'post_(\d+_)?info')),
-    (-15, 'classid', _ReAny(r'comment')),
+    #(-15, 'classid', _ReAny(r'comment')),  # goes in the post too often
     (-15, 'classid', _ReWhole(r'side')),
     (-15, 'classid', _ReWord(r'email')),
     (-15, 'classid', _ReWord(r'twitter')),
@@ -102,7 +102,9 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'(post)?author|authdesc')),
     ('classid', _ReWord(r'postmetadata')),
     ('classid', _ReWord(r'replies')),
+    ('classid', _ReWord(r'retweet')),
     ('classid', _ReWord(r'shopbox')),
+    ('classid', _ReWord(r'social')),
     ('classid', _ReWord(r'snap_nopreview')),
     ('classid', _ReWord(r'wdt_button')),
 
