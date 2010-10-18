@@ -136,7 +136,7 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'(in)?categor(ies|y)')),
     ('classid', _ReWord(r'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)')),
     ('classid', _ReWord(r'cnn(_ftrcntnt|Footer)')),
-    ('classid', _ReWord(r'foot(er)?')),
+    ('classid', _ReWord(r'foot(er)?(feature)?')),
     ('classid', _ReWord(r'hid(den|e)')),
     ('classid', _ReWord(r'inset')),
     ('classid', _ReWord(r'post-labels?')),
