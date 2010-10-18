@@ -103,43 +103,24 @@ def ApplyScore(tag, score, depth=0, name=None):
 
 
 @Memoize('Fetch_%s', 60 * 15)
-def Fetch(url):
-  """Fetch a URL, return its contents and any final-after-redirects URL."""
-  error = None
-  for _ in xrange(3):
-    try:
-      return _Fetch(url)
-    except FetchError, e:
-      error = e
-      logging.exception(e)
-  if error: raise error  # pylint: disable-msg=W0706
-
-
-class FetchError(Exception):
-  pass
-
-
-def _Fetch(orig_url):
+def Fetch(orig_url):
   cookie = Cookie.SimpleCookie()
   redirect_limit = 10
   redirects = 0
   url = orig_url
   while url and redirects < redirect_limit:
     redirects += 1
-    try:
-      if IS_DEV_APPSERVER:
-        logging.info('Fetching: %s', url)
-      final_url = url
-      response = urlfetch.fetch(
-          url, allow_truncated=True, follow_redirects=False, deadline=3,
-          headers={'Cookie': cookie.output(attrs=(), header='', sep='; ')})
-      cookie.load(response.headers.get('Set-Cookie', ''))
-      previous_url = url
-      url = response.headers.get('Location')
-      if url:
-        url = urlparse.urljoin(previous_url, url)
-    except urlfetch.DownloadError, e:
-      raise FetchError(repr(e))
+    if IS_DEV_APPSERVER:
+      logging.info('Fetching: %s', url)
+    final_url = url
+    response = urlfetch.fetch(
+        url, allow_truncated=True, follow_redirects=False, deadline=3,
+        headers={'Cookie': cookie.output(attrs=(), header='', sep='; ')})
+    cookie.load(response.headers.get('Set-Cookie', ''))
+    previous_url = url
+    url = response.headers.get('Location')
+    if url:
+      url = urlparse.urljoin(previous_url, url)
   final_url = urlparse.urljoin(orig_url, final_url)
   return (response.content, final_url)
 
@@ -165,10 +146,7 @@ def GetFeedEntryContent(entry):
 
 def ParseFeedAtUrl(url):
   """Fetch a URL's contents, and parse it as a feed."""
-  try:
-    source, _ = Fetch(url)
-  except FetchError:
-    return None
+  source, _ = Fetch(url)
   try:
     feed_feedparser = feedparser.parse(source)
   except LookupError:

@@ -94,26 +94,21 @@ def Clean(url):
     return util.RenderTemplate('google-docs.html', {'docid': match.group(1),
                                                     'url': url})
 
+  html, final_url = util.Fetch(url)
+  if not html:
+    err = 'Url %s provided no HTML' % url
+    logging.error(err)
+    return err
+
+  note = ''
   try:
-    html, final_url = util.Fetch(url)
-    if not html:
-      raise ValueError('Url %s provided no HTML' % url)
-  except util.FetchError, e:
-    return repr(e)
-  except ValueError, e:
-    logging.exception(e)
-    note = str(e)
-    soup = str(e)
-  else:
-    note = ''
-    try:
-      extractor = extract_feed.FeedExtractor(
-          url=url, final_url=final_url, html=html)
-      note = 'cleaned feed'
-      soup = extractor.soup
-    except extract_feed.RssError, e:
-      note = 'cleaned content, %s, %s' % (e.__class__.__name__, e)
-      soup = extract_content.ExtractFromHtml(url, html)
+    extractor = extract_feed.FeedExtractor(
+        url=url, final_url=final_url, html=html)
+    note = 'cleaned feed'
+    soup = extractor.soup
+  except extract_feed.RssError, e:
+    note = 'cleaned content, %s, %s' % (e.__class__.__name__, e)
+    soup = extract_content.ExtractFromHtml(url, html)
 
   if util.IS_DEV_APPSERVER:
     logging.info(note)
