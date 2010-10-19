@@ -55,9 +55,9 @@ def ExtractFromHtml(url, html):
   """Given a string of HTML, remove nasty bits, score and pick bit to keep."""
   if re.search(r'^http://(www\.)?reddit\.com/.*/comments/', url, re.I):
     strainer = BeautifulSoup.SoupStrainer(
-        attrs={'class': re.compile(r'thing.*link')})
+        attrs={'class': re.compile(r'thing.*link|usertext border')})
     soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)
-    return soup.find(attrs={'class': 'usertext-body'})
+    return soup.find(attrs={'class': 'usertext-body'}) or 'Reddit parse fail'
   elif re.search(r'^http://(www\.)?xkcd\.com/\d+', url, re.I):
     soup = BeautifulSoup.BeautifulSoup(html)
     img = soup.find(alt=True, title=True)
