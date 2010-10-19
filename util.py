@@ -47,19 +47,27 @@ def DeferredRetryLimit(max_retries=5, failure_callback=None):
   def Decorator(func):
     @functools.wraps(func)
     def InnerDecorator(*args, **kwargs):
-      # (no exception specified) pylint: disable-msg=W0702
+      # (catching Exception) pylint: disable-msg=W0702,W0703
       try:
         func(*args, **kwargs)
-      except Exception, e:
+      except Exception, e1:
         try:
-          if int(os.environ['HTTP_X_APPENGINE_TASKRETRYCOUNT']) < max_retries:
-            raise
-          elif failure_callback:
-            logging.error('Permanent failure, falling back; %s', e)
-            kwargs['exception'] = e
-            failure_callback(*args, **kwargs)
+          retry_count = int(os.environ['HTTP_X_APPENGINE_TASKRETRYCOUNT'])
         except (KeyError, ValueError):
-          pass
+          logging.error('Could not determine task retry count.')
+          return
+        if retry_count < max_retries:
+          # Reraise this error, so the task queue will rerun us.
+          raise
+        elif failure_callback:
+          logging.error('Permanent failure, falling back; %s', e1)
+          kwargs['exception'] = e1
+          try:
+            failure_callback(*args, **kwargs)
+          except Exception, e2:
+            logging.exception('failure_callback produced: %s', e2)
+        else:
+          logging.error('Permanent failure, no fallback')
     return InnerDecorator
   return Decorator
 

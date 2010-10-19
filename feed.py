@@ -59,7 +59,7 @@ def _CleanEntryFailure(feed_entity, entry_feedparser, exception):
   _CleanEntryBase(feed_entity, entry_feedparser, content=str(exception))
 
 
-@util.DeferredRetryLimit(_CleanEntryFailure)
+@util.DeferredRetryLimit(failure_callback=_CleanEntryFailure)
 def _CleanEntry(feed_entity, entry_feedparser):
   """Given a parsed feed entry, turn it into a cleaned entry entity."""
   _CleanEntryBase(feed_entity, entry_feedparser,
