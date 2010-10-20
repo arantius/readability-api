@@ -70,9 +70,9 @@ def _CleanEntry(feed_entity, entry_feedparser):
 
 def _EntryId(entry_feedparser):
   try:
-    entry_id = entry_feedparser.id
+    entry_id = entry_feedparser.id.encode('utf-8')
   except AttributeError:
-    entry_id = entry_feedparser.link
+    entry_id = entry_feedparser.link.encode('utf-8')
   entry_id = hashlib.sha256(entry_id).digest()
   return base64.b64encode(entry_id)
 
