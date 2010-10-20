@@ -42,7 +42,7 @@ _DEPTH_SCORE_DECAY = [(1 - d / 12.0) ** 5 for d in range(MAX_SCORE_DEPTH + 1)]
 
 ################################## DECORATORS ##################################
 
-def DeferredRetryLimit(max_retries=5, failure_callback=None):
+def DeferredRetryLimit(max_retries=3, failure_callback=None):
   """Catch and log all exceptions, but limit reraises to force retry."""
   def Decorator(func):
     @functools.wraps(func)
