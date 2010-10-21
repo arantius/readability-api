@@ -126,7 +126,7 @@ def Fetch(orig_url):
       logging.info('Fetching: %s', url)
     final_url = url
     response = urlfetch.fetch(
-        url, allow_truncated=True, follow_redirects=False, deadline=3,
+        url, allow_truncated=True, follow_redirects=False, deadline=6,
         headers={'Cookie': cookie.output(attrs=(), header='', sep='; ')})
     cookie.load(response.headers.get('Set-Cookie', ''))
     previous_url = url
