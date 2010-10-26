@@ -54,7 +54,7 @@ class Feed(db.Model):
 class Entry(db.Model):
   feed = db.ReferenceProperty(Feed)
   title = db.StringProperty(required=True)
-  link = db.StringProperty(required=True)
+  link = db.TextProperty(required=True)
   updated = db.DateTimeProperty()
   content = db.TextProperty()
   original_content = db.TextProperty()
