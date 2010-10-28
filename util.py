@@ -125,9 +125,12 @@ def Fetch(orig_url):
     if IS_DEV_APPSERVER:
       logging.info('Fetching: %s', url)
     final_url = url
-    response = urlfetch.fetch(
-        url, allow_truncated=True, follow_redirects=False, deadline=6,
-        headers={'Cookie': cookie.output(attrs=(), header='', sep='; ')})
+    try:
+      response = urlfetch.fetch(
+          url, allow_truncated=True, follow_redirects=False, deadline=6,
+          headers={'Cookie': cookie.output(attrs=(), header='', sep='; ')})
+    except urlfetch.DownloadError, e:
+      return (str(e), final_url)
     cookie.load(response.headers.get('Set-Cookie', ''))
     previous_url = url
     url = response.headers.get('Location')
