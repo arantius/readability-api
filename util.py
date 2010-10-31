@@ -114,6 +114,12 @@ def ApplyScore(tag, score, depth=0, name=None):
   ApplyScore(tag.parent, score, depth + 1, name=name)
 
 
+def CleanUrl(url):
+  url = re.sub(r'utm_[a-z]+=[^&]+(&?)', r'\1', url)
+  url = re.sub(r'[?&]+$', '', url)
+  return url
+
+
 @Memoize('Fetch_%s', 60 * 15)
 def Fetch(orig_url):
   cookie = Cookie.SimpleCookie()
@@ -122,6 +128,7 @@ def Fetch(orig_url):
   url = orig_url
   while url and redirects < redirect_limit:
     redirects += 1
+    url = CleanUrl(url)
     if IS_DEV_APPSERVER:
       logging.info('Fetching: %s', url)
     final_url = url
