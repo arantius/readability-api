@@ -228,6 +228,7 @@ def _MungeStripEmpties(soup):
 
   def _StripIfEmpty(tag):
     if not tag or not tag.name or tag.name not in strip_tags:
+      # We have to double check this, because of the parent recursion.
       return
     if tag.text.strip():
       return
