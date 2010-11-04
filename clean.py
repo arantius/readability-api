@@ -130,6 +130,7 @@ def _Munge(soup, url):
   if isinstance(soup, basestring):
     return soup
 
+  _MungeStripSiteSpecific(soup, url)
   _MungeStripLowScored(soup)
   _MungeStripBrsAfterPs(soup)
   _MungeStripAttrs(soup)
@@ -264,3 +265,8 @@ def _MungeStripRules(soup):
   except AttributeError:
     pass
 
+
+def _MungeStripSiteSpecific(soup, url):
+  if 'smashingmagazine.com' in url:
+    for tag in soup.findAll('table', width='650'):
+      tag.extract()
