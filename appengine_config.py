@@ -1,6 +1,6 @@
-import util
+import os
 
-if not util.IS_DEV_APPSERVER:
+if 'Development' not in os.environ.get('SERVER_SOFTWARE', ''):
   def webapp_add_wsgi_middleware(app):
     from google.appengine.ext.appstats import recording
     app = recording.appstats_wsgi_middleware(app)
