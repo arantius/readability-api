@@ -47,7 +47,7 @@ def _CleanEntryBase(feed_entity, entry_feedparser, content, original_content):
   entry_entity = models.Entry(
       key_name=_EntryId(entry_feedparser),
       feed=feed_entity,
-      title=entry_feedparser.title,
+      title=entry_feedparser.title.replace('\n', '').replace('\r', ''),
       link=entry_feedparser.link,
       updated=updated,
       content=content,
