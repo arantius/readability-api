@@ -65,6 +65,12 @@ def ExtractFromHtml(url, html):
     for tag in cont.findAll(('br', 'div')):
       tag.extract()
     return cont
+  elif re.search(r'\.txt(\?|$)', url, re.I):
+    soup = BeautifulSoup.BeautifulSoup()
+    pre = BeautifulSoup.Tag(soup, 'pre')
+    pre.insert(0, BeautifulSoup.NavigableString(html))
+    soup.insert(0, pre)
+    return soup
   else:
     return _ExtractFromHtmlGeneric(html)
 
