@@ -28,6 +28,9 @@ import re
 
 import util
 
+# If one pattern matched this many tags, consider it a false positive, and
+# subtract its points back out.
+FALSE_POSITIVE_THRESHOLD = 5
 
 def _ReAny(pattern):
   return re.compile(pattern, re.I)
@@ -201,12 +204,16 @@ def _IsList(tag):
   return False
 
 
-def _Score(tag):
+def _Score(tag, hit_counter):
   if tag.name == 'body': return
   for points, attr, pattern in ATTR_POINTS:
     if not tag.has_key(attr): continue
     if pattern.search(tag[attr]):
       util.ApplyScore(tag, points, name=attr)
+
+      key = (points, attr, pattern.pattern)
+      hit_counter.setdefault(key, [])
+      hit_counter[key].append(tag)
 
 
 def _Strip(tag):
@@ -261,13 +268,26 @@ def _StripAfter(strip_tag):
   strip_tag.extract()
 
 
-def Process(soup):
+def Process(soup, hit_counter=None):
   """Process an entire soup, without recursing into stripped nodes."""
   # Make a single "class and id" attribute that everything else can test.
   soup['classid'] = '!!!'.join([soup.get('class', '').strip(),
                                 soup.get('id', '').strip()]).strip('!')
 
-  _Score(soup)
+  top_run = False
+  if hit_counter is None:
+    hit_counter = {}
+    top_run = True
+
+  _Score(soup, hit_counter)
   if _Strip(soup): return
   for tag in soup.findAll(True, recursive=False):
-    Process(tag)
+    Process(tag, hit_counter)
+
+  # Look for too-frequently-matched false-positive patterns.
+  if top_run:
+    for key, tags in hit_counter.iteritems():
+      if len(tags) >= FALSE_POSITIVE_THRESHOLD:
+        points, attr, unused_pattern = key
+        for tag in tags:
+          util.ApplyScore(tag, -1 * points, name=attr)
