@@ -154,7 +154,7 @@ def _Munge(soup, url):
   truncate_url = url
   if len(url) > _MAX_URL_DISPLAY_LEN:
     truncate_url = url[0:60] + u'…'
-  return u"Content extracted from: <a href='%s'>%s</a><hr>%s" % (
+  return u"Content extracted from: <a href='%s'>%s</a><hr>\n%s" % (
       url, truncate_url, unicode(soup))
 
 
