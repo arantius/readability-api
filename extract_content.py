@@ -65,6 +65,10 @@ def ExtractFromHtml(url, html):
     for tag in cont.findAll(('br', 'div')):
       tag.extract()
     return cont
+  elif re.search(r'^http://groups\.google\.com/', url, re.I):
+    strainer = BeautifulSoup.SoupStrainer(attrs={'class': 'maincontbox'})
+    soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)
+    return _ExtractFromHtmlGeneric(unicode(soup))
   elif re.search(r'\.txt(\?|$)', url, re.I):
     soup = BeautifulSoup.BeautifulSoup()
     pre = BeautifulSoup.Tag(soup, 'pre')
@@ -142,7 +146,7 @@ def _ScoreBlocks(soup):
     text_len = _TextLenNonAnchors(leaf_block)
 
     if text_len == 0:
-      if leaf_block.find('a'):
+      if leaf_block.find('a') and not leaf_block.find('img'):
         util.ApplyScore(leaf_block, -2, name='only_anchor')
       continue
     if text_len < 20:

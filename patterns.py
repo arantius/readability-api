@@ -50,7 +50,7 @@ ATTR_POINTS = (
     #(-20, 'classid', _ReWord(r'module')),  # too broad?
     (-20, 'classid', _ReWord(r'post-(meta|ratings)')),
     (-20, 'classid', _ReWord(r'widget')),
-    (-20, 'classid', _ReWhole(r'post_(\d+_)?info')),
+    #(-20, 'classid', _ReWhole(r'post_(\d+_)?info')),  # often inside the post
     #(-15, 'classid', _ReAny(r'comment')),  # goes in the post too often
     (-15, 'classid', _ReWhole(r'side')),
     (-15, 'classid', _ReWord(r'email')),
@@ -60,8 +60,10 @@ ATTR_POINTS = (
     (-5, 'classid', _ReAny(r'menu')),
     (-5, 'classid', _ReAny(r'socia(ble|l)')),
     (-5, 'classid', _ReWord(r'(?<!padding-)bottom')),
+    (-55, 'classid', _ReWord(r'hotspot')),  # tmz
     (-5, 'classid', _ReWord(r'icons')),
     (-5, 'classid', _ReWord(r'links')),
+    (-5, 'classid', _ReWord(r'post-date')),
     (-3, 'classid', _ReWord(r'metadata')),
     #(-2, 'classid', _ReAny(r'right')),
     (1, 'classid', _ReWord(r'container')),
@@ -81,20 +83,22 @@ ATTR_POINTS = (
     (10, 'classid', _ReWord(r'snap_preview')),
     (10, 'classid', _ReWord(r'video')),
     (10, 'classid', _ReWord(r'wide')),
-    (10, 'classid', _ReWhole(r'post-\d+')),
+    (10, 'classid', _ReWhole(r'post(-\d+)?')),
     (12, 'classid', _ReWhole(r'articleSpanImage')),  # nytimes
     (12, 'classid', _ReWord(r'h?entry(?!-title)')),
     (20, 'classid', _ReWhole(r'large-image')),  # imgur.com
     (20, 'classid', _ReWhole(r'story(body|block)')),
-    (20, 'classid', _ReWhole(r'page')),
+    #(20, 'classid', _ReWhole(r'page')),
     (20, 'classid', _ReWhole(r'player')),
     )
 ATTR_STRIP = (
     # any '^topic' broke cracked.com
+    ('classid', _ReAny(r'adsense')),
     ('classid', _ReAny(r'add(this|toany)')),
     ('classid', _ReAny(r'comment')),
     ('classid', _ReAny(r'functions')),
     ('classid', _ReAny(r'popular')),
+    ('classid', _ReAny(r'^post_(\d+_)?info')),
     ('classid', _ReAny(r'share(bar|box|this)')),
     ('classid', _ReAny(r'(controls?|tool)(box|s)')),
 
@@ -117,11 +121,11 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'breadcrumb')),
     ('classid', _ReWhole(r'byline')),
     ('classid', _ReWhole(r'catsandtags')),
+    ('classid', _ReWhole(r'dontPrint')),
     ('classid', _ReWhole(r'facebook-like')),
     ('classid', _ReWhole(r'more_stories')),
     ('classid', _ReWhole(r'pagination')),
-    ('classid', _ReWhole(r'post(-info|ed_on|edby)')),
-    ('classid', _ReWhole(r'post_(\d+_)?info')),
+    ('classid', _ReWhole(r'post(-date|-info|ed_on|edby)')),
     ('classid', _ReWhole(r'prevnext')),
     ('classid', _ReWhole(r'previously\d?')),  # boing boing
     ('classid', _ReWhole(r'promoColumn')),
@@ -129,6 +133,7 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'respond')),
     ('classid', _ReWhole(r'rightrail')),
     ('classid', _ReWhole(r'search(bar)?')),
+    ('classid', _ReWhole(r'sexy-bookmarks')),
     ('classid', _ReWhole(r'share')),
     ('classid', _ReWhole(r'side(bar)?\d*')),  # word matches too much
     ('classid', _ReWhole(r'story-date')),
@@ -186,11 +191,13 @@ RE_RELATED_HEADER = re.compile(
     r'|(for|read) more'
     r'|more.*(coverage|resources)'
     r'|most popular'
-    r'|related (articles?|entries|posts?|stories)'
+    r'|(popular|related|similar) (articles?|entries|posts?|stories)'
     r'|see also'
     r'|suggested links'
     r')\b'
     r'|more\.\.\.', re.I)
+
+DO_NOT_STRIP_TAGS = ('html', 'body')
 STRIP_TAGS = ('form', 'iframe', 'link', 'meta', 'noscript', 'script', 'style',
               'fb:share-button')
 
@@ -200,6 +207,10 @@ def _IsList(tag):
   if tag.name == 'ol': return True
   if 'blockquote' == tag.name:
     if re.search(r'(<br.*?> - .*){2,}', unicode(tag)):
+      return True
+  if 'center' == tag.name:
+    tags_links = tag.findAll(name='a', recursive=False)
+    if tags_links and len(tags_links) >= 8:
       return True
   return False
 
@@ -217,6 +228,9 @@ def _Score(tag, hit_counter):
 
 
 def _Strip(tag):
+  if tag.name in DO_NOT_STRIP_TAGS:
+    return
+
   if tag.name in STRIP_TAGS:
     if tag.name == 'form' and 'aspnetForm' in [attr[1] for attr in tag.attrs]:
       return False
@@ -227,7 +241,7 @@ def _Strip(tag):
   if _IsList(tag):
     previous = tag.findPreviousSibling(True)
     search_text = ''
-    if previous and previous.name == 'hr':
+    if previous and previous.name in ('br', 'hr'):
       previous = previous.findPreviousSibling(True)
     if previous:
       search_text = previous.getText(separator=u' ')
