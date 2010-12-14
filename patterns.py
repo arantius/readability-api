@@ -58,7 +58,7 @@ ATTR_POINTS = (
     (-10, 'classid', _ReWord(r'print')),
     (-10, 'classid', _ReWord(r'topics?')),
     (-5, 'classid', _ReAny(r'menu')),
-    (-5, 'classid', _ReAny(r'socia(ble|l)')),
+    (-5, 'classid', _ReAny(r'social')),
     (-5, 'classid', _ReWord(r'(?<!padding-)bottom')),
     (-55, 'classid', _ReWord(r'hotspot')),  # tmz
     (-5, 'classid', _ReWord(r'icons')),
@@ -136,6 +136,7 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'sexy-bookmarks')),
     ('classid', _ReWhole(r'share')),
     ('classid', _ReWhole(r'side(bar)?\d*')),  # word matches too much
+    ('classid', _ReWhole(r'sociable')),
     ('classid', _ReWhole(r'story-date')),
 
     # tumblr comments
@@ -176,6 +177,7 @@ ATTR_STRIP = (
 
     ('src', _ReAny(r'invitemedia\.com')),
     ('src', _ReAny(r'quantserve\.com')),
+    ('src', _ReAny(r'leenks\.com/webmasters')),
     ('src', _ReAny(r'reddit\.com')),
     ('src', _ReAny(r'stumbleupon\.com')),
 
@@ -191,7 +193,8 @@ RE_RELATED_HEADER = re.compile(
     r'|(for|read) more'
     r'|more.*(coverage|resources)'
     r'|most popular'
-    r'|(popular|related|similar) (articles?|entries|posts?|stories)'
+    r'|(popular|similar) (articles?|entries|posts?|stories)'
+    r'|related'
     r'|see also'
     r'|suggested links'
     r')\b'
