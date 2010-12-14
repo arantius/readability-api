@@ -202,6 +202,25 @@ STRIP_TAGS = ('form', 'iframe', 'link', 'meta', 'noscript', 'script', 'style',
               'fb:share-button')
 
 
+def _FindPreviousHeader(tag):
+  # Find the "header" immediately previous to this tag.  Search among a few
+  # possibilities for it.
+
+  # If tag, and nothing else, is wrapped by e.g. a <div>, pop up.
+  while len(tag.parent.findAll(name=True, recursive=False)) == 1:
+    tag = tag.parent
+
+  # First, try the immediately previous sibling node, skipping breaks.
+  header = tag.findPreviousSibling(lambda tag: tag.name not in ('br', 'hr'))
+  if header: return (header, header.getText(separator=u' '))
+
+  # Otherwise, look for text just before this tag.
+  header = tag.findPreviousSiblings(text=True)
+  if header: return (header[0], header[0])
+
+  return None
+
+
 def _IsList(tag):
   if tag.name == 'ul': return True
   if tag.name == 'ol': return True
@@ -239,25 +258,12 @@ def _Strip(tag):
 
   # Strip "related" lists.
   if _IsList(tag):
-    previous = tag.findPreviousSibling(True)
-    search_text = ''
-    if previous and previous.name in ('br', 'hr'):
-      previous = previous.findPreviousSibling(True)
-    if previous:
-      search_text = previous.getText(separator=u' ')
-      strip_node = previous
-    else:
-      previous = tag.findPreviousSiblings(text=True)
-      if previous:
-        search_text = ' '.join(previous)
-        strip_node = previous[0]
-      else:
-        strip_node = None
+    header, header_text = _FindPreviousHeader(tag)
     # Too-long text means this must not be a header, false positive!
-    if strip_node and len(search_text) < 100:
-      if RE_RELATED_HEADER.search(search_text):
-        _StripAfter(strip_node)
-        return True
+    if len(header_text) < 100 and RE_RELATED_HEADER.search(header_text):
+      tag.extract()
+      header.extract()
+      return True
 
   if tag.has_key('score') and tag['score'] > 0:
     # Do not strip positively-scored tags.
