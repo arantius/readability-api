@@ -135,6 +135,7 @@ def _Munge(soup, url):
   _MungeStripBrsAfterPs(soup)
   _MungeStripAttrs(soup)
   _MungeStripRules(soup)
+  _MungeStripSelfLinks(soup, url)
   _MungeStripEmpties(soup)
   soup = _MungeStripRootContainers(soup)
 
@@ -264,6 +265,11 @@ def _MungeStripRules(soup):
       soup.contents[-1].extract()
   except AttributeError:
     pass
+
+
+def _MungeStripSelfLinks(soup, url):
+  for tag in soup.findAll('a', attrs={'href': url}):
+    logging.info('found self link: %s', tag)
 
 
 def _MungeStripSiteSpecific(soup, url):
