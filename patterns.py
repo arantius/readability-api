@@ -283,14 +283,6 @@ def _Strip(tag):
   return False
 
 
-def _StripAfter(strip_tag):
-  if util.IS_DEV_APPSERVER:
-    logging.info('Strip after: %s', util.SoupTagOnly(strip_tag))
-  for tag in strip_tag.findNextSiblings():
-    tag.extract()
-  strip_tag.extract()
-
-
 def Process(soup, hit_counter=None):
   """Process an entire soup, without recursing into stripped nodes."""
   # Make a single "class and id" attribute that everything else can test.
