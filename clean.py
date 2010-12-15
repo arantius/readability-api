@@ -99,6 +99,9 @@ def Clean(url):
   if re.search(r'^http://www\.youtube\.com/watch', url, re.I):
     video_id = re.search(r'v=([^&]+)', url).group(1)
     return util.RenderTemplate('youtube.html', {'video_id': video_id})
+  if re.search(r'^http://www\.trutv\.com/video', url, re.I):
+    video_id = re.search(r'(/video[^?#]+).html', url).group(1)
+    return util.RenderTemplate('trutv.html', {'video_id': video_id})
   elif re.search(r'\.pdf(\?|$)', url, re.I):
     return util.RenderTemplate('pdf.html', {'url': url})
   elif re.search(r'\.(gif|jpe?g|png)(\?|$)', url, re.I):
