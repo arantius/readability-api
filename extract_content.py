@@ -85,10 +85,10 @@ def ExtractFromHtml(url, html):
     soup.insert(0, pre)
     return soup
   else:
-    return _ExtractFromHtmlGeneric(html)
+    return _ExtractFromHtmlGeneric(url, html)
 
 
-def _ExtractFromHtmlGeneric(html):
+def _ExtractFromHtmlGeneric(url, html):
   html = util.PreCleanHtml(html)
   try:
     soup = BeautifulSoup.BeautifulSoup(html)
@@ -104,6 +104,7 @@ def _ExtractFromHtmlGeneric(html):
   _ScoreBlocks(soup)
   _ScoreImages(soup)
   _ScoreEmbeds(soup)
+  _SiteSpecific(url, soup)
 
   # If a header repeats the title, strip it and all preceding nodes.
   title_header = _FindTitleHeader(soup, title)
@@ -192,6 +193,14 @@ def _ScoreImages(soup):
       util.ApplyScore(tag, 3, name='has_img')
     if size >= 250000:
       util.ApplyScore(tag, 4, name='big_img')
+
+
+def _SiteSpecific(url, soup):
+  if 'www.cracked.com' in url:
+    tag = soup.find(attrs={'class': 'Column2'})
+    if tag: tag.extract()
+    tag = soup.find(attrs={'class': 'userStyled'})
+    if tag: util.ApplyScore(tag, 20, name='special')
 
 
 def _StripBefore(strip_tag):
