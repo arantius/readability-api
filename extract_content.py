@@ -102,7 +102,7 @@ def _ExtractFromHtmlGeneric(url, html):
   title = title and title.text.lower() or ''
 
   _TransformBrsToParagraphs(soup)
-  patterns.Process(soup)
+  patterns.Process(soup, url)
   _ScoreBlocks(soup)
   _ScoreImages(soup)
   _ScoreEmbeds(soup)

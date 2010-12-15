@@ -118,7 +118,7 @@ class FeedExtractor(object):
       raise NoRssContentError('text too short (%d)' % len(text))
 
     # To strip things out, really.
-    patterns.Process(self.soup)
+    patterns.Process(self.soup, url)
 
   def _DetectFeed(self):
     """Find the URL to a feed for this page."""

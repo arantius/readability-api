@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import re
+import urllib
 
 import util
 
@@ -242,7 +243,7 @@ def _IsList(tag):
   return False
 
 
-def _Score(tag, hit_counter):
+def _Score(tag, url, hit_counter):
   if tag.name == 'body': return
   for points, attr, pattern in ATTR_POINTS:
     if not tag.has_key(attr): continue
@@ -252,6 +253,12 @@ def _Score(tag, hit_counter):
       key = (points, attr, pattern.pattern)
       hit_counter.setdefault(key, [])
       hit_counter[key].append(tag)
+
+  # Special case: score down AND strip links to this page.
+  if tag.name == 'a' and tag.has_key('href'):
+    if url in tag['href'] or url in urllib.unquote(tag['href']):
+      util.ApplyScore(tag, -2, name='self_link')
+      tag.extract()
 
 
 def _Strip(tag):
@@ -293,7 +300,7 @@ def _Strip(tag):
   return False
 
 
-def Process(soup, hit_counter=None):
+def Process(soup, url, hit_counter=None):
   """Process an entire soup, without recursing into stripped nodes."""
   # Make a single "class and id" attribute that everything else can test.
   soup['classid'] = '!!!'.join([soup.get('class', '').strip(),
@@ -304,10 +311,10 @@ def Process(soup, hit_counter=None):
     hit_counter = {}
     top_run = True
 
-  _Score(soup, hit_counter)
+  _Score(soup, url, hit_counter)
   if _Strip(soup): return
   for tag in soup.findAll(True, recursive=False):
-    Process(tag, hit_counter)
+    Process(tag, url, hit_counter)
 
   # Look for too-frequently-matched false-positive patterns.
   if top_run:
