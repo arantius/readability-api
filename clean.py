@@ -118,10 +118,22 @@ if not util.IS_DEV_APPSERVER:
 
 
 def _FixUrls(parent, base_url):
-  for tag in parent.findAll(href=True):
-    tag['href'] = urlparse.urljoin(base_url, tag['href'].strip())
-  for tag in parent.findAll(src=True):
-    tag['src'] = urlparse.urljoin(base_url, tag['src'].strip())
+  def _FixUrl(tag, attr):
+    tag[attr] = urlparse.urljoin(base_url, tag[attr].strip())
+
+  for tag in parent.findAll(href=True): _FixUrl(tag, 'href')
+  if parent.has_key('href'): _FixUrl(parent, 'href')
+
+  for tag in parent.findAll(src=True): _FixUrl(tag, 'src')
+  if parent.has_key('src'): _FixUrl(parent, 'src')
+
+  for tag in parent.findAll('object', data=True): _FixUrl(tag, 'data')
+  if parent.name == 'object' and parent.has_key('data'): _FixUrl(parent, 'data')
+
+  for tag in parent.findAll('param', attrs={'name': 'movie', 'value': True}):
+    _FixUrl(tag, 'value')
+  if parent.name == 'param' and parent['name'] == 'movie':
+    _FixUrl(parent, 'value')
 
 
 def _Munge(soup, url):
