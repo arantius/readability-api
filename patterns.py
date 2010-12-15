@@ -55,13 +55,15 @@ ATTR_POINTS = (
     (-15, 'classid', _ReWhole(r'side')),
     (-15, 'classid', _ReWord(r'email')),
     (-15, 'classid', _ReWord(r'twitter')),
+    (-10, 'classid', _ReWord(r'overlay')),
     (-10, 'classid', _ReWord(r'print')),
     (-10, 'classid', _ReWord(r'topics?')),
     (-5, 'classid', _ReAny(r'menu')),
     (-5, 'classid', _ReAny(r'social')),
     (-5, 'classid', _ReWord(r'(?<!padding-)bottom')),
-    (-55, 'classid', _ReWord(r'hotspot')),  # tmz
+    (-5, 'classid', _ReWord(r'hotspot')),  # tmz
     (-5, 'classid', _ReWord(r'icons')),
+    (-5, 'classid', _ReWord(r'lightbox')),
     (-5, 'classid', _ReWord(r'links')),
     (-5, 'classid', _ReWord(r'post-date')),
     (-3, 'classid', _ReWord(r'metadata')),
@@ -71,10 +73,14 @@ ATTR_POINTS = (
     (2, 'classid', _ReWord(r'text')),
     (4, 'classid', _ReWord(r'article(?!_tool)')),
     (5, 'classid', _ReAny(r'^article')),
+    (5, 'classid', _ReAny(r'gallery')),
+    (5, 'classid', _ReAny(r'photo')),
     (5, 'classid', _ReWhole(r'main')),
     (5, 'classid', _ReWhole(r'permalink')),
+    (5, 'classid', _ReWhole(r'page')),
     (5, 'classid', _ReWord(r'body(text)?')),
     (5, 'classid', _ReWord(r'content')),
+    (5, 'classid', _ReWord(r'single')),
     (5, 'classid', _ReWord(r'single')),
     (10, 'classid', _ReAny(r'^article_?body')),
     (10, 'classid', _ReWhole(r'story')),
@@ -88,7 +94,6 @@ ATTR_POINTS = (
     (12, 'classid', _ReWord(r'h?entry(?!-title)')),
     (20, 'classid', _ReWhole(r'large-image')),  # imgur.com
     (20, 'classid', _ReWhole(r'story(body|block)')),
-    #(20, 'classid', _ReWhole(r'page')),
     (20, 'classid', _ReWhole(r'player')),
     )
 ATTR_STRIP = (
@@ -130,7 +135,7 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'previously\d?')),  # boing boing
     ('classid', _ReWhole(r'promoColumn')),
     ('classid', _ReWhole(r'recent-posts')),
-    ('classid', _ReWhole(r'respond')),
+    ('classid', _ReWhole(r'respon(d|ses)')),
     ('classid', _ReWhole(r'rightrail')),
     ('classid', _ReWhole(r'search(bar)?')),
     ('classid', _ReWhole(r'sexy-bookmarks')),
@@ -251,11 +256,16 @@ def _Score(tag, hit_counter):
 
 def _Strip(tag):
   if tag.name in DO_NOT_STRIP_TAGS:
-    return
+    return False
 
   if tag.name in STRIP_TAGS:
-    if tag.name == 'form' and 'aspnetForm' in [attr[1] for attr in tag.attrs]:
-      return False
+    if tag.name == 'form':
+      if 'aspnetForm' in [attr[1] for attr in tag.attrs]: return False
+      if tag.find('input', id='__VIEWSTATE'): return False
+    if tag.name == 'iframe':
+      if tag.has_key('src'):
+        if 'youtube.com' in tag['src']: return False
+        if 'vimeo.com' in tag['src']: return False
     tag.extract()
     return True
 

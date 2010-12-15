@@ -21,11 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from email import utils as email_utils  # pylint: disable-msg=E0611,C6202
-import os
 import time
 
 from google.appengine.ext import webapp
-from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 
 import clean

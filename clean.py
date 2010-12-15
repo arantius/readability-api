@@ -81,6 +81,20 @@ def Clean(url):
   Returns:
     String: HTML representing the "readable part".
   """
+  url = re.sub(r'#.*', '', url)
+
+  match = re.search(r'^https?://docs.google.com.*cache:.*?:(.*?\.pdf)',
+                    url, re.I)
+  if match:
+    url = match.group(1)
+    if 'http' not in url:
+      url = 'http://' + url
+
+  match = re.search(r'^https?://docs.google.com.*docid=(.*?)(&|$)', url, re.I)
+  if match:
+    return util.RenderTemplate('google-docs.html', {'docid': match.group(1),
+                                                    'url': url})
+
   if re.search(r'^http://www\.youtube\.com/watch', url, re.I):
     video_id = re.search(r'v=([^&]+)', url).group(1)
     return util.RenderTemplate('youtube.html', {'video_id': video_id})
@@ -88,11 +102,6 @@ def Clean(url):
     return util.RenderTemplate('pdf.html', {'url': url})
   elif re.search(r'\.(gif|jpe?g|png)(\?|$)', url, re.I):
     return util.RenderTemplate('image.html', {'url': url})
-
-  match = re.search(r'^https?://docs.google.com.*docid=(.*?)(&|$)', url, re.I)
-  if match:
-    return util.RenderTemplate('google-docs.html', {'docid': match.group(1),
-                                                    'url': url})
 
   html, final_url = util.Fetch(url)
   if not html:
@@ -252,7 +261,7 @@ def _MungeStripEmpties(soup):
       return
     if tag.text.strip():
       return
-    if tag.find(lambda tag: tag.name != 'br'):
+    if tag.find(lambda tag: tag.name not in ('br', 'hr')):
       return
     parent = tag.parent
     tag.extract()
