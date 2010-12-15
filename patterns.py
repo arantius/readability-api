@@ -135,7 +135,7 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'prevnext')),
     ('classid', _ReWhole(r'previously\d?')),  # boing boing
     ('classid', _ReWhole(r'promoColumn')),
-    ('classid', _ReWhole(r'recent-posts')),
+    ('classid', _ReWhole(r'(recent|related)-posts')),
     ('classid', _ReWhole(r'respon(d|ses)')),
     ('classid', _ReWhole(r'rightrail')),
     ('classid', _ReWhole(r'search(bar)?')),
