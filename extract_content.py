@@ -54,6 +54,8 @@ def ExtractFromUrl(url):
 def ExtractFromHtml(url, html):
   """Given a string of HTML, remove nasty bits, score and pick bit to keep."""
   if re.search(r'^http://(www\.)?reddit\.com/.*/comments/', url, re.I):
+    url = url.replace('reddit.com', 'reddit.com.nyud.net')
+    html, final_url = util.Fetch(url)
     strainer = BeautifulSoup.SoupStrainer(
         attrs={'class': re.compile(r'thing.*link|usertext border')})
     soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)
