@@ -68,7 +68,7 @@ def ExtractFromHtml(url, html):
   elif re.search(r'^http://groups\.google\.com/', url, re.I):
     strainer = BeautifulSoup.SoupStrainer(attrs={'class': 'maincontbox'})
     soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)
-    return _ExtractFromHtmlGeneric(unicode(soup))
+    return _ExtractFromHtmlGeneric(url, unicode(soup))
   elif re.search(r'^http://(www\.)?nytimes\.com/', url, re.I):
     soup = BeautifulSoup.BeautifulSoup(html)
     bodies = soup.findAll(attrs={'class': 'articleBody'})
@@ -77,7 +77,7 @@ def ExtractFromHtml(url, html):
       # reason NYT splits the lead-in text into its own "body".
       while bodies[0].contents:
         bodies[1].insert(0, bodies[0].contents[-1])
-    return _ExtractFromHtmlGeneric(unicode(soup))
+    return _ExtractFromHtmlGeneric(url, unicode(soup))
   elif re.search(r'\.txt(\?|$)', url, re.I):
     soup = BeautifulSoup.BeautifulSoup()
     pre = BeautifulSoup.Tag(soup, 'pre')
