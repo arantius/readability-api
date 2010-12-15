@@ -221,7 +221,7 @@ def _FindPreviousHeader(tag):
   header = tag.findPreviousSiblings(text=True)
   if header: return (header[0], header[0])
 
-  return None
+  return (None, '')
 
 
 def _IsList(tag):
