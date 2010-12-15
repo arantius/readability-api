@@ -82,6 +82,7 @@ def Clean(url):
     String: HTML representing the "readable part".
   """
   url = re.sub(r'#.*', '', url)
+  url = re.sub(r'[?&]utm_[^&]+', '', url)
 
   match = re.search(r'^https?://docs.google.com.*cache:.*?:(.*?\.pdf)',
                     url, re.I)
