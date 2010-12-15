@@ -109,7 +109,7 @@ class FeedExtractor(object):
     # Now, we've found content.  Check if it's legit.
     html = re.sub(r'<!--.*?-->', '', self.content)
     self.soup = BeautifulSoup.BeautifulSoup(html)
-    for tag in self.soup.findAll(('script', 'noscript')):
+    for tag in self.soup.findAll('script'):
       tag.extract()
     text = self.soup.text
     if re.search(r'\[?\.\.\.\]?\s*$', text):

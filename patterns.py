@@ -201,7 +201,7 @@ RE_RELATED_HEADER = re.compile(
     r'|more\.\.\.', re.I)
 
 DO_NOT_STRIP_TAGS = ('html', 'body')
-STRIP_TAGS = ('form', 'iframe', 'link', 'meta', 'noscript', 'script', 'style',
+STRIP_TAGS = ('form', 'iframe', 'link', 'meta', 'script', 'style',
               'fb:share-button')
 
 

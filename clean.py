@@ -143,6 +143,7 @@ def _Munge(soup, url):
   _MungeImages(soup)
   _MungeHeaderDowngrade(soup)
   _MungeHyphenate(soup)
+  _MungeNoscript(soup)
 
   # Serialize the soup, and apply full justification.
   if isinstance(soup, BeautifulSoup.BeautifulStoneSoup):
@@ -204,6 +205,11 @@ def _MungeImages(soup):
       if match:
         img['align'] = match.group(1)
         continue
+
+
+def _MungeNoscript(soup):
+  for tag in soup.findAll('noscript'):
+    tag.name = 'div'
 
 
 def _MungeStripAttrs(soup):
