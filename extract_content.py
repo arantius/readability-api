@@ -230,6 +230,9 @@ def _TagSize(tag):
   else:
     return None
 
+  if w == '100%': w = 600
+  if h == '100%': h = 400
+
   try:
     return int(w) * int(h)
   except ValueError:
