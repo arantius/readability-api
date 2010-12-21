@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 import re
 import urllib
+import urlparse
 
 import util
 
@@ -254,9 +255,16 @@ def _Score(tag, url, hit_counter):
       hit_counter.setdefault(key, [])
       hit_counter[key].append(tag)
 
-  # Special case: score down AND strip links to this page.
   if tag.name == 'a' and tag.has_key('href'):
-    if url in tag['href'] or url in urllib.unquote(tag['href']):
+    href = tag['href']
+    # Score down (lightly) links to this same domain.
+    that_url = urlparse.urljoin(url, href)
+    # TODO: host name -> domain name
+    if urlparse.urlparse(url)[1] == urlparse.urlparse(that_url)[1]:
+      util.ApplyScore(tag, -1, name='same_host_link')
+    # Special case: score down AND strip links to this page.  (Including "social
+    # media" links.)
+    if url in href or url in urllib.unquote(href):
       util.ApplyScore(tag, -2, name='self_link')
       tag.extract()
 
