@@ -158,7 +158,9 @@ def _ScoreBlocks(soup):
     text_len = _TextLenNonAnchors(leaf_block)
 
     if text_len == 0:
-      if leaf_block.find('a') and not leaf_block.find('img'):
+      anchor = leaf_block.find('a')
+      img = leaf_block.find('img')
+      if anchor and not anchor.has_key('score_out_link') and not img:
         util.ApplyScore(leaf_block, -2, name='only_anchor')
       continue
     if text_len < 20:
