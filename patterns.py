@@ -102,6 +102,7 @@ ATTR_STRIP = (
     ('classid', _ReAny(r'adsense')),
     ('classid', _ReAny(r'add(this|toany)')),
     ('classid', _ReAny(r'comment')),
+    ('classid', _ReAny(r'disqus')),
     ('classid', _ReAny(r'functions')),
     ('classid', _ReAny(r'popular')),
     ('classid', _ReAny(r'^post_(\d+_)?info')),
