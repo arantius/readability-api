@@ -1,3 +1,2 @@
 * Detect and strip wordpress style tags (<p>Tags: <a href=".../tag/...">...).
-* Detect broad attribute point matches and discount them.  (e.g. a list of 10
-  "post" items that are really links, "article" tagged in dozens of classes.)
+* Encode <object>/<embed> so that Google Reader does not strip them.

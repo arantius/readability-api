@@ -48,29 +48,27 @@ def _ReWord(pattern):
 ATTR_POINTS = (
     (-20, 'classid', _ReWord(r'delicious')),
     (-20, 'classid', _ReWord(r'featured?')),
-    #(-20, 'classid', _ReWord(r'meta')),  # too broad
-    #(-20, 'classid', _ReWord(r'module')),  # too broad?
     (-20, 'classid', _ReWord(r'post-(meta|ratings)')),
     (-20, 'classid', _ReWord(r'widget')),
-    #(-20, 'classid', _ReWhole(r'post_(\d+_)?info')),  # often inside the post
-    #(-15, 'classid', _ReAny(r'comment')),  # goes in the post too often
     (-15, 'classid', _ReWhole(r'side')),
     (-15, 'classid', _ReWord(r'email')),
     (-15, 'classid', _ReWord(r'twitter')),
+    (-10, 'classid', _ReWord(r'ghost')),
     (-10, 'classid', _ReWord(r'overlay')),
     (-10, 'classid', _ReWord(r'print')),
     (-10, 'classid', _ReWord(r'topics?')),
     (-5, 'classid', _ReAny(r'menu')),
     (-5, 'classid', _ReAny(r'social')),
     (-5, 'classid', _ReWord(r'(?<!padding-)bottom')),
+    (-5, 'classid', _ReWord(r'footer')),
     (-5, 'classid', _ReWord(r'hotspot')),  # tmz
     (-5, 'classid', _ReWord(r'icons')),
     (-5, 'classid', _ReWord(r'lightbox')),
     (-5, 'classid', _ReWord(r'links')),
+    (-5, 'classid', _ReWord(r'more')),
     (-5, 'classid', _ReWord(r'post-date')),
+    (-3, 'classid', _ReAny(r'embed')),  # usually "embed this" code
     (-3, 'classid', _ReWord(r'metadata')),
-    #(-2, 'classid', _ReAny(r'right')),
-    (1, 'classid', _ReWord(r'container')),
     (1, 'classid', _ReWord(r'main')),
     (2, 'classid', _ReWord(r'text')),
     (4, 'classid', _ReWord(r'article(?!_tool)')),
@@ -91,6 +89,7 @@ ATTR_POINTS = (
     (10, 'classid', _ReWord(r'snap_preview')),
     (10, 'classid', _ReWord(r'video')),
     (10, 'classid', _ReWord(r'wide')),
+    (10, 'classid', _ReWhole(r'meat')),
     (10, 'classid', _ReWhole(r'post(-\d+)?')),
     (12, 'classid', _ReWhole(r'articleSpanImage')),  # nytimes
     (12, 'classid', _ReWord(r'h?entry(?!-title)')),
@@ -106,13 +105,16 @@ ATTR_STRIP = (
     ('classid', _ReAny(r'functions')),
     ('classid', _ReAny(r'popular')),
     ('classid', _ReAny(r'^post_(\d+_)?info')),
+    ('classid', _ReAny(r'reportabuse')),
     ('classid', _ReAny(r'share(bar|box|this)')),
+    ('classid', _ReAny(r'signin')),
     ('classid', _ReAny(r'(controls?|tool)(box|s)')),
 
     ('classid', _ReWord(r'ad(block|tag)?')),
     ('classid', _ReWord(r'horizontal_posts')),  # mashable
     ('classid', _ReWord(r'icons')),
     ('classid', _ReWord(r'ilikethis')),
+    ('classid', _ReWord(r'metavalue')),
     ('classid', _ReWord(r'(post)?author|authdesc')),
     ('classid', _ReWord(r'postmetadata')),
     ('classid', _ReWord(r'replies')),
@@ -256,16 +258,15 @@ def _Score(tag, url, hit_counter):
       hit_counter[key].append(tag)
 
   if tag.name == 'a' and tag.has_key('href'):
-    href = tag['href']
     # Score down (lightly) links to this same domain.
-    that_url = urlparse.urljoin(url, href)
+    that_url = urlparse.urljoin(url, tag['href'])
     # TODO: host name -> domain name
     if urlparse.urlparse(url)[1] == urlparse.urlparse(that_url)[1]:
-      util.ApplyScore(tag, -1, name='same_host_link')
+      util.ApplyScore(tag, -1.5, name='same_host_link')
     # Special case: score down AND strip links to this page.  (Including "social
     # media" links.)
-    if url in href or url in urllib.unquote(href):
-      util.ApplyScore(tag, -2, name='self_link')
+    if url in that_url or url in urllib.unquote(tag['href']):
+      util.ApplyScore(tag, -2.5, name='self_link')
       tag.extract()
 
 
