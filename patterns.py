@@ -90,7 +90,7 @@ ATTR_POINTS = (
     (10, 'classid', _ReWord(r'wide')),
     (10, 'classid', _ReWhole(r'meat')),
     (10, 'classid', _ReWhole(r'post(-\d+)?')),
-    (12, 'classid', _ReWhole(r'articleSpanImage')),  # nytimes
+    (12, 'classid', _ReWhole(r'article span image')),  # nytimes
     (12, 'classid', _ReWord(r'h?entry(?!-title)')),
     (20, 'classid', _ReWhole(r'large-image')),  # imgur.com
     (20, 'classid', _ReWhole(r'story(body|block)')),
@@ -124,7 +124,7 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'snap_nopreview')),
     ('classid', _ReWord(r'wdt_button')),
 
-    ('classid', _ReWhole(r'articleInline runaroundLeft')),  # nytimes junk
+    ('classid', _ReWhole(r'article inline runaround left')),  # nytimes junk
     ('classid', _ReWhole(r'a(uthor_)?info')),
     ('classid', _ReWhole(r'blippr-nobr')),
     ('classid', _ReWhole(r'breadcrumb')),
@@ -213,6 +213,11 @@ DO_NOT_STRIP_TAGS = ('html', 'body')
 STRIP_TAGS = ('form', 'iframe', 'link', 'meta', 'script', 'style',
               'fb:share-button')
 
+
+def _CamelCaseToSpace(str):
+  return re.sub('([a-z0-9])([A-Z])', r'\1 \2',
+                re.sub('(.)([A-Z][a-z]+)', r'\1 \2', str)
+               ).lower()
 
 def _FindPreviousHeader(tag):
   # Find the "header" immediately previous to this tag.  Search among a few
@@ -315,8 +320,10 @@ def _Strip(tag):
 def Process(soup, url, hit_counter=None):
   """Process an entire soup, without recursing into stripped nodes."""
   # Make a single "class and id" attribute that everything else can test.
-  soup['classid'] = '!!!'.join([soup.get('class', '').strip(),
-                                soup.get('id', '').strip()]).strip('!')
+  soup['classid'] = '!!!'.join([
+      _CamelCaseToSpace(soup.get('class', '')).strip(),
+      _CamelCaseToSpace(soup.get('id', '')).strip()
+      ]).strip('!')
 
   top_run = False
   if hit_counter is None:
