@@ -81,7 +81,6 @@ ATTR_POINTS = (
     (5, 'classid', _ReWord(r'body(text)?')),
     (5, 'classid', _ReWord(r'content')),
     (5, 'classid', _ReWord(r'single')),
-    (5, 'classid', _ReWord(r'single')),
     (10, 'classid', _ReAny(r'^article_?body')),
     (10, 'classid', _ReWhole(r'story')),
     (10, 'classid', _ReWord(r'player')),
