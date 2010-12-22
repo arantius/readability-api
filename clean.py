@@ -121,7 +121,7 @@ def Clean(url):
     soup = extractor.soup
   except extract_feed.RssError, e:
     note = 'cleaned content, %s, %s' % (e.__class__.__name__, e)
-    soup = extract_content.ExtractFromHtml(url, html)
+    soup = extract_content.ExtractFromHtml(final_url, html)
 
   if util.IS_DEV_APPSERVER:
     logging.info(note)
