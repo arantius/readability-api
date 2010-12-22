@@ -267,15 +267,12 @@ def _Score(tag, url, hit_counter):
     # TODO: host name -> domain name
     if urlparse.urlparse(url)[1] == urlparse.urlparse(that_url)[1]:
       # Score down (lightly) links to this same domain.
-      util.ApplyScore(tag, -1.5, name='same_host_link')
+      util.ApplyScore(tag, -1.0, name='same_host_link')
     elif url in that_url or url in urllib.unquote(tag['href']):
       # Special case: score down AND strip links to this page.  (Including
       # "social media" links.)
-      util.ApplyScore(tag, -2.5, name='self_link')
+      util.ApplyScore(tag, -1.5, name='self_link')
       tag.extract()
-    else:
-      # Otherwise, this is a link to another page/site.  Good!
-      util.ApplyScore(tag, 1.5, name='out_link')
 
 
 def _Strip(tag):
