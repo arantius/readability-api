@@ -334,5 +334,8 @@ def Process(soup, url, hit_counter=None):
     for key, tags in hit_counter.iteritems():
       if len(tags) >= FALSE_POSITIVE_THRESHOLD:
         points, attr, unused_pattern = key
+        if points < 0:
+          # Only reverse false _positives_.  Negatives probably aren't false.
+          continue
         for tag in tags:
           util.ApplyScore(tag, -1 * points, name=attr)
