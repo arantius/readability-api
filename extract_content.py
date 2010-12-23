@@ -112,7 +112,8 @@ def _ExtractFromHtmlGeneric(url, html):
   title_header = _FindTitleHeader(soup, title)
   if title_header:
     util.ApplyScore(title_header, 11, name='title_header')
-    _StripBefore(title_header)
+    if 'flickr.com' not in url:
+      _StripBefore(title_header)
 
   # Get the highest scored nodes.
   scored_nodes = sorted(soup.findAll(attrs={'score': True}),
