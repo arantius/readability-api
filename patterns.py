@@ -313,12 +313,12 @@ def _Strip(tag):
   return False
 
 
-def Process(soup, url, hit_counter=None):
+def Process(root_tag, url, hit_counter=None):
   """Process an entire soup, without recursing into stripped nodes."""
   # Make a single "class and id" attribute that everything else can test.
-  soup['classid'] = '!!!'.join([
-      _CamelCaseToSpace(soup.get('class', '')).strip(),
-      _CamelCaseToSpace(soup.get('id', '')).strip()
+  root_tag['classid'] = '!!!'.join([
+      _CamelCaseToSpace(root_tag.get('class', '')).strip(),
+      _CamelCaseToSpace(root_tag.get('id', '')).strip()
       ]).strip('!')
 
   top_run = False
@@ -326,9 +326,9 @@ def Process(soup, url, hit_counter=None):
     hit_counter = {}
     top_run = True
 
-  _Score(soup, url, hit_counter)
-  if _Strip(soup): return
-  for tag in soup.findAll(True, recursive=False):
+  _Score(root_tag, url, hit_counter)
+  if _Strip(root_tag): return
+  for tag in root_tag.findAll(True, recursive=False):
     Process(tag, url, hit_counter)
 
   # Look for too-frequently-matched false-positive patterns.

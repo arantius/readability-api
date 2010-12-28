@@ -120,11 +120,11 @@ def Clean(url):
     soup = extractor.soup
   except extract_feed.RssError, e:
     note = 'cleaned content, %s, %s' % (e.__class__.__name__, e)
-    soup = extract_content.ExtractFromHtml(final_url, html)
+    soup, tag = extract_content.ExtractFromHtml(final_url, html)
 
   if util.IS_DEV_APPSERVER:
     logging.info(note)
-  return _Munge(soup, final_url)
+  return _Munge(soup, tag, final_url)
 if not util.IS_DEV_APPSERVER:
   Clean = util.Memoize('Clean_%s', 60*60*24)(Clean)  # pylint: disable-msg=C6409
 
@@ -148,43 +148,43 @@ def _FixUrls(parent, base_url):
     _FixUrl(parent, 'value')
 
 
-def _Munge(soup, url):
+def _Munge(soup, tag, url):
   """Given a string of HTML content, munge it to be more pleasing."""
   # In certain failure cases, we'll still get a string.  Just use it.
-  if isinstance(soup, basestring):
-    return soup
+  if isinstance(tag, basestring):
+    return tag
 
-  _MungeStripSiteSpecific(soup, url)
-  _MungeStripLowScored(soup)
-  _MungeStripBrsAfterPs(soup)
-  _MungeStripAttrs(soup)
-  _MungeStripRules(soup)
-  _MungeStripEmpties(soup)
-  soup = _MungeStripRootContainers(soup)
+  _MungeStripSiteSpecific(tag, url)
+  _MungeStripLowScored(tag)
+  _MungeStripBrsAfterPs(tag)
+  _MungeStripAttrs(tag)
+  _MungeStripRules(tag)
+  _MungeStripEmpties(tag)
+  tag = _MungeStripRootContainers(tag)
 
-  _FixUrls(soup, url)
-  _MungeImages(soup)
-  _MungeHeaderDowngrade(soup)
-  _MungeHyphenate(soup)
-  _MungeNoscript(soup)
+  _FixUrls(tag, url)
+  _MungeImages(tag)
+  _MungeHeaderDowngrade(tag)
+  _MungeHyphenate(tag)
+  _MungeNoscript(tag)
 
-  # Serialize the soup, and apply full justification.
-  if isinstance(soup, BeautifulSoup.BeautifulStoneSoup):
+  # Serialize the tag, and apply full justification.
+  if isinstance(tag, BeautifulSoup.BeautifulStoneSoup):
     # Wrap in a div, to have a tag to justify, if necessary.
     wrap = BeautifulSoup.Tag(soup, 'div')
-    wrap.insert(0, soup)
-    soup = wrap
-  soup['style'] = 'text-align: justify;'
+    wrap.insert(0, tag)
+    tag = wrap
+  tag['style'] = 'text-align: justify;'
 
   truncate_url = url
   if len(url) > _MAX_URL_DISPLAY_LEN:
     truncate_url = url[0:60] + u'…'
   return u"Content extracted from: <a href='%s'>%s</a><hr>\n%s" % (
-      url, truncate_url, unicode(soup))
+      url, truncate_url, unicode(tag))
 
 
-def _MungeHyphenate(soup):
-  for text in soup.findAll(text=True):
+def _MungeHyphenate(root_tag):
+  for text in root_tag.findAll(text=True):
     if text.findParent('pre'):
       continue
     text_parts = re.split(r'(&[^;]{2,6};)', text)
@@ -204,16 +204,16 @@ def _MungeHyphenate(soup):
     text.replaceWith(BeautifulSoup.NavigableString(''.join(new_text)))
 
 
-def _MungeHeaderDowngrade(soup):
-  for tag in soup.findAll(extract_content.TAG_NAMES_HEADER):
+def _MungeHeaderDowngrade(root_tag):
+  for tag in root_tag.findAll(extract_content.TAG_NAMES_HEADER):
     tag.name = 'h%d' % min(6, int(tag.name[1]) + 2)
 
 
-def _MungeImages(soup):
+def _MungeImages(root_tag):
   # For all images:
   #  * If they have a style or class that implies floating, apply alignment.
   #  * If they are at the beginning of a paragraph, with text, apply alignment.
-  for img in soup.findAll('img'):
+  for img in root_tag.findAll('img'):
     if img.has_key('align'):
       continue
 
@@ -230,19 +230,19 @@ def _MungeImages(soup):
         continue
 
 
-def _MungeNoscript(soup):
-  for tag in soup.findAll('noscript'):
+def _MungeNoscript(root_tag):
+  for tag in root_tag.findAll('noscript'):
     tag.name = 'div'
 
 
-def _MungeStripAttrs(soup):
-  for tag in soup.findAll(True):
+def _MungeStripAttrs(root_tag):
+  for tag in root_tag.findAll(True):
     for attr in STRIP_ATTRS:
       del tag[attr]
 
 
-def _MungeStripBrsAfterPs(soup):
-  for tag in soup.findAll('p'):
+def _MungeStripBrsAfterPs(root_tag):
+  for tag in root_tag.findAll('p'):
     while True:
       next = tag.findNextSibling()
       if not next: break
@@ -252,7 +252,7 @@ def _MungeStripBrsAfterPs(soup):
         break
 
 
-def _MungeStripEmpties(soup):
+def _MungeStripEmpties(root_tag):
   strip_tags = (
       'a', 'center', 'div', 'li', 'ol', 'p', 'table', 'td', 'th', 'tr',
       'span', 'ul')
@@ -270,33 +270,34 @@ def _MungeStripEmpties(soup):
     # Also consider the parent, which might now be empty.
     _StripIfEmpty(parent)
 
-  for tag in soup.findAll(strip_tags):
+  for tag in root_tag.findAll(strip_tags):
     _StripIfEmpty(tag)
 
 
-def _MungeStripLowScored(soup):
-  for tag in soup.findAll(score=True):
+def _MungeStripLowScored(root_tag):
+  for tag in root_tag.findAll(score=True):
     if tag['score'] <= -2:
       tag.extract()
 
 
-def _MungeStripRootContainers(soup):
+def _MungeStripRootContainers(root_tag):
   # If this container holds only one tag, and empty text, choose that inner tag.
-  child_tags = soup.findAll(True, recursive=False)
-  if len(child_tags) != 1: return soup
-  if ''.join(soup.findAll(text=True, recursive=False)).strip(): return soup
+  child_tags = root_tag.findAll(True, recursive=False)
+  if len(child_tags) != 1: return root_tag
+  if ''.join(root_tag.findAll(text=True, recursive=False)).strip():
+    return root_tag
   return _MungeStripRootContainers(child_tags[0])
 
 
-def _MungeStripRules(soup):
+def _MungeStripRules(root_tag):
   try:
-    while soup.contents and soup.contents[-1].name == 'hr':
-      soup.contents[-1].extract()
+    while root_tag.contents and root_tag.contents[-1].name == 'hr':
+      root_tag.contents[-1].extract()
   except AttributeError:
     pass
 
 
-def _MungeStripSiteSpecific(soup, url):
+def _MungeStripSiteSpecific(root_tag, url):
   if 'smashingmagazine.com' in url:
-    for tag in soup.findAll('table', width='650'):
+    for tag in root_tag.findAll('table', width='650'):
       tag.extract()

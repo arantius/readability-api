@@ -168,7 +168,7 @@ def GetFeedEntryContent(entry):
 
 def ParseFeedAtUrl(url):
   """Fetch a URL's contents, and parse it as a feed."""
-  source, _ = Fetch(url)
+  source, _, _ = Fetch(url)
   try:
     feed_feedparser = feedparser.parse(source)
   except LookupError:

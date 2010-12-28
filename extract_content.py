@@ -59,14 +59,14 @@ def ExtractFromHtml(url, html):
     strainer = BeautifulSoup.SoupStrainer(
         attrs={'class': re.compile(r'thing.*link|usertext border')})
     soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)
-    return soup.find(attrs={'class': 'usertext-body'}) or 'Reddit parse fail'
+    return soup, soup.find(attrs={'class': 'usertext-body'})
   elif re.search(r'^http://(www\.)?xkcd\.com/\d+', url, re.I):
     soup = BeautifulSoup.BeautifulSoup(html)
     img = soup.find(alt=True, title=True)
     cont = img.parent.parent
     for tag in cont.findAll(('br', 'div')):
       tag.extract()
-    return cont
+    return soup, cont
   elif re.search(r'^http://groups\.google\.com/', url, re.I):
     strainer = BeautifulSoup.SoupStrainer(attrs={'class': 'maincontbox'})
     soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)
@@ -85,7 +85,7 @@ def ExtractFromHtml(url, html):
     pre = BeautifulSoup.Tag(soup, 'pre')
     pre.insert(0, BeautifulSoup.NavigableString(html))
     soup.insert(0, pre)
-    return soup
+    return soup, soup
   else:
     return _ExtractFromHtmlGeneric(url, html)
 
@@ -130,11 +130,11 @@ def _ExtractFromHtmlGeneric(url, html):
     for node in scored_nodes:
       logging.info('%10.2f %s', node['score'], util.SoupTagOnly(node)[0:69])
 
-  return best_node
+  return soup, best_node
 
 
-def _FindLeafBlocks(soup):
-  for tag in soup.findAll(name=True, recursive=False):
+def _FindLeafBlocks(root_tag):
+  for tag in root_tag.findAll(name=True, recursive=False):
     if tag.name in TAG_NAMES_BLOCK and not tag.find(name=TAG_NAMES_BLOCK):
       yield tag
     else:
@@ -142,8 +142,8 @@ def _FindLeafBlocks(soup):
         yield child
 
 
-def _FindTitleHeader(soup, title_text):
-  headers = soup.findAll(TAG_NAMES_HEADER)
+def _FindTitleHeader(root_tag, title_text):
+  headers = root_tag.findAll(TAG_NAMES_HEADER)
   for header in headers:
     header_text = header.text.lower()
     if len(header_text) < 20:
@@ -152,9 +152,9 @@ def _FindTitleHeader(soup, title_text):
       return header
 
 
-def _ScoreBlocks(soup):
+def _ScoreBlocks(root_tag):
   """Score up all leaf block nodes, based on the length of their text."""
-  for leaf_block in _FindLeafBlocks(soup):
+  for leaf_block in _FindLeafBlocks(root_tag):
     # Length of stripped text, with all whitespace collapsed.
     text_len = _TextLenNonAnchors(leaf_block)
 
@@ -172,7 +172,7 @@ def _ScoreBlocks(soup):
       util.ApplyScore(leaf_block, 4, name='more_text')
 
 
-def _ScoreEmbeds(soup):
+def _ScoreEmbeds(root_tag):
   """Score up objects/embeds."""
   for tag in soup.findAll(EMBED_NAMES):
     if tag.findParent(EMBED_NAMES):
@@ -182,9 +182,9 @@ def _ScoreEmbeds(soup):
       util.ApplyScore(tag, 15, name='has_embed')
 
 
-def _ScoreImages(soup):
+def _ScoreImages(root_tag):
   """Score up images."""
-  for tag in soup.findAll('img'):
+  for tag in root_tag.findAll('img'):
     util.ApplyScore(tag, 1.5, name='any_img')
     if tag.has_key('alt') and len(tag['alt']) > 50:
       util.ApplyScore(tag, 2, name='img_alt')
@@ -200,11 +200,11 @@ def _ScoreImages(soup):
       util.ApplyScore(tag, 4, name='big_img')
 
 
-def _SiteSpecific(url, soup):
+def _SiteSpecific(url, root_tag):
   if 'www.cracked.com' in url:
-    tag = soup.find(attrs={'class': 'Column2'})
+    tag = root_tag.find(attrs={'class': 'Column2'})
     if tag: tag.extract()
-    tag = soup.find(attrs={'class': 'userStyled'})
+    tag = root_tag.find(attrs={'class': 'userStyled'})
     if tag: util.ApplyScore(tag, 20, name='special')
 
 
@@ -289,8 +289,8 @@ def _TransformBrsToParagraphsInner(soup, tag):
   tag.replaceWith(newp)
 
 
-def _TransformDivsToPs(soup):
-  for tag in soup.findAll('div'):
+def _TransformDivsToPs(root_tag):
+  for tag in root_tag.findAll('div'):
     if not tag.find(TAG_NAMES_BLOCK):
       tag.name = 'p'
 
