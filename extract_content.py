@@ -121,7 +121,8 @@ def _ExtractFromHtmlGeneric(url, html):
     return u'<p>Scoring error.</p>'
   best_node = scored_nodes[-1]
 
-  _TransformDivsToPs(soup)
+  _TransformDivsToPs(best_node)
+  _StripLowScored(best_node)
 
   # For debugging ...
   if util.IS_DEV_APPSERVER:
@@ -217,6 +218,12 @@ def _StripBefore(strip_tag):
   strip_tag.extract()
 
 
+def _StripLowScored(root_tag):
+  for tag in root_tag.findAll(score=True):
+    if tag['score'] <= -2:
+      tag.extract()
+
+
 def _TagSize(tag):
   try:
     w, h = util.TagSize(tag)
@@ -224,10 +231,16 @@ def _TagSize(tag):
     return None
 
   try:
-    return int(w) * int(h)
+    w = int(w)
+    h = int(h)
   except ValueError:
     return None
 
+  # Special case images that look small.
+  if w < 25 or h < 25:
+    return 1
+
+  return int(w) * int(h)
 
 def _TextLenNonAnchors(tag):
   """Length of this tag's text, without <a> nodes."""

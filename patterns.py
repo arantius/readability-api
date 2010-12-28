@@ -65,10 +65,10 @@ ATTR_POINTS = (
     (-5, 'classid', _ReWord(r'icons')),
     (-5, 'classid', _ReWord(r'lightbox')),
     (-5, 'classid', _ReWord(r'links')),
+    (-5, 'classid', _ReWord(r'meta(data)?')),
     (-5, 'classid', _ReWord(r'more')),
     (-5, 'classid', _ReWord(r'post-date')),
     (-3, 'classid', _ReAny(r'embed')),  # usually "embed this" code
-    (-3, 'classid', _ReWord(r'metadata')),
     (1, 'classid', _ReWord(r'main')),
     (2, 'classid', _ReWord(r'text')),
     (4, 'classid', _ReWord(r'article(?!_tool)')),
@@ -197,7 +197,7 @@ RE_RELATED_HEADER = re.compile(
     r'\b('
     r'also on'
     r'|(for|read) more'
-    r'|more.*(coverage|resources)'
+    r'|more.*(coverage|news|resources)'
     r'|most popular'
     r'|(popular|similar) (articles?|entries|posts?|stories)'
     r'|related'

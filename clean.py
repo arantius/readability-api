@@ -119,6 +119,7 @@ def Clean(url):
         url=url, final_url=final_url, html=html)
     note = 'cleaned feed'
     soup = extractor.soup
+    tag = soup
   except extract_feed.RssError, e:
     note = 'cleaned content, %s, %s' % (e.__class__.__name__, e)
     soup, tag = extract_content.ExtractFromHtml(final_url, html)
@@ -156,7 +157,6 @@ def _Munge(soup, tag, url):
     return tag
 
   _MungeStripSiteSpecific(tag, url)
-  _MungeStripLowScored(tag)
   _MungeStripBrsAfterPs(tag)
   _MungeStripAttrs(tag)
   _MungeStripRules(tag)
@@ -274,12 +274,6 @@ def _MungeStripEmpties(root_tag):
 
   for tag in root_tag.findAll(strip_tags):
     _StripIfEmpty(tag)
-
-
-def _MungeStripLowScored(root_tag):
-  for tag in root_tag.findAll(score=True):
-    if tag['score'] <= -2:
-      tag.extract()
 
 
 def _MungeStripRootContainers(root_tag):
