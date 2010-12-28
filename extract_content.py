@@ -34,7 +34,6 @@ from third_party import BeautifulSoup
 import patterns
 import util
 
-EMBED_NAMES = set(('embed', 'object'))
 TAG_NAMES_BLOCK = set(('blockquote', 'div', 'li', 'p', 'pre', 'td', 'th'))
 TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 
@@ -174,9 +173,7 @@ def _ScoreBlocks(root_tag):
 
 def _ScoreEmbeds(root_tag):
   """Score up objects/embeds."""
-  for tag in soup.findAll(EMBED_NAMES):
-    if tag.findParent(EMBED_NAMES):
-      continue
+  for tag in util.FindEmbeds(root_tag):
     size = _TagSize(tag)
     if size > 10000:
       util.ApplyScore(tag, 15, name='has_embed')
@@ -221,20 +218,10 @@ def _StripBefore(strip_tag):
 
 
 def _TagSize(tag):
-  if tag.has_key('width') and tag.has_key('height'):
-    w = tag['width']
-    h = tag['height']
-  elif tag.has_key('style'):
-    try:
-      w = re.search(r'width:\s*(\d+)px', tag['style']).group(1)
-      h = re.search(r'height:\s*(\d+)px', tag['style']).group(1)
-    except AttributeError:
-      return None
-  else:
+  try:
+    w, h = util.TagSize(tag)
+  except TypeError:
     return None
-
-  if w == '100%': w = 600
-  if h == '100%': h = 400
 
   try:
     return int(w) * int(h)

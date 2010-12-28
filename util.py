@@ -33,6 +33,7 @@ from google.appengine.ext.webapp import template
 
 from third_party import feedparser
 
+EMBED_NAMES = set(('embed', 'object'))
 IS_DEV_APPSERVER = 'Development' in os.environ.get('SERVER_SOFTWARE', '')
 MAX_SCORE_DEPTH = 5
 RE_DOCTYPE = re.compile(r'<!DOCTYPE.*?>', re.S)
@@ -147,6 +148,15 @@ def Fetch(orig_url):
   return (response.content, final_url, None)
 
 
+def FindEmbeds(root_tag):
+  if root_tag.name in EMBED_NAMES:
+    yield root_tag
+  for tag in root_tag.findAll(EMBED_NAMES):
+    if tag.findParent(EMBED_NAMES):
+      continue
+    yield tag
+
+
 def GetFeedEntryContent(entry):
   """Figure out the best content for this entry."""
   # Prefer "content".
@@ -195,3 +205,22 @@ def RenderTemplate(template_name, template_values=None):
 
 def SoupTagOnly(tag):
   return str(tag).split('>')[0] + '>'
+
+
+def TagSize(tag):
+  if tag.has_key('width') and tag.has_key('height'):
+    w = tag['width']
+    h = tag['height']
+  elif tag.has_key('style'):
+    try:
+      w = re.search(r'width:\s*(\d+)px', tag['style']).group(1)
+      h = re.search(r'height:\s*(\d+)px', tag['style']).group(1)
+    except AttributeError:
+      return None
+  else:
+    return None
+
+  if w == '100%': w = 600
+  if h == '100%': h = 400
+
+  return w, h

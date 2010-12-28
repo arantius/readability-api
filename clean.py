@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import base64
 import logging
 import re
 import urlparse
@@ -167,6 +168,7 @@ def _Munge(soup, tag, url):
   _MungeHeaderDowngrade(tag)
   _MungeHyphenate(tag)
   _MungeNoscript(tag)
+  tag = _MungeTransformEmbeds(soup, tag)
 
   # Serialize the tag, and apply full justification.
   if isinstance(tag, BeautifulSoup.BeautifulStoneSoup):
@@ -301,3 +303,22 @@ def _MungeStripSiteSpecific(root_tag, url):
   if 'smashingmagazine.com' in url:
     for tag in root_tag.findAll('table', width='650'):
       tag.extract()
+
+
+def _MungeTransformEmbeds(soup, root_tag):
+  for tag in util.FindEmbeds(root_tag):
+    try:
+      w, h = util.TagSize(root_tag)
+    except TypeError:
+      w = 600
+      h = 400
+    iframe = BeautifulSoup.Tag(soup, 'iframe')
+    iframe['src'] = 'data:text/html;base64,' + base64.b64encode('<body style="margin:0;">%s</body>' % unicode(tag))
+    iframe['width'] = w
+    iframe['height'] = h
+    iframe['frameborder'] = 0
+    iframe['scrolling'] = 'no'
+    if tag == root_tag:
+      return iframe
+    tag.replaceWith(iframe)
+  return root_tag
