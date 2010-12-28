@@ -48,7 +48,7 @@ def _ReWord(pattern):
 ATTR_POINTS = (
     (-20, 'classid', _ReWord(r'delicious')),
     (-20, 'classid', _ReWord(r'featured?')),
-    (-20, 'classid', _ReWord(r'post-(meta|ratings)')),
+    (-20, 'classid', _ReWord(r'post-(details|label|meta|ratings)')),
     (-20, 'classid', _ReWord(r'widget')),
     (-15, 'classid', _ReWhole(r'side')),
     (-15, 'classid', _ReWord(r'email')),
@@ -111,20 +111,35 @@ ATTR_STRIP = (
     ('classid', _ReAny(r'signin')),
     ('classid', _ReAny(r'(controls?|tool)(box|s)')),
 
-    ('classid', _ReWord(r'ad(block|tag)?')),
+    # word 'share' breaks twitter
+    # word 'head(er)?' breaks some sites that put _all_ content there
+    ('classid', _ReWord(r'(in)?categor(ies|y)')),
+    ('classid', _ReWord(r'(left|right)?nav(igation)?')),
+    ('classid', _ReWord(r'(post)?author|authdesc')),
+    ('classid', _ReWord(r'ad(block|tag)')),
+    ('classid', _ReWord(r'cnn(_ftrcntnt|Footer)')),
+    ('classid', _ReWord(r'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)')),
+    ('classid', _ReWord(r'foot(er)?(feature)?')),
+    ('classid', _ReWord(r'hid(den|e)')),
     ('classid', _ReWord(r'horizontal_posts')),  # mashable
     ('classid', _ReWord(r'icons')),
     ('classid', _ReWord(r'ilikethis')),
+    ('classid', _ReWord(r'inset')),
     ('classid', _ReWord(r'metavalue')),
-    ('classid', _ReWord(r'(post)?author|authdesc')),
+    ('classid', _ReWord(r'post-labels?')),
+    ('classid', _ReWord(r'post_share')),
     ('classid', _ReWord(r'postmetadata')),
+    ('classid', _ReWord(r'related\d*')),
     ('classid', _ReWord(r'replies')),
     ('classid', _ReWord(r'retweet')),
     ('classid', _ReWord(r'shopbox')),
-    ('classid', _ReWord(r'social')),
     ('classid', _ReWord(r'snap_nopreview')),
+    ('classid', _ReWord(r'social')),
+    ('classid', _ReWord(r'tag(ged|s)')),
+    ('classid', _ReWord(r'talkback')),
     ('classid', _ReWord(r'wdt_button')),
 
+    ('classid', _ReWhole(r'ads?')),
     ('classid', _ReWhole(r'article inline runaround left')),  # nytimes junk
     ('classid', _ReWhole(r'a(uthor_)?info')),
     ('classid', _ReWhole(r'blippr-nobr')),
@@ -148,27 +163,8 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'side(bar)?\d*')),  # word matches too much
     ('classid', _ReWhole(r'sociable')),
     ('classid', _ReWhole(r'story-date')),
-
-    # tumblr comments
-    ('classid', _ReWhole(r'notes(-container)?')),
-    ('classid', _ReWhole(r'post-notes')),
-
-    # word 'share' breaks twitter
-    # word 'head(er)?' breaks some sites that put _all_ content there
-    ('classid', _ReWord(r'ads?')),
-    ('classid', _ReWord(r'(in)?categor(ies|y)')),
-    ('classid', _ReWord(r'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)')),
-    ('classid', _ReWord(r'cnn(_ftrcntnt|Footer)')),
-    ('classid', _ReWord(r'foot(er)?(feature)?')),
-    ('classid', _ReWord(r'hid(den|e)')),
-    ('classid', _ReWord(r'inset')),
-    ('classid', _ReWord(r'post-labels?')),
-    ('classid', _ReWord(r'(left|right)?nav(igation)?')),
-    ('classid', _ReWord(r'post_share')),
-    #('classid', _ReWord(r'print')),  # too much
-    ('classid', _ReWord(r'related\d*')),
-    ('classid', _ReWord(r'tag(ged|s)')),
-    ('classid', _ReWord(r'talkback')),
+    ('classid', _ReWhole(r'notes(-container)?')),  # tumblr comments
+    ('classid', _ReWhole(r'post-(details|notes)')),
 
     ('href', _ReAny(r'(delicious\.com|del\.icio\.us)/post')),
     ('href', _ReAny(r'(digg|reddit|stumbleupon)\.com/submit')),
