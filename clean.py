@@ -107,11 +107,10 @@ def Clean(url):
   elif re.search(r'\.(gif|jpe?g|png)(\?|$)', url, re.I):
     return util.RenderTemplate('image.html', {'url': url})
 
-  html, final_url = util.Fetch(url)
-  if not html:
-    err = 'Url %s provided no HTML' % url
-    logging.error(err)
-    return err
+  html, final_url, error = util.Fetch(url)
+  if error:
+    logging.error(error)
+    return u'Download error: %s' % error
 
   note = ''
   try:

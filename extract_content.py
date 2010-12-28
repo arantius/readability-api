@@ -44,7 +44,7 @@ BR_TO_P_STOP_TAGS = set(list(TAG_NAMES_BLOCK) + list(TAG_NAMES_HEADER) + ['br'])
 def ExtractFromUrl(url):
   url = url.encode('utf-8')
   try:
-    html, _ = util.Fetch(url)
+    html, _, _ = util.Fetch(url)
     return ExtractFromHtml(url, html)
   except IOError, e:
     logging.exception(e)
@@ -55,7 +55,7 @@ def ExtractFromHtml(url, html):
   """Given a string of HTML, remove nasty bits, score and pick bit to keep."""
   if re.search(r'^http://(www\.)?reddit\.com/.*/comments/', url, re.I):
     url = url.replace('reddit.com', 'reddit.com.nyud.net')
-    html, _ = util.Fetch(url)
+    html, _, _ = util.Fetch(url)
     strainer = BeautifulSoup.SoupStrainer(
         attrs={'class': re.compile(r'thing.*link|usertext border')})
     soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)

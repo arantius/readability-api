@@ -92,7 +92,7 @@ class FeedExtractor(object):
       self.final_url = final_url
       self.html = html
     else:
-      self.html, self.final_url = util.Fetch(url)
+      self.html, self.final_url, _ = util.Fetch(url)
 
     feed_url = self._DetectFeed()
 

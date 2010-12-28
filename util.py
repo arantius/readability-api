@@ -120,7 +120,7 @@ def CleanUrl(url):
   return url
 
 
-@Memoize('Fetch_%s', 60 * 15)
+@Memoize('Fetch_2_%s', 60 * 15)
 def Fetch(orig_url):
   cookie = Cookie.SimpleCookie()
   redirect_limit = 10
@@ -137,14 +137,14 @@ def Fetch(orig_url):
           url, allow_truncated=True, follow_redirects=False, deadline=6,
           headers={'Cookie': cookie.output(attrs=(), header='', sep='; ')})
     except urlfetch.DownloadError, e:
-      return (str(e), final_url)
+      return (str(e), final_url, e)
     cookie.load(response.headers.get('Set-Cookie', ''))
     previous_url = url
     url = response.headers.get('Location')
     if url:
       url = urlparse.urljoin(previous_url, url)
   final_url = urlparse.urljoin(orig_url, final_url)
-  return (response.content, final_url)
+  return (response.content, final_url, None)
 
 
 def GetFeedEntryContent(entry):
