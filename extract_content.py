@@ -95,7 +95,7 @@ def _ExtractFromHtmlGeneric(url, html):
     soup = BeautifulSoup.BeautifulSoup(html)
   except HTMLParser.HTMLParseError, e:
     logging.exception(e)
-    return u''
+    return soup, u''
 
   title = soup.find('title')
   title = title and title.text.lower() or ''
@@ -118,7 +118,7 @@ def _ExtractFromHtmlGeneric(url, html):
   scored_nodes = sorted(soup.findAll(attrs={'score': True}),
                         key=lambda x: x['score'])[-15:]
   if not scored_nodes:
-    return u'<p>Scoring error.</p>'
+    return soup, u'<p>Scoring error.</p>'
   best_node = scored_nodes[-1]
 
   _TransformDivsToPs(best_node)
