@@ -42,7 +42,6 @@ import urlparse
 
 from third_party import BeautifulSoup
 from third_party import autorss
-from third_party import feedparser
 
 import patterns
 import util
