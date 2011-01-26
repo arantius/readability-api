@@ -82,17 +82,17 @@ ATTR_POINTS = (
     (5, 'classid', _ReWord(r'content')),
     (5, 'classid', _ReWord(r'primary-column')),
     (5, 'classid', _ReWord(r'single')),
-    (10, 'classid', _ReAny(r'^article_?body')),
+    (10, 'classid', _ReAny(r'^article_?(body|copy)')),
     (10, 'classid', _ReWhole(r'story')),
     (10, 'classid', _ReWord(r'player')),
     (10, 'classid', _ReWord(r'post(id)?[-_]?(\d+|body|content)?')),
     (10, 'classid', _ReWord(r'snap_preview')),
     (10, 'classid', _ReWord(r'video')),
-    (10, 'classid', _ReWord(r'wide')),
+    (10, 'classid', _ReWord(r'(?<!ad_)wide')),
     (10, 'classid', _ReWhole(r'meat')),
     (10, 'classid', _ReWhole(r'post(-\d+)?')),
     (12, 'classid', _ReWhole(r'article span image')),  # nytimes
-    (12, 'classid', _ReWord(r'h?entry(?!-title)')),
+    (12, 'classid', _ReWhole(r'h?entry(_\d+)?')),
     (20, 'classid', _ReWhole(r'large-image')),  # imgur.com
     (20, 'classid', _ReWhole(r'story(body|block)')),
     (20, 'classid', _ReWhole(r'player')),
@@ -109,16 +109,18 @@ ATTR_STRIP = (
     ('classid', _ReAny(r'reportabuse')),
     ('classid', _ReAny(r'share(bar|box|this)')),
     ('classid', _ReAny(r'signin')),
-    ('classid', _ReAny(r'(controls?|tool)(box|s)')),
+    ('classid', _ReAny(r'(controls?|tool)(box|s)(?!_container)')),
 
     # word 'share' breaks twitter
     # word 'head(er)?' breaks some sites that put _all_ content there
-    ('classid', _ReWord(r'(in)?categor(ies|y)')),
+    # This categories target matches category classes on _the post_ container.
+    #('classid', _ReWord(r'(in)?categor(ies|y)')),
     ('classid', _ReWord(r'(left|right)?nav(igation)?')),
     ('classid', _ReWord(r'(post)?author|authdesc')),
-    ('classid', _ReWord(r'ad(block|tag)')),
+    ('classid', _ReWord(r'ad(_?block|tag)')),
     ('classid', _ReWord(r'cnn(_ftrcntnt|Footer)')),
     ('classid', _ReWord(r'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)')),
+    ('classid', _ReWord(r'facebook-like')),
     ('classid', _ReWord(r'foot(er)?(feature)?')),
     ('classid', _ReWord(r'hid(den|e)')),
     ('classid', _ReWord(r'horizontal_posts')),  # mashable
@@ -129,6 +131,7 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'post-labels?')),
     ('classid', _ReWord(r'post_share')),
     ('classid', _ReWord(r'postmetadata')),
+    ('classid', _ReWord(r'read_more')),
     ('classid', _ReWord(r'related\d*')),
     ('classid', _ReWord(r'replies')),
     ('classid', _ReWord(r'retweet')),
@@ -147,9 +150,8 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'byline')),
     ('classid', _ReWhole(r'catsandtags')),
     ('classid', _ReWhole(r'dontPrint')),
-    ('classid', _ReWhole(r'facebook-like')),
     ('classid', _ReWhole(r'more_stories')),
-    ('classid', _ReWhole(r'pagination')),
+    ('classid', _ReWhole(r'pag(es|ination)')),
     ('classid', _ReWhole(r'post(-date|-info|ed_on|edby)')),
     ('classid', _ReWhole(r'prevnext')),
     ('classid', _ReWhole(r'previously\d?')),  # boing boing
@@ -181,6 +183,7 @@ ATTR_STRIP = (
     ('href', _ReWord(r'share')),
     ('href', _ReWord(r'sponsor')),
 
+    ('src', _ReAny(r'doubleclick\.net')),
     ('src', _ReAny(r'invitemedia\.com')),
     ('src', _ReAny(r'quantserve\.com')),
     ('src', _ReAny(r'leenks\.com/webmasters')),
