@@ -20,7 +20,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from email import utils as email_utils  # pylint: disable-msg=E0611,C6202
+# First, munge sys.path to put us first!
+import sys
+for i, path in enumerate(sys.path):
+  if 'readability-api' in path:
+    del sys.path[i]
+    sys.path.insert(0, path)
+
+
+from email import utils as email_utils  # pylint: disable-msg=E0611,C6202,C6204
 import time
 
 from google.appengine.ext import webapp
