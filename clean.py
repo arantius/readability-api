@@ -135,6 +135,7 @@ def _FixUrls(parent, base_url):
   def _FixUrl(tag, attr):
     tag[attr] = urlparse.urljoin(base_url, tag[attr].strip())
 
+  # pylint: disable-msg=C6405
   for tag in parent.findAll(href=True): _FixUrl(tag, 'href')
   if parent.has_key('href'): _FixUrl(parent, 'href')
 
