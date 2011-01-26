@@ -5,6 +5,9 @@ api_version: 1
 
 default_expiration: 4d
 
+builtins:
+- appstats: on
+
 handlers:
 - url: /robots.txt
   static_files: robots.txt
@@ -16,11 +19,6 @@ handlers:
 
 - url: /admin.*
   script: $PYTHON_LIB/google/appengine/ext/admin
-  login: admin
-  secure: always
-
-- url: /stats.*
-  script: $PYTHON_LIB/google/appengine/ext/appstats/ui.py
   login: admin
   secure: always
 
