@@ -68,6 +68,7 @@ ATTR_POINTS = (
     (-5, 'classid', _ReWord(r'meta(data)?')),
     (-5, 'classid', _ReWord(r'more')),
     (-5, 'classid', _ReWord(r'post-date')),
+    (-5, 'rel', _ReWord(r'tag')),
     (-3, 'classid', _ReAny(r'embed')),  # usually "embed this" code
     (1, 'classid', _ReWord(r'main')),
     (2, 'classid', _ReWord(r'text')),
@@ -121,12 +122,13 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'cnn(_ftrcntnt|Footer)')),
     ('classid', _ReWord(r'cnn_stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)')),
     ('classid', _ReWord(r'facebook-like')),
-    ('classid', _ReWord(r'foot(er)?(feature)?')),
+    ('classid', _ReWord(r'(?<!non )foot(er)?(feature)?')),
     ('classid', _ReWord(r'hid(den|e)')),
     ('classid', _ReWord(r'horizontal_posts')),  # mashable
     ('classid', _ReWord(r'icons')),
     ('classid', _ReWord(r'ilikethis')),
     ('classid', _ReWord(r'inset')),
+    ('classid', _ReWord(r'logo')),
     ('classid', _ReWord(r'metavalue')),
     ('classid', _ReWord(r'post-labels?')),
     ('classid', _ReWord(r'post_share')),
@@ -138,7 +140,7 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'shopbox')),
     ('classid', _ReWord(r'snap_nopreview')),
     ('classid', _ReWord(r'social')),
-    ('classid', _ReWord(r'tag(ged|s)')),
+    ('classid', _ReWord(r'tag(ged|s| cloud)')),
     ('classid', _ReWord(r'talkback')),
     ('classid', _ReWord(r'wdt_button')),
 
