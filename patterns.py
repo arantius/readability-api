@@ -43,7 +43,7 @@ def _ReWhole(pattern):
 
 
 def _ReWord(pattern):
-  return re.compile(r'(_|\b)%s(_|\b)' % pattern, re.I)
+  return re.compile(r'\b%s\b' % pattern, re.I)
 
 ATTR_POINTS = (
     (-20, 'classid', _ReWord(r'delicious')),
@@ -214,10 +214,17 @@ STRIP_TAGS = ('form', 'iframe', 'link', 'meta', 'script', 'style',
               'fb:share-button')
 
 
-def _CamelCaseToSpace(str):
-  return re.sub('([a-z0-9])([A-Z])', r'\1 \2',
-                re.sub('(.)([A-Z][a-z]+)', r'\1 \2', str)
-               ).lower()
+def _SeparateWords(s):
+  """Turn camel case and underscore word separators to spaces.
+
+  fooBarBaz -> foo bar baz
+  foo_bar_baz -> foo bar baz.
+  """
+  s = re.sub('(.)([A-Z][a-z]+)', r'\1 \2', s)
+  s = re.sub('([a-z0-9])([A-Z])', r'\1 \2', s)
+  s = s.replace('_', ' ')
+  return s.lower()
+
 
 def _FindPreviousHeader(tag):
   # Find the "header" immediately previous to this tag.  Search among a few
@@ -320,8 +327,8 @@ def Process(root_tag, url, hit_counter=None):
   """Process an entire soup, without recursing into stripped nodes."""
   # Make a single "class and id" attribute that everything else can test.
   root_tag['classid'] = '!!!'.join([
-      _CamelCaseToSpace(root_tag.get('class', '')).strip(),
-      _CamelCaseToSpace(root_tag.get('id', '')).strip()
+      _SeparateWords(root_tag.get('class', '')).strip(),
+      _SeparateWords(root_tag.get('id', '')).strip()
       ]).strip('!')
 
   top_run = False
