@@ -40,16 +40,6 @@ TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 BR_TO_P_STOP_TAGS = set(list(TAG_NAMES_BLOCK) + list(TAG_NAMES_HEADER) + ['br'])
 
 
-def ExtractFromUrl(url):
-  url = url.encode('utf-8')
-  try:
-    html, _, _ = util.Fetch(url)
-    return ExtractFromHtml(url, html)
-  except IOError, e:
-    logging.exception(e)
-    return ''
-
-
 def ExtractFromHtml(url, html):
   """Given a string of HTML, remove nasty bits, score and pick bit to keep."""
   if re.search(r'^http://(www\.)?reddit\.com/.*/comments/', url, re.I):
