@@ -82,7 +82,11 @@ def Clean(url):
   Returns:
     String: HTML representing the "readable part".
   """
+  # Handle de-facto standard "hash bang" URLs ( http://goo.gl/LNmg )
+  url = url.replace('#!', '?_escaped_fragment_=')
+  # Otherwise ignore fragments.
   url = re.sub(r'#.*', '', url)
+  # And strip common tracking noise.
   url = re.sub(r'[?&]utm_[^&]+', '', url)
 
   match = re.search(r'^https?://docs.google.com.*cache:.*?:(.*?\.pdf)',
