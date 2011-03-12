@@ -9,13 +9,9 @@ builtins:
 - appstats: on
 
 handlers:
-- url: /robots.txt
-  static_files: robots.txt
-  upload: robots.txt
-
-- url: /favicon.ico
-  static_files: favicon.ico
-  upload: favicon.ico
+- url: /(embedded_media\.png|favicon\.ico|robots\.txt)
+  static_files: static/\1
+  upload: static/(.*)
 
 - url: /admin.*
   script: $PYTHON_LIB/google/appengine/ext/admin

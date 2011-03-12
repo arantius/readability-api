@@ -311,13 +311,19 @@ def _MungeTransformEmbeds(soup, root_tag):
     except TypeError:
       w = 600
       h = 400
-    iframe = BeautifulSoup.Tag(soup, 'iframe')
-    iframe['src'] = 'data:text/html;base64,' + base64.b64encode('<body style="margin:0;">%s</body>' % unicode(tag))
-    iframe['width'] = w
-    iframe['height'] = h
-    iframe['frameborder'] = 0
-    iframe['scrolling'] = 'no'
+    link = BeautifulSoup.Tag(soup, 'a')
+    link['href'] = 'data:text/html;base64,' + base64.b64encode(
+        '<body style="margin:0;">%s</body>' % unicode(tag))
+    link['rel'] = 'embedded_media'
+    link['embed_width'] = w
+    link['embed_height'] = h
+    img = BeautifulSoup.Tag(soup, 'img')
+    # http://readability-api.appspot.com
+    img['src'] = '/embedded_media.png'
+    img['width'] = '128'
+    img['height'] = '128'
+    link.insert(0, img)
     if tag == root_tag:
-      return iframe
-    tag.replaceWith(iframe)
+      return link
+    tag.replaceWith(link)
   return root_tag
