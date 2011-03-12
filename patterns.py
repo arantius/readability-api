@@ -130,6 +130,7 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'inset')),
     ('classid', _ReWord(r'logo')),
     ('classid', _ReWord(r'metavalue')),
+    ('classid', _ReWord(r'more-articles')),
     ('classid', _ReWord(r'post-labels?')),
     ('classid', _ReWord(r'post_share')),
     ('classid', _ReWord(r'postmetadata')),
@@ -162,6 +163,7 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'respon(d|ses)')),
     ('classid', _ReWhole(r'rightrail')),
     ('classid', _ReWhole(r'search(bar)?')),
+    ('classid', _ReWhole(r'seealso')),
     ('classid', _ReWhole(r'sexy-bookmarks')),
     ('classid', _ReWhole(r'share')),
     ('classid', _ReWhole(r'side(bar)?\d*')),  # word matches too much
@@ -191,6 +193,9 @@ ATTR_STRIP = (
     ('src', _ReAny(r'leenks\.com/webmasters')),
     ('src', _ReAny(r'reddit\.com')),
     ('src', _ReAny(r'stumbleupon\.com')),
+
+    # Commonly indicates comments
+    ('src', _ReWord(r'smilies')),
 
     ('style', _ReAny(r'display\s*:\s*none')),
 
