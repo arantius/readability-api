@@ -31,6 +31,7 @@ for i, path in enumerate(sys.path):
 from email import utils as email_utils  # pylint: disable-msg=E0611,C6202,C6204
 import time
 
+from google.appengine.api import memcache
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 
@@ -45,8 +46,11 @@ class MainPage(webapp.RequestHandler):
   response = None
 
   def get(self):
+    types = ('direct_google_docs', 'direct_youtube', 'direct_trutv',
+             'direct_pdf', 'direct_image', 'error', 'feed', 'content')
+    stats = [(type, memcache.get('cleaned_%s' % type)) for type in types]
     self.response.headers['Content-Type'] = 'text/html'
-    self.response.out.write(util.RenderTemplate('main.html'))
+    self.response.out.write(util.RenderTemplate('main.html', {'stats': stats}))
 
 
 class CleanPage(webapp.RequestHandler):

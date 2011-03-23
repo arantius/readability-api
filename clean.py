@@ -33,6 +33,8 @@ import urlparse
 from third_party import BeautifulSoup
 from third_party import hyphenate
 
+from google.appengine.api import memcache
+
 import extract_content
 import extract_feed
 import util
@@ -68,6 +70,10 @@ if not util.IS_DEV_APPSERVER:
       'classid': True,
       'score': util.IS_DEV_APPSERVER,
       })
+
+
+def _TrackClean(type):
+  memcache.incr('cleaned_%s' % type, initial_value=0)
 
 
 def Clean(url):
@@ -106,22 +112,28 @@ def _Clean(url):
 
   match = re.search(r'^https?://docs.google.com.*docid=(.*?)(&|$)', url, re.I)
   if match:
+    _TrackClean('direct_google_docs')
     return util.RenderTemplate('google-docs.html', {'docid': match.group(1),
                                                     'url': url})
 
   if re.search(r'^http://www\.youtube\.com/watch', url, re.I):
+    _TrackClean('direct_youtube')
     video_id = re.search(r'v=([^&]+)', url).group(1)
     return util.RenderTemplate('youtube.html', {'video_id': video_id})
   if re.search(r'^http://www\.trutv\.com/video', url, re.I):
+    _TrackClean('direct_trutv')
     video_id = re.search(r'(/video[^?#]+).html', url).group(1)
     return util.RenderTemplate('trutv.html', {'video_id': video_id})
   elif re.search(r'\.pdf(\?|$)', url, re.I):
+    _TrackClean('direct_pdf')
     return util.RenderTemplate('pdf.html', {'url': url})
   elif re.search(r'\.(gif|jpe?g|png)(\?|$)', url, re.I):
+    _TrackClean('direct_image')
     return util.RenderTemplate('image.html', {'url': url})
 
   html, final_url, error = util.Fetch(url)
   if error:
+    _TrackClean('error')
     logging.error(error)
     return u'Download error: %s' % error
 
@@ -132,9 +144,11 @@ def _Clean(url):
     note = 'cleaned feed'
     soup = extractor.soup
     tag = soup
+    _TrackClean('feed')
   except extract_feed.RssError, e:
     note = 'cleaned content, %s, %s' % (e.__class__.__name__, e)
     soup, tag = extract_content.ExtractFromHtml(final_url, html)
+    _TrackClean('content')
 
   if util.IS_DEV_APPSERVER:
     logging.info(note)
