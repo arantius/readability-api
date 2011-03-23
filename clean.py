@@ -336,8 +336,7 @@ def _MungeTransformEmbeds(soup, root_tag):
     link['embed_width'] = w
     link['embed_height'] = h
     img = BeautifulSoup.Tag(soup, 'img')
-    # http://readability-api.appspot.com
-    img['src'] = '/embedded_media.png'
+    img['src'] = 'http://readability-api.appspot.com/embedded_media.png'
     img['width'] = '128'
     img['height'] = '128'
     link.insert(0, img)
