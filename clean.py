@@ -71,6 +71,14 @@ if not util.IS_DEV_APPSERVER:
 
 
 def Clean(url):
+  truncate_url = url
+  if len(url) > _MAX_URL_DISPLAY_LEN:
+    truncate_url = url[0:60] + u'…'
+  return u"Content extracted from: <a href='%s'>%s</a><hr>\n%s" % (
+      url, truncate_url, _Clean(url))
+
+
+def _Clean(url):
   """Clean the contents of a given URL to only the "readable part".
 
   Handle special cases like YouTube, PDF, images directly.  Delegate out to
@@ -183,11 +191,7 @@ def _Munge(soup, tag, url):
     tag = wrap
   tag['style'] = 'text-align: justify;'
 
-  truncate_url = url
-  if len(url) > _MAX_URL_DISPLAY_LEN:
-    truncate_url = url[0:60] + u'…'
-  return u"Content extracted from: <a href='%s'>%s</a><hr>\n%s" % (
-      url, truncate_url, unicode(tag))
+  return unicode(tag)
 
 
 def _MungeHyphenate(root_tag):
