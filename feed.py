@@ -64,9 +64,15 @@ def _CleanEntryFailure(feed_entity, entry_feedparser, exception):
 @util.DeferredRetryLimit(failure_callback=_CleanEntryFailure)
 def _CleanEntry(feed_entity, entry_feedparser):
   """Given a parsed feed entry, turn it into a cleaned entry entity."""
-  _CleanEntryBase(feed_entity, entry_feedparser,
-                  content=clean.Clean(entry_feedparser.link),
-                  original_content=util.GetFeedEntryContent(entry_feedparser))
+  try:
+    _CleanEntryBase(
+        feed_entity, entry_feedparser,
+        content=clean.Clean(entry_feedparser.link),
+        original_content=util.GetFeedEntryContent(entry_feedparser))
+  except:
+    logging.info('Got error cleaning: %s', entry_feedparser.link)
+    raise
+
 
 def _EntryId(entry_feedparser):
   try:
