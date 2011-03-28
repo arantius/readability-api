@@ -284,7 +284,7 @@ def _Score(tag, url, hit_counter):
       util.ApplyScore(tag, -1.5, name='self_link')
       tag.extract()
     # TODO: host name -> domain name
-    elif urlparse.urlparse(url)[1] == urlparse.urlparse(that_url)[1]:
+    elif urlparse.urlparse(url)[1] != urlparse.urlparse(that_url)[1]:
       # Score up links to _other_ domains.
       util.ApplyScore(tag, 1.0, name='out_link')
 
