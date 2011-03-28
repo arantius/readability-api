@@ -77,11 +77,12 @@ def _TrackClean(type):
 
 
 def Clean(url):
+  url, html = _Clean(url)
   truncate_url = url
   if len(url) > _MAX_URL_DISPLAY_LEN:
     truncate_url = url[0:60] + u'…'
   return u"Content extracted from: <a href='%s'>%s</a><hr>\n%s" % (
-      url, truncate_url, _Clean(url))
+      url, truncate_url, html)
 
 
 def _Clean(url):
@@ -152,7 +153,7 @@ def _Clean(url):
 
   if util.IS_DEV_APPSERVER:
     logging.info(note)
-  return _Munge(soup, tag, final_url)
+  return final_url, _Munge(soup, tag, final_url)
 if not util.IS_DEV_APPSERVER:
   Clean = util.Memoize('Clean_%s', 60*60*24)(Clean)  # pylint: disable-msg=C6409
 
