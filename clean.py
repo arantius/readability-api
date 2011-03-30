@@ -83,6 +83,8 @@ def Clean(url):
     truncate_url = url[0:60] + u'…'
   return u"Content extracted from: <a href='%s'>%s</a><hr>\n%s" % (
       url, truncate_url, html)
+if not util.IS_DEV_APPSERVER:
+  Clean = util.Memoize('Clean_%s', 60*60*24)(Clean)  # pylint: disable-msg=C6409
 
 
 def _Clean(url):
@@ -95,7 +97,7 @@ def _Clean(url):
     url: String, the URL to the interesting content.
 
   Returns:
-    String: HTML representing the "readable part".
+    Tuple of strings: (final URL after redirects, HTML of the "readable part").
   """
   # Handle de-facto standard "hash bang" URLs ( http://goo.gl/LNmg )
   url = url.replace('#!', '?_escaped_fragment_=')
@@ -114,29 +116,30 @@ def _Clean(url):
   match = re.search(r'^https?://docs.google.com.*docid=(.*?)(&|$)', url, re.I)
   if match:
     _TrackClean('direct_google_docs')
-    return util.RenderTemplate('google-docs.html', {'docid': match.group(1),
+    html = util.RenderTemplate('google-docs.html', {'docid': match.group(1),
                                                     'url': url})
+    return url, html
 
   if re.search(r'^http://www\.youtube\.com/watch', url, re.I):
     _TrackClean('direct_youtube')
     video_id = re.search(r'v=([^&]+)', url).group(1)
-    return util.RenderTemplate('youtube.html', {'video_id': video_id})
+    return url, util.RenderTemplate('youtube.html', {'video_id': video_id})
   if re.search(r'^http://www\.trutv\.com/video', url, re.I):
     _TrackClean('direct_trutv')
     video_id = re.search(r'(/video[^?#]+).html', url).group(1)
-    return util.RenderTemplate('trutv.html', {'video_id': video_id})
+    return url, util.RenderTemplate('trutv.html', {'video_id': video_id})
   elif re.search(r'\.pdf(\?|$)', url, re.I):
     _TrackClean('direct_pdf')
-    return util.RenderTemplate('pdf.html', {'url': url})
+    return url, util.RenderTemplate('pdf.html', {'url': url})
   elif re.search(r'\.(gif|jpe?g|png)(\?|$)', url, re.I):
     _TrackClean('direct_image')
-    return util.RenderTemplate('image.html', {'url': url})
+    return url, util.RenderTemplate('image.html', {'url': url})
 
   html, final_url, error = util.Fetch(url)
   if error:
     _TrackClean('error')
     logging.error(error)
-    return u'Download error: %s' % error
+    return url, u'Download error: %s' % error
 
   note = ''
   try:
@@ -154,8 +157,6 @@ def _Clean(url):
   if util.IS_DEV_APPSERVER:
     logging.info(note)
   return final_url, _Munge(soup, tag, final_url)
-if not util.IS_DEV_APPSERVER:
-  Clean = util.Memoize('Clean_%s', 60*60*24)(Clean)  # pylint: disable-msg=C6409
 
 
 def _FixUrls(parent, base_url):
