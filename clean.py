@@ -124,10 +124,6 @@ def _Clean(url):
     _TrackClean('direct_youtube')
     video_id = re.search(r'v=([^&]+)', url).group(1)
     return url, util.RenderTemplate('youtube.html', {'video_id': video_id})
-  if re.search(r'^http://www\.trutv\.com/video', url, re.I):
-    _TrackClean('direct_trutv')
-    video_id = re.search(r'(/video[^?#]+).html', url).group(1)
-    return url, util.RenderTemplate('trutv.html', {'video_id': video_id})
   elif re.search(r'\.pdf(\?|$)', url, re.I):
     _TrackClean('direct_pdf')
     return url, util.RenderTemplate('pdf.html', {'url': url})

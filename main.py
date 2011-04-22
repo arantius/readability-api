@@ -46,7 +46,7 @@ class MainPage(webapp.RequestHandler):
   response = None
 
   def get(self):
-    types = ('direct_google_docs', 'direct_youtube', 'direct_trutv',
+    types = ('direct_google_docs', 'direct_youtube',
              'direct_pdf', 'direct_image', 'error', 'feed', 'content')
     stats = [(type, memcache.get('cleaned_%s' % type)) for type in types]
     self.response.headers['Content-Type'] = 'text/html'
