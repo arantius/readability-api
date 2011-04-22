@@ -23,12 +23,5 @@ URL: <input type='text' name='url' size='50'>
 </label>
 </form>
 
-<p>Statistics:</p>
-<table>
-<tr><th>Type</th><th>Count</th></tr>
-{% for stat in stats %}
-  <tr><td>{{stat.0}}</td><td>{{stat.1}}</td></tr>
-{% endfor %}
-</table>
 </body>
 </html>

@@ -46,11 +46,8 @@ class MainPage(webapp.RequestHandler):
   response = None
 
   def get(self):
-    types = ('direct_google_docs', 'direct_youtube',
-             'direct_pdf', 'direct_image', 'error', 'feed', 'content')
-    stats = [(type, memcache.get('cleaned_%s' % type)) for type in types]
     self.response.headers['Content-Type'] = 'text/html'
-    self.response.out.write(util.RenderTemplate('main.html', {'stats': stats}))
+    self.response.out.write(util.RenderTemplate('main.html'))
 
 
 class CleanPage(webapp.RequestHandler):
@@ -92,9 +89,24 @@ class CleanFeed(webapp.RequestHandler):
     self.response.out.write(feed.PrintFeed(feed_entity, include_original))
 
 
+class StatsPage(webapp.RequestHandler):
+  request = None
+  response = None
+
+  def get(self):
+    types = ('direct_google_docs', 'direct_youtube',
+             'direct_pdf', 'direct_image', 'error', 'feed', 'content')
+    stats = [(type, memcache.get('cleaned_%s' % type)) for type in types]
+    self.response.headers['Content-Type'] = 'text/html'
+    self.response.out.write(util.RenderTemplate('stats.html', {'stats': stats}))
+
+
 def main():
   application = webapp.WSGIApplication(
-      [('/', MainPage), ('/page', CleanPage), ('/feed', CleanFeed),
+      [('/', MainPage),
+       ('/stats', StatsPage),
+       ('/page', CleanPage),
+       ('/feed', CleanFeed),
        ('/clean', CleanPage),  # legacy
       ],
       debug=util.IS_DEV_APPSERVER)
