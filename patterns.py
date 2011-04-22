@@ -72,7 +72,7 @@ ATTR_POINTS = (
     (-3, 'classid', _ReAny(r'embed')),  # usually "embed this" code
     (1, 'classid', _ReWord(r'main')),
     (2, 'classid', _ReWord(r'text')),
-    (4, 'classid', _ReWord(r'article(?!_tool)')),
+    (4, 'classid', _ReWord(r'article(?! tool)')),
     (5, 'classid', _ReAny(r'^article')),
     (5, 'classid', _ReAny(r'gallery')),
     (5, 'classid', _ReAny(r'photo')),
@@ -110,7 +110,7 @@ ATTR_STRIP = (
     ('classid', _ReAny(r'reportabuse')),
     ('classid', _ReAny(r'share(bar|box|this)')),
     ('classid', _ReAny(r'signin')),
-    ('classid', _ReAny(r'(controls?|tool)(box|s)(?!_container)')),
+    ('classid', _ReAny(r'(controls?|tool)(box|s)(?! container)')),
 
     # word 'share' breaks twitter
     # word 'head(er)?' breaks some sites that put _all_ content there
