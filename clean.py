@@ -228,7 +228,7 @@ def _MungeHyphenate(root_tag):
 
 
 def _MungeHeaderDowngrade(root_tag):
-  for tag in root_tag.findAll(extract_content.TAG_NAMES_HEADER):
+  for tag in root_tag.findAll(util.TAG_NAMES_HEADER):
     tag.name = 'h%d' % min(6, int(tag.name[1]) + 2)
 
 

@@ -253,6 +253,14 @@ def _FindPreviousHeader(tag):
   return (None, '')
 
 
+def _IsLeafBlock(tag):
+  if tag.name not in util.TAG_NAMES_BLOCK:
+    return False
+  if tag.find(name=util.TAG_NAMES_BLOCK):
+    return False
+  return True
+
+
 def _IsList(tag):
   if tag.name == 'ul': return True
   if tag.name == 'ol': return True
@@ -268,6 +276,8 @@ def _IsList(tag):
 
 def _Score(tag, url, hit_counter):
   if tag.name == 'body': return
+
+  # Point patterns.
   for points, attr, pattern in ATTR_POINTS:
     if not tag.has_key(attr): continue
     if pattern.search(tag[attr]):
@@ -277,6 +287,7 @@ def _Score(tag, url, hit_counter):
       hit_counter.setdefault(key, [])
       hit_counter[key].append(tag)
 
+  # Links.
   if tag.name == 'a' and tag.has_key('href'):
     that_url = urlparse.urljoin(url, tag['href'])
     if url in that_url or url in urllib.unquote(tag['href']):
@@ -288,6 +299,45 @@ def _Score(tag, url, hit_counter):
     elif urlparse.urlparse(url)[1] != urlparse.urlparse(that_url)[1]:
       # Score up links to _other_ domains.
       util.ApplyScore(tag, 1.0, name='out_link')
+
+  # Blocks.
+  if _IsLeafBlock(tag):
+    # Length of stripped text, with all whitespace collapsed.
+    text_len = _TextLenNonAnchors(tag)
+
+    if text_len == 0:
+      anchor = tag.find('a')
+      img = tag.find('img')
+      if anchor and not anchor.has_key('score_out_link') and not img:
+        util.ApplyScore(tag, -2, name='only_anchor')
+    else:
+      if text_len < 20:
+        util.ApplyScore(tag, -0.75, name='short_text')
+      if text_len > 50:
+        util.ApplyScore(tag, 3, name='some_text')
+      if text_len > 250:
+        util.ApplyScore(tag, 4, name='more_text')
+
+  # Images.
+  if tag.name == 'img':
+    util.ApplyScore(tag, 1.5, name='any_img')
+    if tag.has_key('alt') and len(tag['alt']) > 50:
+      util.ApplyScore(tag, 2, name='img_alt')
+
+    size = _TagSize(tag)
+    if size is not None:
+      if size <= 625:
+        util.ApplyScore(tag, -1.5, name='tiny_img')
+      if size >= 50000:
+        util.ApplyScore(tag, 3, name='has_img')
+      if size >= 250000:
+        util.ApplyScore(tag, 4, name='big_img')
+
+  # Embeds.
+  if tag.name in util.EMBED_NAMES:
+    size = _TagSize(tag)
+    if size > 10000:
+      util.ApplyScore(tag, 15, name='has_embed')
 
 
 def _Strip(tag):
@@ -329,6 +379,35 @@ def _Strip(tag):
       return True
 
   return False
+
+
+def _TagSize(tag):
+  try:
+    w, h = util.TagSize(tag)
+  except TypeError:
+    return None
+
+  try:
+    w = int(w)
+    h = int(h)
+  except ValueError:
+    return None
+
+  # Special case images that look small.
+  if w < 25 or h < 25:
+    return 1
+
+  return int(w) * int(h)
+
+
+def _TextLenNonAnchors(tag):
+  """Length of this tag's text, without <a> nodes."""
+  text_nodes = tag.findAll(text=True)
+  text = [unicode(x).strip() for x in text_nodes if not x.findParent('a')]
+  text = ''.join(text)
+  text = re.sub(r'[ \t]+', ' ', text)
+  text = re.sub(r'&[^;]{2,6};', '', text)
+  return len(text)
 
 
 def Process(root_tag, url, hit_counter=None):

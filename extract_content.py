@@ -34,11 +34,6 @@ from third_party import BeautifulSoup
 import patterns
 import util
 
-TAG_NAMES_BLOCK = set(('blockquote', 'div', 'li', 'p', 'pre', 'td', 'th'))
-TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
-
-BR_TO_P_STOP_TAGS = set(list(TAG_NAMES_BLOCK) + list(TAG_NAMES_HEADER) + ['br'])
-
 
 def ExtractFromHtml(url, html):
   """Given a string of HTML, remove nasty bits, score and pick bit to keep."""
@@ -92,9 +87,6 @@ def _ExtractFromHtmlGeneric(url, html):
 
   _TransformBrsToParagraphs(soup)
   patterns.Process(soup, url)
-  _ScoreBlocks(soup)
-  _ScoreImages(soup)
-  _ScoreEmbeds(soup)
   _SiteSpecific(url, soup)
 
   # If a header repeats the title, strip it and all preceding nodes.
@@ -123,69 +115,14 @@ def _ExtractFromHtmlGeneric(url, html):
   return soup, best_node
 
 
-def _FindLeafBlocks(root_tag):
-  for tag in root_tag.findAll(name=True, recursive=False):
-    if tag.name in TAG_NAMES_BLOCK and not tag.find(name=TAG_NAMES_BLOCK):
-      yield tag
-    else:
-      for child in _FindLeafBlocks(tag):
-        yield child
-
-
 def _FindTitleHeader(root_tag, title_text):
-  headers = root_tag.findAll(TAG_NAMES_HEADER)
+  headers = root_tag.findAll(util.TAG_NAMES_HEADER)
   for header in headers:
     header_text = header.text.lower()
     if len(header_text) < 20:
       continue  # avoid false positives thanks to short/empty headers
     if (title_text in header_text) or (header_text in title_text):
       return header
-
-
-def _ScoreBlocks(root_tag):
-  """Score up all leaf block nodes, based on the length of their text."""
-  for leaf_block in _FindLeafBlocks(root_tag):
-    # Length of stripped text, with all whitespace collapsed.
-    text_len = _TextLenNonAnchors(leaf_block)
-
-    if text_len == 0:
-      anchor = leaf_block.find('a')
-      img = leaf_block.find('img')
-      if anchor and not anchor.has_key('score_out_link') and not img:
-        util.ApplyScore(leaf_block, -2, name='only_anchor')
-      continue
-    if text_len < 20:
-      util.ApplyScore(leaf_block, -0.75, name='short_text')
-    if text_len > 50:
-      util.ApplyScore(leaf_block, 3, name='some_text')
-    if text_len > 250:
-      util.ApplyScore(leaf_block, 4, name='more_text')
-
-
-def _ScoreEmbeds(root_tag):
-  """Score up objects/embeds."""
-  for tag in util.FindEmbeds(root_tag):
-    size = _TagSize(tag)
-    if size > 10000:
-      util.ApplyScore(tag, 15, name='has_embed')
-
-
-def _ScoreImages(root_tag):
-  """Score up images."""
-  for tag in root_tag.findAll('img'):
-    util.ApplyScore(tag, 1.5, name='any_img')
-    if tag.has_key('alt') and len(tag['alt']) > 50:
-      util.ApplyScore(tag, 2, name='img_alt')
-
-    size = _TagSize(tag)
-    if size is None:
-      continue
-    if size <= 625:
-      util.ApplyScore(tag, -1.5, name='tiny_img')
-    if size >= 50000:
-      util.ApplyScore(tag, 3, name='has_img')
-    if size >= 250000:
-      util.ApplyScore(tag, 4, name='big_img')
 
 
 def _SiteSpecific(url, root_tag):
@@ -212,34 +149,6 @@ def _StripLowScored(root_tag):
   for tag in root_tag.findAll(score=True):
     if tag['score'] <= -2:
       tag.extract()
-
-
-def _TagSize(tag):
-  try:
-    w, h = util.TagSize(tag)
-  except TypeError:
-    return None
-
-  try:
-    w = int(w)
-    h = int(h)
-  except ValueError:
-    return None
-
-  # Special case images that look small.
-  if w < 25 or h < 25:
-    return 1
-
-  return int(w) * int(h)
-
-def _TextLenNonAnchors(tag):
-  """Length of this tag's text, without <a> nodes."""
-  text_nodes = tag.findAll(text=True)
-  text = [unicode(x).strip() for x in text_nodes if not x.findParent('a')]
-  text = ''.join(text)
-  text = re.sub(r'[ \t]+', ' ', text)
-  text = re.sub(r'&[^;]{2,6};', '', text)
-  return len(text)
 
 
 def _TransformBrsToParagraphs(soup):
@@ -269,7 +178,7 @@ def _TransformBrsToParagraphsInner(soup, tag):
   while True:
     prev = prev.previousSibling
     if not prev: break
-    if hasattr(prev, 'name') and prev.name in BR_TO_P_STOP_TAGS: break
+    if hasattr(prev, 'name') and prev.name in util.BR_TO_P_STOP_TAGS: break
     contents.insert(0, prev)
 
   newp = BeautifulSoup.Tag(soup, 'p')
@@ -281,7 +190,7 @@ def _TransformBrsToParagraphsInner(soup, tag):
 
 def _TransformDivsToPs(root_tag):
   for tag in root_tag.findAll('div'):
-    if not tag.find(TAG_NAMES_BLOCK):
+    if not tag.find(util.TAG_NAMES_BLOCK):
       tag.name = 'p'
 
 
