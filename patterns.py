@@ -290,7 +290,7 @@ def _Score(tag, url, hit_counter):
   # Links.
   if tag.name == 'a' and tag.has_key('href'):
     that_url = urlparse.urljoin(url, tag['href'])
-    if url in that_url or url in urllib.unquote(tag['href']):
+    if url == that_url or url == urllib.unquote(tag['href']):
       # Special case: score down AND strip links to this page.  (Including
       # "social media" links.)
       util.ApplyScore(tag, -1.5, name='self_link')
