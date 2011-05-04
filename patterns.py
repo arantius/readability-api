@@ -223,14 +223,23 @@ STRIP_TAGS = ('form', 'iframe', 'link', 'meta', 'script', 'style',
 
 
 def _SeparateWords(s):
-  """Turn camel case and underscore word separators to spaces.
+  """Turn camel case and underscore/hyphen word separators to spaces.
 
+  e.g.
   fooBarBaz -> foo bar baz
-  foo_bar_baz -> foo bar baz.
+  foo_bar_baz -> foo bar baz
+  foo-bar-baz -> foo bar baz
+
+  Args:
+    s: Any string.
+
+  Returns:
+    String, as described.
   """
   s = re.sub('(.)([A-Z][a-z]+)', r'\1 \2', s)
   s = re.sub('([a-z0-9])([A-Z])', r'\1 \2', s)
   s = s.replace('_', ' ')
+  s = s.replace('-', ' ')
   return s.lower()
 
 
