@@ -375,7 +375,7 @@ def _Strip(tag):
       if util.IS_DEV_APPSERVER:
         logging.info('Strip for %s: %s', attr, util.SoupTagOnly(tag))
         logging.info('  (Match %s against %s)',
-                     pattern.search(tag[attr]).group(0), pattern.pattern);
+                     pattern.search(tag[attr]).group(0), pattern.pattern)
       tag.extract()
       return True
 
