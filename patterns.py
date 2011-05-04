@@ -303,7 +303,7 @@ def _Score(tag, url, hit_counter):
   # Blocks.
   if _IsLeafBlock(tag):
     # Length of stripped text, with all whitespace collapsed.
-    text_len = _TextLenNonAnchors(tag)
+    text_len = _TextLen(tag)
 
     if text_len == 0:
       anchor = tag.find('a')
@@ -401,10 +401,11 @@ def _TagSize(tag):
   return int(w) * int(h)
 
 
-def _TextLenNonAnchors(tag):
+def _TextLen(tag):
   """Length of this tag's text, without <a> nodes."""
   text_nodes = tag.findAll(text=True)
-  text = [unicode(x).strip() for x in text_nodes if not x.findParent('a')]
+  text = [unicode(x).strip() for x in text_nodes
+          if not x.findParent('a') and not x.findParent('script')]
   text = ''.join(text)
   text = re.sub(r'[ \t]+', ' ', text)
   text = re.sub(r'&[^;]{2,6};', '', text)
