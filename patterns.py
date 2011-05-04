@@ -70,7 +70,8 @@ ATTR_POINTS = (
     (-5, 'classid', _ReWord(r'post-date')),
     (-5, 'rel', _ReWord(r'tag')),
     (-3, 'classid', _ReAny(r'embed')),  # usually "embed this" code
-    (1, 'classid', _ReWord(r'main')),
+    (-2, 'classid', _ReWord(r'extra')),
+    (2, 'classid', _ReWord(r'main')),
     (2, 'classid', _ReWord(r'text')),
     (4, 'classid', _ReWord(r'article(?! tool)')),
     (5, 'classid', _ReAny(r'^article')),
