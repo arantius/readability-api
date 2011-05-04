@@ -335,7 +335,7 @@ def _Score(tag, url, hit_counter):
 
   # Embeds.
   if tag.name in util.EMBED_NAMES or (
-      tag.name == 'iframe' and 'youtube.com' in tag['src']):
+      tag.name == 'iframe' and 'src' in tag and 'youtube.com' in tag['src']):
     size = _TagSize(tag)
     if size > 10000:
       util.ApplyScore(tag, 15, name='has_embed')
