@@ -72,8 +72,8 @@ if not util.IS_DEV_APPSERVER:
       })
 
 
-def _TrackClean(type):
-  memcache.incr('cleaned_%s' % type, initial_value=0)
+def _TrackClean(doc_type):
+  memcache.incr('cleaned_%s' % doc_type, initial_value=0)
 
 
 def Clean(url):
@@ -267,10 +267,10 @@ def _MungeStripAttrs(root_tag):
 def _MungeStripBrsAfterPs(root_tag):
   for tag in root_tag.findAll('p'):
     while True:
-      next = tag.findNextSibling()
-      if not next: break
-      if next.name == 'br':
-        next.extract()
+      next_tag = tag.findNextSibling()
+      if not next_tag: break
+      if next_tag.name == 'br':
+        next_tag.extract()
       else:
         break
 
