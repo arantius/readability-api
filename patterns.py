@@ -98,6 +98,25 @@ ATTR_POINTS = (
     (20, 'classid', _ReWhole(r'large-image')),  # imgur.com
     (20, 'classid', _ReWhole(r'story(body|block)')),
     (20, 'classid', _ReWhole(r'player')),
+
+    (-3, 'href', _ReAny(r'(delicious\.com|del\.icio\.us)/post')),
+    (-3, 'href', _ReAny(r'(buzz\.yahoo|digg|mixx|propeller|reddit|stumbleupon)\.com/submit')),
+    (-3, 'href', _ReAny(r'(facebook|linkedin)\.com/share')),
+    (-3, 'href', _ReAny(r'(newsvine|yahoo)\.com/buzz')),
+    (-3, 'href', _ReAny(r'^javascript:')),
+    (-3, 'href', _ReAny(r'add(this|toany)\.com')),
+    (-3, 'href', _ReAny(r'api\.tweetmeme\.com')),
+    (-3, 'href', _ReAny(r'digg\.com/tools/diggthis')),
+    (-3, 'href', _ReAny(r'fark\.com.*new_url')),
+    (-3, 'href', _ReAny(r'furl.net/storeIt')),
+    (-3, 'href', _ReAny(r'fusion\.google\.com/add')),
+    (-3, 'href', _ReAny(r'google\.com/(bookmark|reader/link)')),
+    (-3, 'href', _ReAny(r'myshare\.url\.com')),
+    (-3, 'href', _ReAny(r'newsvine.com/_tools')),
+    (-3, 'href', _ReAny(r'pheedo\.com')),
+    (-3, 'href', _ReAny(r'twitter\.com/home\?status')),
+    (-3, 'href', _ReWord(r'share')),
+    (-3, 'href', _ReWord(r'sponsor')),
     )
 ATTR_STRIP = (
     # any '^topic' broke cracked.com
@@ -173,21 +192,6 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'story-date')),
     ('classid', _ReWhole(r'notes(-container)?')),  # tumblr comments
     ('classid', _ReWhole(r'post-(details|notes)')),
-
-    ('href', _ReAny(r'(delicious\.com|del\.icio\.us)/post')),
-    ('href', _ReAny(r'(digg|reddit|stumbleupon)\.com/submit')),
-    ('href', _ReAny(r'(facebook|linkedin)\.com/share')),
-    ('href', _ReAny(r'(newsvine|yahoo)\.com/buzz')),
-    ('href', _ReAny(r'^javascript:')),
-    ('href', _ReAny(r'add(this|toany)\.com')),
-    ('href', _ReAny(r'api\.tweetmeme\.com')),
-    ('href', _ReAny(r'digg\.com/tools/diggthis')),
-    ('href', _ReAny(r'fusion\.google\.com/add')),
-    ('href', _ReAny(r'google\.com/reader/link')),
-    ('href', _ReAny(r'pheedo\.com')),
-    ('href', _ReAny(r'twitter\.com/home\?status')),
-    ('href', _ReWord(r'share')),
-    ('href', _ReWord(r'sponsor')),
 
     ('src', _ReAny(r'doubleclick\.net')),
     ('src', _ReAny(r'invitemedia\.com')),
@@ -298,7 +302,7 @@ def _Score(tag, url, hit_counter):
       hit_counter[key].append(tag)
 
   # Links.
-  if tag.name == 'a' and tag.has_key('href'):
+  if tag.name == 'a' and tag.has_key('href') and not tag.has_key('score_href'):
     that_url = urlparse.urljoin(url, tag['href'])
     if url == that_url or url == urllib.unquote(tag['href']):
       # Special case: score down AND strip links to this page.  (Including
