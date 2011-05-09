@@ -349,7 +349,8 @@ def _Score(tag, url, hit_counter):
 
   # Embeds.
   if tag.name in util.EMBED_NAMES or (
-      tag.name == 'iframe' and 'src' in tag and 'youtube.com' in tag['src']):
+      tag.name == 'iframe' and 'src' in tag and (
+          'youtube.com' in tag['src'] or 'vimeo.com' in tag['src'])):
     size = _TagSize(tag)
     if size > 10000:
       util.ApplyScore(tag, 15, name='has_embed')
@@ -363,10 +364,8 @@ def _Strip(tag):
     if tag.name == 'form':
       if 'aspnetForm' in [attr[1] for attr in tag.attrs]: return False
       if tag.find('input', id='__VIEWSTATE'): return False
-    if tag.name == 'iframe':
-      if tag.has_key('src'):
-        if 'youtube.com' in tag['src']: return False
-        if 'vimeo.com' in tag['src']: return False
+    if tag.name == 'iframe' and tag.has_key('has_embed'):
+      return False
     tag.extract()
     return True
 
