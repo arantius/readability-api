@@ -136,7 +136,7 @@ ATTR_STRIP = (
     # word 'head(er)?' breaks some sites that put _all_ content there
     # This categories target matches category classes on _the post_ container.
     #('classid', _ReWord(r'(in)?categor(ies|y)')),
-    ('classid', _ReWord(r'(left|right)?nav(igation)?')),
+    ('classid', _ReWord(r'(left|right)?nav(igation)?(?! wrap)')),
     ('classid', _ReWord(r'(post)?author|authdesc')),
     ('classid', _ReWord(r'ad( ?block|tag)')),
     ('classid', _ReWord(r'archive')),
