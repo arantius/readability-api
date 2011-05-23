@@ -34,6 +34,7 @@ from third_party import BeautifulSoup
 from third_party import hyphenate
 
 from google.appengine.api import memcache
+from google.appengine.api import urlfetch
 
 import extract_content
 import extract_feed
@@ -131,8 +132,9 @@ def _Clean(url):
     _TrackClean('direct_image')
     return url, util.RenderTemplate('image.html', {'url': url})
 
-  html, final_url, error = util.Fetch(url)
-  if error:
+  try:
+    html, final_url = util.Fetch(url)
+  except urlfetch.DownloadError, error:
     _TrackClean('error')
     logging.error(error)
     return url, u'Download error: %s' % error

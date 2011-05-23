@@ -91,7 +91,7 @@ class FeedExtractor(object):
       self.final_url = final_url
       self.html = html
     else:
-      self.html, self.final_url, _ = util.Fetch(url)
+      self.html, self.final_url = util.Fetch(url)
 
     feed_url = self._DetectFeed()
     feed_url = re.sub(r'^feed://', 'http://', feed_url)

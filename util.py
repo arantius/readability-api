@@ -145,14 +145,19 @@ def Fetch(orig_url):
           url, allow_truncated=True, follow_redirects=False, deadline=6,
           headers={'Cookie': cookie.output(attrs=(), header='', sep='; ')})
     except urlfetch.DownloadError, e:
-      return (str(e), final_url, e)
+      if 'ApplicationError: 2' in str(e) and '.nyud.net' not in url:
+        new_url = list(urlparse.urlparse(url))
+        new_url[1] = re.sub(r'$|:.*', '.nyud.net\g<0>', new_url[1])
+        url = urlparse.urlunparse(new_url)
+        continue
+      raise
     cookie.load(response.headers.get('Set-Cookie', ''))
     previous_url = url
     url = response.headers.get('Location')
     if url:
       url = urlparse.urljoin(previous_url, url)
   final_url = urlparse.urljoin(orig_url, final_url)
-  return (response.content, final_url, None)
+  return (response.content, final_url)
 
 
 def FindEmbeds(root_tag):
@@ -185,7 +190,7 @@ def GetFeedEntryContent(entry):
 
 def ParseFeedAtUrl(url):
   """Fetch a URL's contents, and parse it as a feed."""
-  source, _, _ = Fetch(url)
+  source, _ = Fetch(url)
   try:
     feed_feedparser = feedparser.parse(source)
   except LookupError:
