@@ -157,18 +157,18 @@ def _TransformBrsToParagraphs(soup):
 
 
 def _TransformBrsToParagraphsInner(soup, tag):
-  next = tag
+  next_tag = tag
   while True:
-    next = next.nextSibling
-    if not next:
+    next_tag = next_tag.next_tagSibling
+    if not next_tag:
       return
-    if isinstance(next, BeautifulSoup.Tag):
-      if next.name == 'br':
+    if isinstance(next_tag, BeautifulSoup.Tag):
+      if next_tag.name == 'br':
         break
       else:
         return
-    elif isinstance(next, BeautifulSoup.NavigableString):
-      if not unicode(next).strip():
+    elif isinstance(next_tag, BeautifulSoup.NavigableString):
+      if not unicode(next_tag).strip():
         continue
       else:
         return
@@ -184,7 +184,7 @@ def _TransformBrsToParagraphsInner(soup, tag):
   newp = BeautifulSoup.Tag(soup, 'p')
   for i, newtag in enumerate(contents):
     newp.insert(i, newtag)
-  next.extract()
+  next_tag.extract()
   tag.replaceWith(newp)
 
 
