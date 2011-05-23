@@ -128,7 +128,7 @@ def CleanUrl(url):
   return url
 
 
-@Memoize('Fetch_2_%s', 60 * 15)
+@Memoize('Fetch_3_%s', 60 * 15)
 def Fetch(orig_url):
   cookie = Cookie.SimpleCookie()
   redirect_limit = 10
@@ -157,7 +157,7 @@ def Fetch(orig_url):
     if url:
       url = urlparse.urljoin(previous_url, url)
   final_url = urlparse.urljoin(orig_url, final_url)
-  return (response.content, final_url)
+  return (response, final_url)
 
 
 def FindEmbeds(root_tag):
@@ -190,9 +190,9 @@ def GetFeedEntryContent(entry):
 
 def ParseFeedAtUrl(url):
   """Fetch a URL's contents, and parse it as a feed."""
-  source, _ = Fetch(url)
+  response, _ = Fetch(url)
   try:
-    feed_feedparser = feedparser.parse(source)
+    feed_feedparser = feedparser.parse(response.content)
   except LookupError:
     return None
   else:

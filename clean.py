@@ -133,23 +133,27 @@ def _Clean(url):
     return url, util.RenderTemplate('image.html', {'url': url})
 
   try:
-    html, final_url = util.Fetch(url)
+    response, final_url = util.Fetch(url)
   except urlfetch.DownloadError, error:
     _TrackClean('error')
     logging.error(error)
     return url, u'Download error: %s' % error
 
+  if 'application/pdf' == response.headers.get('content-type', None):
+    _TrackClean('direct_pdf')
+    return url, util.RenderTemplate('pdf.html', {'url': url})
+
   note = ''
   try:
     extractor = extract_feed.FeedExtractor(
-        url=url, final_url=final_url, html=html)
+        url=url, final_url=final_url, html=response.content)
     note = 'cleaned feed'
     soup = extractor.soup
     tag = soup
     _TrackClean('feed')
   except extract_feed.RssError, e:
     note = 'cleaned content, %s, %s' % (e.__class__.__name__, e)
-    soup, tag = extract_content.ExtractFromHtml(final_url, html)
+    soup, tag = extract_content.ExtractFromHtml(final_url, response.content)
     _TrackClean('content')
 
   if util.IS_DEV_APPSERVER:

@@ -39,10 +39,11 @@ def ExtractFromHtml(url, html):
   """Given a string of HTML, remove nasty bits, score and pick bit to keep."""
   if re.search(r'^http://(www\.)?reddit\.com/.*/comments/', url, re.I):
     url = url.replace('reddit.com', 'reddit.com.nyud.net')
-    html, _ = util.Fetch(url)
+    response, _ = util.Fetch(url)
     strainer = BeautifulSoup.SoupStrainer(
         attrs={'class': re.compile(r'thing.*link|usertext border')})
-    soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)
+    soup = BeautifulSoup.BeautifulSoup(response.content,
+                                       parseOnlyThese=strainer)
     return soup, soup.find(attrs={'class': 'usertext-body'})
   elif re.search(r'^http://(www\.)?xkcd\.com/\d+', url, re.I):
     soup = BeautifulSoup.BeautifulSoup(html)
