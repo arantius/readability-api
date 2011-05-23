@@ -289,7 +289,7 @@ def _IsList(tag):
   return False
 
 
-def _Score(tag, url, hit_counter):
+def _Score(tag, url):
   if tag.name == 'body': return
 
   # Point patterns.
@@ -297,10 +297,6 @@ def _Score(tag, url, hit_counter):
     if not tag.has_key(attr): continue
     if pattern.search(tag[attr]):
       util.ApplyScore(tag, points, name=attr)
-
-      key = (points, attr, pattern.pattern)
-      hit_counter.setdefault(key, [])
-      hit_counter[key].append(tag)
 
   # Links.
   if tag.name == 'a' and tag.has_key('href') and not tag.has_key('score_href'):
@@ -426,7 +422,7 @@ def _TextLen(tag):
   return len(text)
 
 
-def Process(root_tag, url, hit_counter=None):
+def Process(root_tag, url):
   """Process an entire soup, without recursing into stripped nodes."""
   # Make a single "class and id" attribute that everything else can test.
   root_tag['classid'] = '!!!'.join([
@@ -434,23 +430,7 @@ def Process(root_tag, url, hit_counter=None):
       _SeparateWords(root_tag.get('id', '')).strip()
       ]).strip('!')
 
-  top_run = False
-  if hit_counter is None:
-    hit_counter = {}
-    top_run = True
-
-  _Score(root_tag, url, hit_counter)
+  _Score(root_tag, url)
   if _Strip(root_tag): return
   for tag in root_tag.findAll(True, recursive=False):
-    Process(tag, url, hit_counter)
-
-  # Look for too-frequently-matched false-positive patterns.
-  if top_run:
-    for key, tags in hit_counter.iteritems():
-      if len(tags) >= FALSE_POSITIVE_THRESHOLD:
-        points, attr, unused_pattern = key
-        if points < 0:
-          # Only reverse false _positives_.  Negatives probably aren't false.
-          continue
-        for tag in tags:
-          util.ApplyScore(tag, -1 * points, name=attr)
+    Process(tag, url)
