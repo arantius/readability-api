@@ -105,6 +105,9 @@ def ApplyScore(tag, score, depth=0, name=None):
     return
   if depth > MAX_SCORE_DEPTH:
     return
+  if tag.name == 'li' and score > 0:
+    # Don't score list items positively.  Too likely to be false positives.
+    return
   decayed_score = score * _DEPTH_SCORE_DECAY[depth]
 
   if not tag.has_key('score'): tag['score'] = 0.0
