@@ -110,7 +110,7 @@ class FeedExtractor(object):
     html = re.sub(r'<!--.*?-->', '', self.content)
     self.soup = BeautifulSoup.BeautifulSoup(html)
     for tag in self.soup.findAll('script'):
-      tag.extract()
+      util.Strip(tag)
     text = self.soup.text
     if re.search(r'\[?\.\.\.\]?\s*$', text):
       raise NoRssContentError('trailing ellipsis')

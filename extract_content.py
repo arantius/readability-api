@@ -49,7 +49,7 @@ def ExtractFromHtml(url, html):
     img = soup.find(alt=True, title=True)
     cont = img.parent.parent
     for tag in cont.findAll(('br', 'div')):
-      tag.extract()
+      util.Strip(tag)
     return soup, cont
   elif re.search(r'^http://groups\.google\.com/', url, re.I):
     strainer = BeautifulSoup.SoupStrainer(attrs={'class': 'maincontbox'})
@@ -128,7 +128,7 @@ def _FindTitleHeader(root_tag, title_text):
 def _SiteSpecific(url, root_tag):
   if 'www.cracked.com' in url:
     tag = root_tag.find(attrs={'class': 'Column2'})
-    if tag: tag.extract()
+    if tag: util.Strip(tag)
     tag = root_tag.find(attrs={'class': 'userStyled'})
     if tag: util.ApplyScore(tag, 20, name='special')
 
@@ -141,14 +141,14 @@ def _StripBefore(strip_tag):
     if tag in ancestors:
       # Don't strip the tags that contain the strip_tag.
       continue
-    tag.extract()
-  strip_tag.extract()
+    util.Strip(tag)
+  util.Strip(strip_tag)
 
 
 def _StripLowScored(root_tag):
   for tag in root_tag.findAll(score=True):
     if tag['score'] <= -2:
-      tag.extract()
+      util.Strip(tag)
 
 
 def _TransformBrsToParagraphs(soup):
@@ -184,7 +184,7 @@ def _TransformBrsToParagraphsInner(soup, tag):
   newp = BeautifulSoup.Tag(soup, 'p')
   for i, newtag in enumerate(contents):
     newp.insert(i, newtag)
-  next_tag.extract()
+  util.Strip(next_tag)
   tag.replaceWith(newp)
 
 

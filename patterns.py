@@ -305,7 +305,7 @@ def _Score(tag, url):
       # Special case: score down AND strip links to this page.  (Including
       # "social media" links.)
       util.ApplyScore(tag, -1.5, name='self_link')
-      tag.extract()
+      util.Strip(tag)
     # TODO: host name -> domain name
     elif urlparse.urlparse(url)[1] != urlparse.urlparse(that_url)[1]:
       # Score up links to _other_ domains.
@@ -363,7 +363,7 @@ def _Strip(tag):
       if tag.find('input', id='__VIEWSTATE'): return False
     if tag.name == 'iframe' and tag.has_key('has_embed'):
       return False
-    tag.extract()
+    util.Strip(tag)
     return True
 
   # Strip "related" lists.
@@ -371,8 +371,8 @@ def _Strip(tag):
     header, header_text = _FindPreviousHeader(tag)
     # Too-long text means this must not be a header, false positive!
     if len(header_text) < 100 and RE_RELATED_HEADER.search(header_text):
-      tag.extract()
-      header.extract()
+      util.Strip(tag)
+      util.Strip(header)
       return True
 
   if tag.has_key('score') and tag['score'] > 0:
@@ -386,7 +386,7 @@ def _Strip(tag):
         logging.info('Strip for %s: %s', attr, util.SoupTagOnly(tag))
         logging.info('  (Match %s against %s)',
                      pattern.search(tag[attr]).group(0), pattern.pattern)
-      tag.extract()
+      util.Strip(tag)
       return True
 
   return False

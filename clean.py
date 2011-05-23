@@ -272,7 +272,7 @@ def _MungeStripBrsAfterPs(root_tag):
       next_tag = tag.findNextSibling()
       if not next_tag: break
       if next_tag.name == 'br':
-        next_tag.extract()
+        util.Strip(next_tag)
       else:
         break
 
@@ -291,7 +291,7 @@ def _MungeStripEmpties(root_tag):
     if tag.find(lambda tag: tag.name not in ('br', 'hr')):
       return
     parent = tag.parent
-    tag.extract()
+    util.Strip(tag)
     # Also consider the parent, which might now be empty.
     _StripIfEmpty(parent)
 
@@ -311,7 +311,7 @@ def _MungeStripRootContainers(root_tag):
 def _MungeStripRules(root_tag):
   try:
     while root_tag.contents and root_tag.contents[-1].name == 'hr':
-      root_tag.contents[-1].extract()
+      util.Strip(root_tag.contents[-1])
   except AttributeError:
     pass
 
@@ -319,7 +319,7 @@ def _MungeStripRules(root_tag):
 def _MungeStripSiteSpecific(root_tag, url):
   if 'smashingmagazine.com' in url:
     for tag in root_tag.findAll('table', width='650'):
-      tag.extract()
+      util.Strip(tag)
 
 
 def _MungeTransformEmbeds(soup, root_tag):

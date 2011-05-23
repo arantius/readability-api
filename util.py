@@ -219,6 +219,14 @@ def SoupTagOnly(tag):
   return str(tag).split('>')[0] + '>'
 
 
+def Strip(tag):
+  # Switch this for dev.
+  if 0:
+    tag['style'] = 'outline: 2px dotted red'
+  else:
+    tag.extract()
+
+
 def TagSize(tag):
   if tag.has_key('width') and tag.has_key('height'):
     w = tag['width']
