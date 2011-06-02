@@ -71,11 +71,11 @@ ATTR_POINTS = (
     (-3, 'classid', _ReAny(r'embed')),  # usually "embed this" code
     (-2, 'classid', _ReWord(r'extra')),
     (-2, 'classid', _ReWord(r'meta(data)?')),
-    (2, 'classid', _ReWord(r'main')),
+    (2, 'classid', _ReWord(r'(?<!ads )main')),
     (2, 'classid', _ReWord(r'text')),
     (4, 'classid', _ReWord(r'article(?! tool)')),
     (5, 'classid', _ReAny(r'^article')),
-    (5, 'classid', _ReAny(r'gallery')),
+    (5, 'classid', _ReAny(r'gallery(?! (caption|icon|item))')),
     (5, 'classid', _ReAny(r'photo')),
     (5, 'classid', _ReWhole(r'main')),
     (5, 'classid', _ReWhole(r'permalink')),
@@ -167,7 +167,7 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'talkback')),
     ('classid', _ReWord(r'wdt button')),
 
-    ('classid', _ReWhole(r'ads?')),
+    ('classid', _ReWhole(r'ads?( main)?')),
     ('classid', _ReWhole(r'article inline runaround left')),  # nytimes junk
     ('classid', _ReWhole(r'a(uthor )?info')),
     ('classid', _ReWhole(r'blippr nobr')),
