@@ -105,7 +105,6 @@ def _ExtractFromHtmlGeneric(url, html):
   best_node = scored_nodes[-1]
 
   _TransformDivsToPs(best_node)
-  _StripLowScored(best_node)
 
   # For debugging ...
   if util.IS_DEV_APPSERVER:
@@ -144,12 +143,6 @@ def _StripBefore(strip_tag):
       continue
     util.Strip(tag)
   util.Strip(strip_tag)
-
-
-def _StripLowScored(root_tag):
-  for tag in root_tag.findAll(score=True):
-    if tag['score'] <= -2:
-      util.Strip(tag)
 
 
 def _TransformBrsToParagraphs(soup):

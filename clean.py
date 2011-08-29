@@ -193,6 +193,7 @@ def _Munge(soup, tag, url):
   _MungeStripRules(tag)
   _MungeStripEmpties(tag)
   tag = _MungeStripRootContainers(tag)
+  _MungeStripLowScored(tag)
 
   _FixUrls(tag, url)
   _MungeImages(tag)
@@ -301,6 +302,12 @@ def _MungeStripEmpties(root_tag):
 
   for tag in root_tag.findAll(strip_tags):
     _StripIfEmpty(tag)
+
+
+def _MungeStripLowScored(root_tag):
+  for tag in root_tag.findAll(score=True):
+    if tag['score'] <= -2:
+      util.Strip(tag)
 
 
 def _MungeStripRootContainers(root_tag):
