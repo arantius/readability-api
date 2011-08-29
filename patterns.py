@@ -120,6 +120,7 @@ ATTR_POINTS = (
     (-3, 'href', _ReAny(r'twitter\.com/home\?status')),
     (-3, 'href', _ReWord(r'share')),
     (-3, 'href', _ReWord(r'sponsor')),
+    (-2, 'href', _ReWord(r'feedads')),
     )
 ATTR_STRIP = (
     # any '^topic' broke cracked.com
@@ -178,7 +179,8 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'breadcrumb')),
     ('classid', _ReWhole(r'byline')),
     ('classid', _ReWhole(r'catsandtags')),
-    ('classid', _ReWhole(r'dontPrint')),
+    ('classid', _ReWhole(r'dont print')),
+    ('classid', _ReWhole(r'feedflare')),
     ('classid', _ReWhole(r'more stories')),
     ('classid', _ReWhole(r'pag(es|ination)')),
     ('classid', _ReWhole(r'post( date| info|ed on|edby)')),
@@ -211,6 +213,7 @@ ATTR_STRIP = (
     ('style', _ReAny(r'display\s*:\s*none')),
 
     # Feed tracking noise.
+    ('href', _ReWord(r'feedads')),
     ('href', _ReAny(r'^https?://feed[^/]+/(~.{1,3}|1\.0)/')),
     ('src', _ReAny(r'^https?://feed[^/]+/(~.{1,3}|1\.0)/')),
     )
