@@ -38,6 +38,7 @@ IS_DEV_APPSERVER = 'Development' in os.environ.get('SERVER_SOFTWARE', '')
 MAX_SCORE_DEPTH = 5
 RE_DOCTYPE = re.compile(r'<!DOCTYPE.*?>', re.S)
 RE_HTML_COMMENTS = re.compile(r'<!--.*?-->', re.S)
+RE_SCRIPT_STYLE = re.compile(r'<(script|style)[^>]*>.*?</\1>\s*', re.S)
 TAG_NAMES_BLOCK = set(('blockquote', 'div', 'li', 'p', 'pre', 'td', 'th'))
 TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 
@@ -200,9 +201,9 @@ def ParseFeedAtUrl(url):
 
 
 def PreCleanHtml(html):
-  # Remove all HTML comments, doctypes.
   html = re.sub(RE_HTML_COMMENTS, '', html)
   html = re.sub(RE_DOCTYPE, '', html)
+  html = re.sub(RE_SCRIPT_STYLE, '', html)
   html = html.replace('&nbsp;', ' ')
 
   return html
