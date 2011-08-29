@@ -59,7 +59,9 @@ ATTR_POINTS = (
     (-10, 'classid', _ReWord(r'topics?')),
     (-5, 'classid', _ReAny(r'menu')),
     (-5, 'classid', _ReAny(r'social')),
+    (-5, 'classid', _ReWord(r'ad')),
     (-5, 'classid', _ReWord(r'(?<!padding )bottom')),
+    (-5, 'classid', _ReWord(r'dontprint')),
     (-5, 'classid', _ReWord(r'footer')),
     (-5, 'classid', _ReWord(r'hotspot')),  # tmz
     (-5, 'classid', _ReWord(r'icons')),
@@ -80,11 +82,12 @@ ATTR_POINTS = (
     (5, 'classid', _ReWhole(r'main')),
     (5, 'classid', _ReWhole(r'permalink')),
     (5, 'classid', _ReWhole(r'page')),
+    (5, 'classid', _ReWhole(r'readme')),  # github
     (5, 'classid', _ReWord(r'body(text)?')),
     (5, 'classid', _ReWord(r'content')),
     (5, 'classid', _ReWord(r'primary column')),
     (5, 'classid', _ReWord(r'single')),
-    (10, 'classid', _ReAny(r'^article ?(body|copy)')),
+    (10, 'classid', _ReAny(r'^(article|kona) ?(body|copy)')),
     (10, 'classid', _ReWhole(r'story')),
     (10, 'classid', _ReWord(r'player')),
     (10, 'classid', _ReWord(r'post(id)? ?(\d+|body|content)?')),
@@ -107,7 +110,7 @@ ATTR_POINTS = (
     (-3, 'href', _ReAny(r'add(this|toany)\.com')),
     (-3, 'href', _ReAny(r'api\.tweetmeme\.com')),
     (-3, 'href', _ReAny(r'digg\.com/tools/diggthis')),
-    (-3, 'href', _ReAny(r'fark\.com.*new_url')),
+    (-3, 'href', _ReAny(r'fark\.com.*(farkit|new_url)')),
     (-3, 'href', _ReAny(r'furl.net/storeIt')),
     (-3, 'href', _ReAny(r'fusion\.google\.com/add')),
     (-3, 'href', _ReAny(r'google\.com/(bookmark|reader/link)')),
@@ -130,6 +133,7 @@ ATTR_STRIP = (
     ('classid', _ReAny(r'reportabuse')),
     ('classid', _ReAny(r'share(bar|box|this)')),
     ('classid', _ReAny(r'signin')),
+    ('classid', _ReAny(r'text ad')),
     ('classid', _ReAny(r'(controls?|tool)(box|s)(?! container)')),
 
     # word 'share' breaks twitter
