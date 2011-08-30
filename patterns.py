@@ -54,6 +54,7 @@ ATTR_POINTS = (
     (-15, 'classid', _ReWord(r'email')),
     (-15, 'classid', _ReWord(r'twitter')),
     (-10, 'classid', _ReWord(r'ghost')),
+    (-10, 'classid', _ReWord(r'(item|panel) \d')),
     (-10, 'classid', _ReWord(r'overlay')),
     (-10, 'classid', _ReWord(r'print')),
     (-10, 'classid', _ReWord(r'topics?')),
@@ -63,6 +64,7 @@ ATTR_POINTS = (
     (-5, 'classid', _ReWord(r'(?<!padding )bottom')),
     (-5, 'classid', _ReWord(r'dontprint')),
     (-5, 'classid', _ReWord(r'footer')),
+    (-5, 'classid', _ReWord(r'global')),
     (-5, 'classid', _ReWord(r'hotspot')),  # tmz
     (-5, 'classid', _ReWord(r'icons')),
     (-5, 'classid', _ReWord(r'lightbox')),
@@ -71,7 +73,7 @@ ATTR_POINTS = (
     (-5, 'classid', _ReWord(r'post date')),
     (-5, 'rel', _ReWord(r'tag')),
     (-3, 'classid', _ReAny(r'embed')),  # usually "embed this" code
-    (-2, 'classid', _ReWord(r'extra')),
+    (-2, 'classid', _ReWord(r'extras?')),
     (-2, 'classid', _ReWord(r'meta(data)?')),
     (2, 'classid', _ReWord(r'(?<!ads )main')),
     (2, 'classid', _ReWord(r'text')),
@@ -79,7 +81,7 @@ ATTR_POINTS = (
     (5, 'classid', _ReAny(r'^article')),
     (5, 'classid', _ReAny(r'gallery(?! (caption|icon|item))')),
     (5, 'classid', _ReAny(r'photo')),
-    (5, 'classid', _ReWhole(r'main')),
+    (5, 'classid', _ReWhole(r'main(img)?')),
     (5, 'classid', _ReWhole(r'permalink')),
     (5, 'classid', _ReWhole(r'page')),
     (5, 'classid', _ReWhole(r'readme')),  # github
@@ -162,6 +164,7 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'postmetadata')),
     ('classid', _ReWord(r'read more')),
     ('classid', _ReWord(r'related\d*')),
+    ('classid', _ReWord(r'relatedtopics')),
     ('classid', _ReWord(r'replies')),
     ('classid', _ReWord(r'retweet')),
     ('classid', _ReWord(r'shopbox')),
@@ -173,6 +176,7 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'wdt button')),
 
     ('classid', _ReWhole(r'ads?( main)?')),
+    ('classid', _ReWhole(r'article break')),
     ('classid', _ReWhole(r'article inline runaround left')),  # nytimes junk
     ('classid', _ReWhole(r'a(uthor )?info')),
     ('classid', _ReWhole(r'blippr nobr')),
