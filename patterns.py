@@ -307,7 +307,10 @@ def _Score(tag, url):
   for points, attr, pattern in ATTR_POINTS:
     if not tag.has_key(attr): continue
     if pattern.search(tag[attr]):
-      util.ApplyScore(tag, points, name=attr)
+      parent_match = tag.parent and tag.parent.has_key(attr) and (
+          pattern.search(tag.parent[attr]))
+      if not parent_match:
+        util.ApplyScore(tag, points, name=attr)
 
   # Links.
   if tag.name == 'a' and tag.has_key('href') and not tag.has_key('score_href'):
