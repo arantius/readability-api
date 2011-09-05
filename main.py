@@ -29,6 +29,7 @@ for i, path in enumerate(sys.path):
 
 
 from email import utils as email_utils  # pylint: disable-msg=E0611,C6202,C6204
+import re
 import time
 
 from google.appengine.api import memcache
@@ -81,6 +82,8 @@ class CleanFeed(webapp.RequestHandler):
       self.response.headers['Content-Type'] = 'text/plain; charset=UTF-8'
       self.response.out.write('Provide "url" parameter!')
       return
+    else:
+      url = re.sub(r'\?at=[^?&]+', '', url)
 
     feed_entity = models.Feed.get_by_key_name(url)
     if not feed_entity:
