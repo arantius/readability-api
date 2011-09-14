@@ -4,4 +4,4 @@ cron:
   schedule: every 24 hours
 - description: update feeds
   url: /crons/update_feeds
-  schedule: every 10 minutes
+  schedule: every 60 minutes
