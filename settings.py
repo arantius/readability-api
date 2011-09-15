@@ -1,9 +1,6 @@
 import os
 
-import settings_local
-
-DATABASES = settings_local.DATABASES
-SECRET_KEY = settings_local.SECRET_KEY
+from settings_local import *
 
 ADMINS = ()
 DEBUG = True
