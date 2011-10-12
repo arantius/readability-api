@@ -1,7 +1,5 @@
 import os
 
-from settings_local import *
-
 ADMINS = ()
 DEBUG = True
 INSTALLED_APPS = ()
@@ -38,3 +36,6 @@ TEMPLATE_LOADERS = (
 TEMPLATE_DIRS = (
     os.path.join(os.path.dirname(__file__), 'templates'),
     )
+
+# Override above with local settings.
+from settings_local import *  #@UnusedWildImport
