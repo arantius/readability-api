@@ -1,12 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Readability API</title>
-<meta http-equiv='Content-Language' content='en'>
-<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
-</head>
-<body>
+{% extends 'base.html' %}
 
+{% block content %}
 <p>Clean up a page:</p>
 <form method='get' action='/page'>
 URL: <input type='text' name='url' size='50'>
@@ -23,5 +17,4 @@ URL: <input type='text' name='url' size='50'>
 </label>
 </form>
 
-</body>
-</html>
+{% endblock %}
