@@ -11,7 +11,7 @@ __all__ = ('parse','export')
 def parse(data):
     parser = cssyacc.yacc()
     parser.lexer = csslex.lex()
-    return parser.parse(data, debug=True)
+    return parser.parse(data, debug=False)
 
 def export(base, stylesheet, recursive=False):
     def recur(rule):

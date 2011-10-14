@@ -208,7 +208,7 @@ class csslexer(object):
         return t
     
     def t_error(self, t):
-        print "Illegal token '%s'" % t.value[0]
+        #print "Illegal token '%s'" % t.value[0]
         t.lexer.skip(1)
     
 

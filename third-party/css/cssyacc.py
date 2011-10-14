@@ -39,7 +39,7 @@ class cssparser(object):
             p[0] = css.Stylesheet(p[4], p[3], p[1])
         else:
             p[0] = css.Stylesheet(p[3], p[2])
-        print p.slice
+        #print p.slice
 
     def p_charset(self, p):
         '''
@@ -401,7 +401,8 @@ class cssparser(object):
         p[0] = u''
 
     def p_error(self, p):
-        print "Syntax error at '%r'" % (p,)
+        #print "Syntax error at '%r'" % (p,)
+        pass
 
 
 def yacc(**kw):
