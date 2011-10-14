@@ -26,6 +26,22 @@ def cleanUrl(url):
   return url
 
 
+def fixUrls(parent, base_url):
+  def _fixUrl(el, attr):
+    el.attrib[attr] = urlparse.urljoin(base_url, el.attrib[attr].strip())
+
+  for attr in ('href', 'src'):
+    for el in parent.xpath('//*[@%s]' % attr): _fixUrl(el, attr)
+    if parent.attrib.has_key(attr): _fixUrl(parent, attr)
+
+  for el in parent.xpath('//object[@data]'): _fixUrl(el, 'data')
+  if parent.tag == 'object' and el.attrib.has_key('data'):
+    _fixUrl(parent, 'data')
+
+  for el in parent.xpath('//param[@name="movie" and @value]'):
+    _fixUrl(el, 'value')
+
+
 def getUrl(orig_url):
   cache_key = 'url:' + orig_url
   result = cache.get(cache_key)

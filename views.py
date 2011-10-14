@@ -87,6 +87,7 @@ def train(request):
     print css
 
     util.preCleanDoc(doc)
+    util.fixUrls(doc, final_url)
 
     content = lxml.html.tostring(doc, encoding=unicode, pretty_print=True)
 

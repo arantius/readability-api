@@ -8,7 +8,7 @@ url = defaults.url
 
 urlpatterns = patterns('',
     url(r'^static/(?P<path>.*)$', 'django.views.static.serve',
-        {'document_root': os.path.join(__file__, 'static')}),
+        {'document_root': os.path.join(os.path.dirname(__file__), 'static')}),
     url(r'^favicon.ico$', 'views.favicon', name='favicon'),
     url(r'^robots.txt$', 'views.robots', name='robots'),
 
