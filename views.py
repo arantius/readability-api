@@ -86,8 +86,7 @@ def train(request):
       css.append(el.text)
     print css
 
-    for el in doc.xpath('//head | //script | //style'):
-      el.drop_tree()
+    util.preCleanDoc(doc)
 
     content = lxml.html.tostring(doc, encoding=unicode, pretty_print=True)
 

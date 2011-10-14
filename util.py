@@ -59,7 +59,16 @@ def getUrl(orig_url):
   return result
 
 
-def stripEventsFromDoc(doc):
+def preCleanDoc(doc):
+  for el in doc.xpath('//head | //script | //style'):
+    el.drop_tree()
+  for el in doc.xpath('//*'):
+    for attr in EVENT_ATTRS:
+      try:
+        del el.attrib[attr]
+      except KeyError:
+        # Attribute doesn't exist.
+        pass
 
 
 def words(s):
