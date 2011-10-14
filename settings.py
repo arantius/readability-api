@@ -1,4 +1,8 @@
 import os
+import sys
+
+third_party_dir = os.path.join(os.path.dirname(__file__), 'third-party')
+sys.path.append(os.path.realpath(third_party_dir))
 
 ADMINS = ()
 DEBUG = True

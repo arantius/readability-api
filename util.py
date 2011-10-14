@@ -4,7 +4,10 @@ import re
 import urllib2
 import urlparse
 
+import css.css
+import css.parse
 from django.core.cache import cache
+from lxml import cssselect
 
 import settings
 
@@ -16,8 +19,26 @@ EVENT_ATTRS = (
     )
 
 
-def applyCssToDoc(css, doc):
-  pass
+def applyCss(css_str, doc):
+  for obj in css.parse.parse(css_str):
+    if isinstance(obj, css.css.Ruleset):
+      for selector in obj.selectors:
+        try:
+          sel = cssselect.CSSSelector(selector)
+        except cssselect.ExpressionError:
+          continue
+        else:
+          for el in sel(doc):
+            # TODO: Specificity!
+            el.style_dict = {}
+            for decl in obj.declarations:
+              el.style_dict[decl.property] = decl.value
+            # TODO: Don't overwrite actual style attributes.
+            el.attrib['style'] = ';'.join(
+                ['%s:%s' % (p, v) for p, v in el.style_dict.items()])
+    else:
+      print 'Unsupported css object:', type(obj), obj
+  print '-' * 60
 
 
 def cleanUrl(url):
