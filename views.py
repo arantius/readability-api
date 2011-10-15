@@ -77,18 +77,12 @@ def train(request):
     doc = lxml.html.fromstring(content)
 
     # Gather all CSS.
-    css_list = []
     for el in doc.xpath('//link[@rel="stylesheet"]'):
       css_url = urlparse.urljoin(final_url, el.attrib['href'])
-      css_content, _, _ = util.getUrl(css_url)
-      css_list.append(css_content)
-    for el in doc.xpath('//style'):
-      css_list.append(el.text)
+      util.applyCss(css_url, doc)
 
     util.preCleanDoc(doc)
     util.fixUrls(doc, final_url)
-    for css in css_list:
-      util.applyCss(css, doc)
 
     content = lxml.html.tostring(doc, encoding=unicode, pretty_print=True)
 

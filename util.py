@@ -19,8 +19,23 @@ EVENT_ATTRS = (
     )
 
 
-def applyCss(css_str, doc):
-  for obj in css.parse.parse(css_str):
+def applyCss(css_url, doc, specificity_boost=0):
+  print 'Applying css:', css_url
+  try:
+    css_str, _, _ = getUrl(css_url)
+  except urllib2.HTTPError, e:
+    if e.code == 404:
+      pass
+    else:
+      logging.debug('error fetching url: %s', css_url)
+      logging.exception(e)
+    return
+
+  applyCssRules(css_url, css.parse.parse(css_str), doc)
+
+
+def applyCssRules(css_url, rules, doc, specificity_boost=0):
+  for obj in rules:
     if isinstance(obj, css.css.Ruleset):
       for selector in obj.selectors:
         try:
@@ -36,15 +51,24 @@ def applyCss(css_str, doc):
             # TODO: Don't overwrite actual style attributes.
             el.attrib['style'] = ';'.join(
                 ['%s:%s' % (p, v) for p, v in el.style_dict.items()])
+    elif isinstance(obj, css.css.Charset):
+      pass
+    elif isinstance(obj, css.css.Import):
+      applyCss(obj.source, doc)
+    elif isinstance(obj, css.css.Media):
+      boost = 0
+      if 'print' in obj.media_types:
+        boost = 100
+        print 'applying a @media statement', obj.media_types
+      applyCssRules(css_url, obj.rulesets, doc, boost)
     else:
       print 'Unsupported css object:', type(obj), obj
-  print '-' * 60
 
 
 def cleanUrl(url):
   url = re.sub(r'utm_[a-z]+=[^&]+(&?)', r'\1', url)
   url = re.sub(r'[?&]+$', '', url)
-  return url
+  return url.strip()
 
 
 def fixUrls(parent, base_url):
