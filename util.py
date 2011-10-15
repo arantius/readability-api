@@ -5,8 +5,7 @@ import re
 import urllib2
 import urlparse
 
-import css.css
-import css.parse
+import cssutils
 from django.core.cache import cache
 from lxml import cssselect
 
@@ -18,52 +17,78 @@ EVENT_ATTRS = (
     'onmouseout', 'onmouseover', 'onmouseup', 'onreset', 'onselect', 'onsubmit',
     'onunload',
     )
+REGEXP_NS = "http://exslt.org/regular-expressions"
 
 
-def applyCss(css_url, doc, specificity_boost=0):
-  print 'Applying css:', css_url
-  try:
-    css_str, _, _ = getUrl(css_url)
-  except urllib2.HTTPError, e:
-    if e.code == 404:
+def applyCss(css_url, doc, media=None):
+  sheet = CSS_PARSER.parseUrl(css_url, media=media)
+  cssutils.replaceUrls(sheet, lambda u: urlparse.urljoin(css_url, u))
+
+  # For every rule in this sheet ...
+  affected_els = applyCssRules(sheet.cssRules, doc, media=media)
+
+  # Now that we (above) set a style dictionary, map it down into style attrib.
+  def collapseStyle(t):
+    """Turn one .items() from a .style dict into a CSS declaration."""
+    p, v = t
+    _, v = v
+    return '%s:%s' % (p, v)
+  for el in set(affected_els):
+    if 'style' in el.attrib:
+      try:
+        attr_decl = cssutils.css.CSSStyleDeclaration(
+            el.attrib.get('style', None))
+      except:
+        pass
+      else:
+        cssutils.replaceUrls(attr_decl, lambda u: urlparse.urljoin(css_url, u))
+        for decl in attr_decl:
+          el.style[decl.name] = 99999, decl.propertyValue.cssText
+    el.attrib['style'] = ';'.join(map(collapseStyle, el.style.items()))
+
+
+def applyCssRules(rules, doc, media):
+  affected_els = []
+  for rule in rules:
+    if isinstance(rule, cssutils.css.CSSComment):
       pass
-    else:
-      logging.debug('error fetching url: %s', css_url)
-      logging.exception(e)
-    return
+    elif isinstance(rule, cssutils.css.CSSMediaRule):
+      applyCssRules(
+          rule.cssRules, doc,
+          media=('print' in rule.media and 'print' or 'screen'))
+    elif isinstance(rule, cssutils.css.CSSStyleRule):
+      decl_dict = {}
+      for decl in rule.style:
+        decl_dict[decl.name] = decl.propertyValue.cssText
 
-  applyCssRules(css_url, css.parse.parse(css_str), doc)
-
-
-def applyCssRules(css_url, rules, doc, specificity_boost=0):
-  for obj in rules:
-    if isinstance(obj, css.css.Ruleset):
-      for selector in obj.selectors:
+      # For every selector in this rule ...
+      for selector in rule.selectorList:
         try:
-          sel = cssselect.CSSSelector(selector)
+          sel = cssselect.CSSSelector(selector.selectorText)
         except cssselect.ExpressionError:
           continue
-        else:
-          for el in sel(doc):
-            # TODO: Specificity!
-            el.style_dict = {}
-            for decl in obj.declarations:
-              el.style_dict[decl.property] = decl.value
-            # TODO: Don't overwrite actual style attributes.
-            el.attrib['style'] = ';'.join(
-                ['%s:%s' % (p, v) for p, v in el.style_dict.items()])
-    elif isinstance(obj, css.css.Charset):
-      pass
-    elif isinstance(obj, css.css.Import):
-      applyCss(obj.source, doc)
-    elif isinstance(obj, css.css.Media):
-      boost = 0
-      if 'print' in obj.media_types:
-        boost = 100
-        print 'applying a @media statement', obj.media_types
-      applyCssRules(css_url, obj.rulesets, doc, boost)
+        sel_specificity = sum(selector.specificity)
+        if media == 'print':
+          sel_specificity += 100
+
+        # For every element that matches this selector ...
+        for el in sel(doc):
+          try:
+            getattr(el, 'style')
+          except AttributeError:
+            el.style = {}
+
+          # For every property in this declaration ...
+          for prop, val in decl_dict.items():
+            el_prop = el.style.get(prop)
+            # If the property doesn't yet exist, or doeswith lower specificity..
+            if not el_prop or el_prop[0] <= sel_specificity:
+              # Use the new value.
+              el.style[prop] = sel_specificity, val
+              affected_els.append(el)
     else:
-      print 'Unsupported css object:', type(obj), obj
+      print 'Unknown rule:', type(rule), rule
+  return affected_els
 
 
 def cacheKey(key):
@@ -84,11 +109,17 @@ def cleanUrl(url):
   return url.strip()
 
 
+def fetchCss(url):
+  """Fetcher which uses getUrl() to provide cssutils' required format."""
+  content, _, _ = getUrl(url)
+  return None, content
+
+
 def fixUrls(parent, base_url):
   def _fixUrl(el, attr):
     el.attrib[attr] = urlparse.urljoin(base_url, el.attrib[attr].strip())
 
-  for attr in ('href', 'src'):
+  for attr in ('background', 'href', 'src'):
     for el in parent.xpath('//*[@%s]' % attr): _fixUrl(el, attr)
     if parent.attrib.has_key(attr): _fixUrl(parent, attr)
 
@@ -134,8 +165,15 @@ def getUrl(orig_url):
 
 
 def preCleanDoc(doc):
+  # Strip elements by name.
   for el in doc.xpath('//head | //script | //style'):
     el.drop_tree()
+  # Strip elements by style.
+  for el in doc.xpath(
+      "//*[re:test(@style, 'display\s*:\s*none|visibility\s*:\s*hidden', 'i')]",
+      namespaces={'re': REGEXP_NS}):
+    el.drop_tree()
+  # Strip attributes from all elements.
   for el in doc.xpath('//*'):
     for attr in EVENT_ATTRS:
       try:
@@ -164,3 +202,7 @@ def words(s):
   s = re.sub('[-_\s]+', ' ', s)
   if not s: return []
   return s.lower().strip().split(' ')
+
+
+# Constants depending on things defined above.
+CSS_PARSER = cssutils.CSSParser(fetcher=fetchCss, loglevel=logging.CRITICAL)

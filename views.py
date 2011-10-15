@@ -76,10 +76,10 @@ def train(request):
   else:
     doc = lxml.html.fromstring(content)
 
-    # Gather all CSS.
+    # Apply all CSS into style attributes.
     for el in doc.xpath('//link[@rel="stylesheet"]'):
       css_url = urlparse.urljoin(final_url, el.attrib['href'])
-      util.applyCss(css_url, doc)
+      util.applyCss(css_url, doc, el.attrib.get('media', None))
 
     util.preCleanDoc(doc)
     util.fixUrls(doc, final_url)
