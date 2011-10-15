@@ -213,7 +213,7 @@ class Charset(SyntaxObject):
         return 'Charset(%r)' % (self.encoding,)
 
     def datum(self, serializer):
-        return serialize.serialize_charset(self, serializer)
+        return serialize.serialize_Charset(self, serializer)
     
 
 class Page(SyntaxObject):
