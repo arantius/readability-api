@@ -18,9 +18,9 @@ USE_I18N = False
 USE_L10N = False
 
 CACHES = {
-  'default': {
-    'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-    'LOCATION': os.path.join(os.path.dirname(__file__), 'cache'),
+    'default': {
+      'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+      'LOCATION': 'django_cache',
     }
   }
 
