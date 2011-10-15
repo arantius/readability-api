@@ -1,4 +1,5 @@
 import Cookie
+import hashlib
 import logging
 import re
 import urllib2
@@ -65,6 +66,14 @@ def applyCssRules(css_url, rules, doc, specificity_boost=0):
       print 'Unsupported css object:', type(obj), obj
 
 
+def cacheKey(key):
+  """The DB table has a 255 char limit, make sure that is not exceeded."""
+  if len(key) < 255:
+    return key
+  else:
+    return key[0:200] + hashlib.sha1(key[200:]).hexdigest()
+
+
 def cleanUrl(url):
   url = re.sub(r'utm_[a-z]+=[^&]+(&?)', r'\1', url)
   url = re.sub(r'[?&]+$', '', url)
@@ -88,7 +97,7 @@ def fixUrls(parent, base_url):
 
 
 def getUrl(orig_url):
-  cache_key = 'url:' + cleanUrl(orig_url)
+  cache_key = cacheKey('url:' + cleanUrl(orig_url))
   result = cache.get(cache_key)
   if result:
     return result
