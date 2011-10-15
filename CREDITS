@@ -1,9 +1,9 @@
 Includes:
 
-css-py: http://code.google.com/p/css-py/
-by Joshua E Cook
-MIT Licensed
+cssutils: http://cthedot.de/cssutils/
+by Christof Hoeke
+LGPL Licensed
 
-ply: http://www.dabeaz.com/ply/
-by Davind M. Beazley
-BSD Licensed
+encutils: http://cthedot.de/encutils/
+by Christof Hoeke
+LGPL Licensed
