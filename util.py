@@ -75,7 +75,11 @@ def cacheKey(key):
 
 
 def cleanUrl(url):
+  # Handle de-facto standard "hash bang" URLs ( http://goo.gl/LNmg )
+  url = url.replace('#!', '?_escaped_fragment_=')
+  # Strip tracking noise.
   url = re.sub(r'utm_[a-z]+=[^&]+(&?)', r'\1', url)
+  # Strip possibly left over query string delimiters.
   url = re.sub(r'[?&]+$', '', url)
   return url.strip()
 
