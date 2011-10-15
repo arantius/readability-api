@@ -87,4 +87,7 @@ def train(request):
     content = lxml.html.tostring(doc, encoding=unicode, pretty_print=True)
 
   return shortcuts.render_to_response('train.html', {
-      'content': content})
+      'content': content,
+      'final_url': final_url,
+      'url': url,
+      })
