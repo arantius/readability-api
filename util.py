@@ -64,7 +64,7 @@ def fixUrls(parent, base_url):
 
 
 def getUrl(orig_url):
-  cache_key = 'url:' + orig_url
+  cache_key = 'url:' + cleanUrl(orig_url)
   result = cache.get(cache_key)
   if result:
     return result
