@@ -6,11 +6,18 @@ var gTargetElHistory = [];
 $(document).ready(function() {
   makeEls();
   gPageEditorEl = $('#page');
+
+  $('form.train').submit(function(event) {
+    $('form.train input[name="html"]').val(gPageEditorEl.html());
+  });
 });
 
 $(document).mouseover(function(event) {
   if (!gPageEditorEl) return;
-  if (!gPageEditorEl.has(event.target).length) return;
+  if (!gPageEditorEl.has(event.target).length) {
+    clearBox();
+    return;
+  }
 
   gTargetEl = event.target;
   gTargetElHistory = [gTargetEl];
@@ -18,12 +25,22 @@ $(document).mouseover(function(event) {
 });
 
 $(document).keyup(function(event) {
+  if (event.ctrlKey) return;
+  if (!gTargetEl) return;
   var char = String.fromCharCode(event.keyCode);
   switch (char) {
+  case 'I':
+    removeSiblings(gTargetEl);
+    clearBox();
+    break;
   case 'N':
     if (!gTargetElHistory.length) break;
     gTargetEl = gTargetElHistory.shift();
     targetChanged();
+    break;
+  case 'R':
+    removeEl(gTargetEl);
+    clearBox();
     break;
   case 'W':
     if (gTargetEl.parentNode.id == 'page') break;
@@ -33,6 +50,28 @@ $(document).keyup(function(event) {
     break;
   }
 });
+
+function removeEl(el) {
+  if ('#text' == el.nodeName) return;
+  el.style.display = 'none';
+  el.setAttribute('train', 'remove');
+}
+
+function removeSiblings(el) {
+  var s = el.nextSibling;
+  while (s) {
+    removeEl(s);
+    s = s.nextSibling;
+  }
+  s = el.previousSibling;
+  while (s) {
+    removeEl(s);
+    s = s.previousSibling;
+  }
+  if (el.parentNode && 'page' != el.parentNode.id) {
+    removeSiblings(el.parentNode);
+  }
+}
 
 function targetChanged() {
   if (gLastTargetEl) {
@@ -49,6 +88,17 @@ var gBorderEls;
 var gKeyboxElem;
 var gLabelDrawnHigh;
 var gLabelEl;
+
+function clearBox() {
+  gTargetEl = null;
+  gTargetElHistory = [];
+  if (gBorderEls != null) {
+    for (var i=0; i<4; i++) {
+      gBorderEls[i].style.display = "none";
+    }
+    gLabelEl.style.display = "none";
+  }
+};
 
 function getPos(elem) {
   var pos = {};

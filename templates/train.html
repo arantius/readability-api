@@ -6,8 +6,23 @@
 {% endblock %}
 
 {% block content %}
-<p>You asked for <a href="{{url}}">{{url}}</a>.</p>
-<p>Showing <a href="{{final_url}}">{{final_url}}</a>, mark it up.</p>
-
+<p>
+  Showing the contents of <a href="{{final_url}}">{{final_url}}</a>.
+  {% if url != final_url %}
+  (Redirected from <a href="{{url}}">{{url}}</a>.)
+  {% endif %}
+</p>
+<p>
+  Mark up the page by: Pointing at elements with your mouse, pressing W and N
+  to widen and narrow the selection, and pressing R to remove or I to isolate
+  that element.
+</p>
+<form method='post' action='/train' class='train'>
+<p>
+  <input type='hidden' name='html'>
+  When only good content remains:
+  <button type='submit'>Train the API</button>
+</p>
+</form>
 <div id="page">{{ content|safe }}</div>
 {% endblock %}
