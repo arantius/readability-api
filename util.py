@@ -50,7 +50,9 @@ def applyCss(css_url, doc, media=None):
 def applyCssRules(rules, doc, media):
   affected_els = []
   for rule in rules:
-    if isinstance(rule, cssutils.css.CSSComment):
+    if isinstance(rule, cssutils.css.CSSCharsetRule):
+      pass
+    elif isinstance(rule, cssutils.css.CSSComment):
       pass
     elif isinstance(rule, cssutils.css.CSSMediaRule):
       applyCssRules(
