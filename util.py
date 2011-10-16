@@ -23,20 +23,24 @@ OK_EMPTY_TAGS = (
     )
 
 
-def applyCss(css_url, doc, media=None):
-  sheet = CSS_PARSER.parseUrl(css_url, media=media)
-  cssutils.replaceUrls(sheet, lambda u: urlparse.urljoin(css_url, u))
+def applyCss(doc, url):
+  # Apply all CSS into style attributes.  (Before stripping it.)
+  for el in doc.xpath('//link[@rel="stylesheet"]'):
+    css_url = urlparse.urljoin(url, el.attrib['href'])
+    sheet = CSS_PARSER.parseUrl(css_url, media=el.attrib.get('media', None))
+#    cssutils.replaceUrls(sheet, lambda u: urlparse.urljoin(css_url, u))
+    applyCssRules(sheet.cssRules, doc, media=el.attrib.get('media', None))
+  for el in doc.xpath('//style'):
+    sheet = CSS_PARSER.parseString(el.text, href=url)
+    applyCssRules(sheet.cssRules, doc)
 
-  # For every rule in this sheet ...
-  affected_els = applyCssRules(sheet.cssRules, doc, media=media)
-
-  # Now that we (above) set a style dictionary, map it down into style attrib.
   def collapseStyle(t):
     """Turn one .items() from a .style dict into a CSS declaration."""
     p, v = t
     _, v = v
     return '%s:%s' % (p, v)
-  for el in set(affected_els):
+  for el in doc.xpath('//*'):
+    if not hasattr(el, 'style'): continue
     if 'style' in el.attrib:
       try:
         attr_decl = cssutils.css.CSSStyleDeclaration(
@@ -50,7 +54,7 @@ def applyCss(css_url, doc, media=None):
     el.attrib['style'] = ';'.join(map(collapseStyle, el.style.items()))
 
 
-def applyCssRules(rules, doc, media):
+def applyCssRules(rules, doc, media=None):
   affected_els = []
   for rule in rules:
     if isinstance(rule, cssutils.css.CSSCharsetRule):
@@ -169,15 +173,21 @@ def getUrl(orig_url):
   return result
 
 
-def preCleanDoc(doc):
+def preCleanDoc(doc, url):
+  applyCss(doc, url)
+
+  # TODO: Manually apply e.g. SWFObject?
+
   # Strip elements by simple rules.
   for el in doc.xpath('//comment() | //script | //style | //head'):
     if el.getparent() is not None: el.drop_tree()
+
   # Strip elements by style.
   for el in doc.xpath(
       "//*[re:test(@style, 'display\s*:\s*none|position\s*:\s*fixed|visibility\s*:\s*hidden', 'i')]",
       namespaces={'re': NAMESPACE_RE}):
     el.drop_tree()
+
   # Strip attributes from all elements.
   for el in doc.xpath('//*'):
     for attr in EVENT_ATTRS:
