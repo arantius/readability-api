@@ -172,7 +172,7 @@ def getUrl(orig_url):
 def preCleanDoc(doc):
   # Strip elements by simple rules.
   for el in doc.xpath('//comment() | //script | //style | //head'):
-    if el.getparent(): el.drop_tree()
+    if el.getparent() is not None: el.drop_tree()
   # Strip elements by style.
   for el in doc.xpath(
       "//*[re:test(@style, 'display\s*:\s*none|position\s*:\s*fixed|visibility\s*:\s*hidden', 'i')]",
