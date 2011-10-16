@@ -172,7 +172,7 @@ def preCleanDoc(doc):
     el.drop_tree()
   # Strip elements by style.
   for el in doc.xpath(
-      "//*[re:test(@style, 'display\s*:\s*none|visibility\s*:\s*hidden', 'i')]",
+      "//*[re:test(@style, 'display\s*:\s*none|position\s*:\s*fixed|visibility\s*:\s*hidden', 'i')]",
       namespaces={'re': REGEXP_NS}):
     el.drop_tree()
   # Strip attributes from all elements.
