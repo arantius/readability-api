@@ -24,6 +24,11 @@ CACHES = {
     }
   }
 
+INSTALLED_APPS = (
+    'clean',
+    'train',
+    )
+
 STATIC_ROOT = ''
 STATIC_URL = '/static/'
 STATICFILES_DIRS = (

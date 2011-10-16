@@ -3,6 +3,8 @@ import os
 from django.conf.urls import defaults
 
 import views
+from clean import views as clean_views
+from train import views as train_views
 
 # Aliases just for familiar syntax.
 patterns = defaults.patterns
@@ -14,8 +16,11 @@ urlpatterns = patterns('',
     url(r'^favicon.ico$', views.favicon, name='favicon'),
     url(r'^robots.txt$', views.robots, name='robots'),
 
-    url(r'^page$', views.cleanPage, name='clean_page'),
-    url(r'^train$', views.train, name='train'),
+    # TODO: Put these in urls modules in these packages.
+    url(r'^clean/page$', clean_views.page, name='clean_page'),
+
+    url(r'^train/data$', train_views.data, name='train_data'),
+    url(r'^train/form$', train_views.form, name='train_form'),
 
     url(r'^$', views.home, name='home'),
     )
