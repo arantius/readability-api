@@ -17,7 +17,7 @@ EVENT_ATTRS = (
     'onmouseout', 'onmouseover', 'onmouseup', 'onreset', 'onselect', 'onsubmit',
     'onunload',
     )
-REGEXP_NS = "http://exslt.org/regular-expressions"
+NAMESPACE_RE = "http://exslt.org/regular-expressions"
 
 
 def applyCss(css_url, doc, media=None):
@@ -167,13 +167,13 @@ def getUrl(orig_url):
 
 
 def preCleanDoc(doc):
-  # Strip elements by name.
-  for el in doc.xpath('//head | //script | //style'):
-    el.drop_tree()
+  # Strip elements by simple rules.
+  for el in doc.xpath('//comment() | //script | //style | //head'):
+    if el.getparent(): el.drop_tree()
   # Strip elements by style.
   for el in doc.xpath(
       "//*[re:test(@style, 'display\s*:\s*none|position\s*:\s*fixed|visibility\s*:\s*hidden', 'i')]",
-      namespaces={'re': REGEXP_NS}):
+      namespaces={'re': NAMESPACE_RE}):
     el.drop_tree()
   # Strip attributes from all elements.
   for el in doc.xpath('//*'):
@@ -183,6 +183,17 @@ def preCleanDoc(doc):
       except KeyError:
         # Attribute doesn't exist.
         pass
+
+
+def postCleanDoc(doc):
+  # Strip empty nodes.
+  found_empty = False
+  for el in doc.xpath('//*[not(node())]'):
+    found_empty = True
+    el.drop_tree()
+  if found_empty:
+    # Recurse in case removed nodes' parents are now empty.
+    return postCleanDoc(doc)
 
 
 def words(s):

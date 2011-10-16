@@ -83,6 +83,7 @@ def train(request):
 
     util.preCleanDoc(doc)
     util.fixUrls(doc, final_url)
+    util.postCleanDoc(doc)
 
     content = ''.join([
         lxml.html.tostring(child)
