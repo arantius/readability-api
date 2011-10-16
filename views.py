@@ -84,7 +84,9 @@ def train(request):
     util.preCleanDoc(doc)
     util.fixUrls(doc, final_url)
 
-    content = lxml.html.tostring(doc, encoding=unicode, pretty_print=True)
+    content = ''.join([
+        lxml.html.tostring(child)
+        for child in doc.body.iterchildren()])
 
   return shortcuts.render_to_response('train.html', {
       'content': content,
