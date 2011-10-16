@@ -61,6 +61,8 @@ def applyCssRules(rules, doc, media=None):
       pass
     elif isinstance(rule, cssutils.css.CSSComment):
       pass
+    elif isinstance(rule, cssutils.css.CSSFontFaceRule):
+      pass
     elif isinstance(rule, cssutils.css.CSSMediaRule):
       applyCssRules(
           rule.cssRules, doc,
