@@ -18,6 +18,9 @@ EVENT_ATTRS = (
     'onunload',
     )
 NAMESPACE_RE = "http://exslt.org/regular-expressions"
+OK_EMPTY_TAGS = (
+    'br', 'embed', 'hr', 'iframe', 'img', 'input', 'object', 'param',
+    )
 
 
 def applyCss(css_url, doc, media=None):
@@ -189,6 +192,7 @@ def postCleanDoc(doc):
   # Strip empty nodes.
   found_empty = False
   for el in doc.xpath('//*[not(node())]'):
+    if el.tag in OK_EMPTY_TAGS: continue
     found_empty = True
     el.drop_tree()
   if found_empty:
