@@ -1,5 +1,10 @@
 {% extends 'base.html' %}
 
+{% block extrahead %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script src="/static/train.js"></script>
+{% endblock %}
+
 {% block content %}
 <p>You asked for <a href="{{url}}">{{url}}</a>.</p>
 <p>Showing <a href="{{final_url}}">{{final_url}}</a>, mark it up.</p>
