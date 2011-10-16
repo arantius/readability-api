@@ -5,3 +5,41 @@
   padding: 1ex;
   position: relative;
 }
+
+/*****************************************************************************/
+
+/* Based on: http://karmatics.com/aardvark/ */
+div.aardvarkdbox div, div.aardvarkdbox table, div.aardvarkdbox td,
+div.aardvarkdbox tr, div.aardvarkdbox p, div.aardvarkdbox a
+{
+  color: black;
+  background-color: transparent;
+  border: 0;
+  font-family: arial;
+  font-weight: normal;
+  font-size: 13px;
+  font-style: normal;
+  text-align: left;
+  text-decoration: none;
+  text-indent: 0;
+  vertical-align: top;
+}
+
+div.aardvarkdbox table {
+  border-spacing: 2px;
+  border-collapse: separate;
+}
+
+div.aardvarkdbox td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+div.aardvarkdbox a, div.aardvarkdbox a:visited {
+  color: #007;
+  text-decoration: underline;
+}
+
+div.aardvarkdbox a:hover {
+  color: #00f;
+}
