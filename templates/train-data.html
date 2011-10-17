@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<p>
+  Training results:
+</p>
+
+<table border='1'>
+<tr>
+  <th>Element</th><th>Words</th>
+</tr>
+{% for data in trained_data %}
+<tr>
+  <td valign='top'>{{ data.el }}<br>Is spam: {{ data.is_spam }}</td>
+  <td>
+    {{ data.words }}<hr>{{ data.text }}
+  </td>
+</tr>
+{% endfor %}
+</table>
+
+<p>
+  Reminder, here's the content we trained on:
+</p>
+
+<div id="page">{{ content|safe }}</div>
+{% endblock %}

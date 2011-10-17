@@ -7,7 +7,31 @@ import util
 
 def data(request):
   doc = lxml.html.fromstring(request.POST['html'])
-  return http.HttpResponse('todo: actually train!')
+
+  trained_data = []
+  for el in doc.xpath('//*'):
+    is_spam = False
+    status_el = el
+    while status_el is not None:
+      if 'train' in status_el.attrib:
+        is_spam = status_el.attrib['train'] == 'remove'
+        break
+      status_el = status_el.getparent()
+    text = ' '.join(el.xpath('./text()'))
+
+    data = {
+        'el': el,
+        'facets': [],
+        'is_spam': is_spam,
+        'text': text,
+        'words': util.words(text),
+        }
+    trained_data.append(data)
+
+  return shortcuts.render_to_response('train-data.html', {
+      'content': request.POST['html'],
+      'trained_data': trained_data,
+      })
 
 
 def form(request):
