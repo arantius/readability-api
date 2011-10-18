@@ -1,27 +1,29 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<p>
-  Training results:
-</p>
+<p>Train on another page:</p>
+<form method='get' action='/train/form'>
+URL: <input type='text' name='url' size='50'>
+<input type='submit'><br>
+</form>
 
-<table border='1'>
+<p>Training completed. Data:</p>
+
+<table>
 <tr>
-  <th>Element</th><th>Words</th>
+  <th>Kind</th><th>Data</th><th>Spam Count</th><th>Ham Count</th>
 </tr>
-{% for data in trained_data %}
-<tr>
-  <td valign='top'>{{ data.el }}<br>Is spam: {{ data.is_spam }}</td>
-  <td>
-    {{ data.words }}<hr>{{ data.text }}
-  </td>
-</tr>
+{% for k, v in facets.items %}
+   <tr>
+     <td>{{k.0}}</td>
+     <td>{{k.1}}</td>
+     <td>{{v.spam}}</td>
+     <td>{{v.ham}}</td>
+   </tr>
 {% endfor %}
 </table>
 
-<p>
-  Reminder, here's the content we trained on:
-</p>
+<p>Reminder, here's the ham content we trained on:</p>
 
 <div id="page">{{ content|safe }}</div>
 {% endblock %}

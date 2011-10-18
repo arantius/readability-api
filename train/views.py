@@ -2,13 +2,19 @@ from django import http
 from django import shortcuts
 import lxml.html
 
+from train import models
+
 import util
 
 
-def data(request):
-  doc = lxml.html.fromstring(request.POST['html'])
+def _gatherFacets(doc):
 
-  trained_data = []
+  facets = {}
+  def countFacet(kind, data, is_spam):
+    k = (kind, data)
+    facets.setdefault(k, {'spam': 0, 'ham': 0})
+    facets[k][is_spam and 'spam' or 'ham'] += 1
+
   for el in doc.xpath('//*'):
     is_spam = False
     status_el = el
@@ -17,20 +23,54 @@ def data(request):
         is_spam = status_el.attrib['train'] == 'remove'
         break
       status_el = status_el.getparent()
-    text = ' '.join(el.xpath('./text()'))
 
-    data = {
-        'el': el,
-        'facets': [],
-        'is_spam': is_spam,
-        'text': text,
-        'words': util.words(text),
-        }
-    trained_data.append(data)
+    text = ' '.join(el.xpath('./text()'))
+    words = util.words(text)
+
+    countFacet('tag_name', el.tag, is_spam)
+
+    if el.tag in util.OK_EMPTY_TAGS:
+      pass
+    else:
+      countFacet('num_text_words', len(words), is_spam)
+      for word in words:
+        countFacet('text_word', word, is_spam)
+
+    for attr in ('class', 'href', 'id', 'src'):
+      for word in util.words(el.attrib.get(attr)):
+        countFacet(attr + '_word', word, is_spam)
+  return facets
+
+def data(request):
+  try:
+    models.Page.objects.filter(url=request.POST['url']).get()
+  except models.Page.DoesNotExist:
+    pass
+  else:
+    return http.HttpResponse('Page already trained.')
+
+  page = models.Page(url=request.POST['url'])
+  page.save()
+
+  doc = lxml.html.fromstring(request.POST['html'])
+
+  # TODO: Later, flatten these facets by kind/data.
+  facets = _gatherFacets(doc)
+  for (kind, data), counts in facets.iteritems():
+    facet = models.Facet(
+        kind=kind, ham_count=counts['ham'], spam_count=counts['spam'])
+    if isinstance(data, basestring):
+      facet.data_char = data
+    else:
+      facet.data_int = data
+    facet.save()
+
+  # Clean for display.
+  doc = util.postCleanDoc(doc)
 
   return shortcuts.render_to_response('train-data.html', {
-      'content': request.POST['html'],
-      'trained_data': trained_data,
+      'content': lxml.html.tostring(doc),
+      'facets': facets,
       })
 
 
@@ -44,7 +84,7 @@ def form(request):
 
     util.preCleanDoc(doc, final_url)
     util.fixUrls(doc, final_url)
-    util.postCleanDoc(doc)
+    doc = util.postCleanDoc(doc)
 
     content = ''.join([
         lxml.html.tostring(child)

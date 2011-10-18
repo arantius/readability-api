@@ -27,23 +27,25 @@ STOP_WORDS = set([
 
 
 def applyCss(doc, url):
+  affected_els = []
   # Apply all CSS into style attributes.  (Before stripping it.)
   for el in doc.xpath('//link[@rel="stylesheet"]'):
     css_url = urlparse.urljoin(url, el.attrib['href'])
     sheet = CSS_PARSER.parseUrl(css_url, media=el.attrib.get('media', None))
-#    cssutils.replaceUrls(sheet, lambda u: urlparse.urljoin(css_url, u))
-    applyCssRules(sheet.cssRules, doc, media=el.attrib.get('media', None))
+    if sheet:
+      affected_els += applyCssRules(
+          sheet.cssRules, doc, css_url, media=el.attrib.get('media', None))
   for el in doc.xpath('//style'):
     sheet = CSS_PARSER.parseString(el.text, href=url)
-    applyCssRules(sheet.cssRules, doc)
+    if sheet:
+      affected_els += applyCssRules(sheet.cssRules, doc, url)
 
   def collapseStyle(t):
     """Turn one .items() from a .style dict into a CSS declaration."""
     p, v = t
     _, v = v
     return '%s:%s' % (p, v)
-  for el in doc.xpath('//*'):
-    if not hasattr(el, 'style'): continue
+  for el in set(affected_els):
     if 'style' in el.attrib:
       try:
         attr_decl = cssutils.css.CSSStyleDeclaration(
@@ -57,7 +59,7 @@ def applyCss(doc, url):
     el.attrib['style'] = ';'.join(map(collapseStyle, el.style.items()))
 
 
-def applyCssRules(rules, doc, media=None):
+def applyCssRules(rules, doc, base_url, media=None):
   affected_els = []
   for rule in rules:
     if isinstance(rule, cssutils.css.CSSCharsetRule):
@@ -66,10 +68,18 @@ def applyCssRules(rules, doc, media=None):
       pass
     elif isinstance(rule, cssutils.css.CSSFontFaceRule):
       pass
+    elif isinstance(rule, cssutils.css.CSSImportRule):
+      pass
+      # TODO: Make this work.
+#      css_url = urlparse.urljoin(base_url, rule.href)
+#      sheet = CSS_PARSER.parseUrl(css_url, media=media)
+#      if sheet:
+#        affected_els += applyCssRules(
+#            sheet.cssRules, doc, css_url, media=media)
     elif isinstance(rule, cssutils.css.CSSMediaRule):
       applyCssRules(
-          rule.cssRules, doc,
-          media=('print' in rule.media and 'print' or 'screen'))
+          rule.cssRules, doc, base_url,
+          media=('print' in rule.media) and 'print' or 'screen')
     elif isinstance(rule, cssutils.css.CSSStyleRule):
       decl_dict = {}
       for decl in rule.style:
@@ -79,7 +89,7 @@ def applyCssRules(rules, doc, media=None):
       for selector in rule.selectorList:
         try:
           sel = cssselect.CSSSelector(selector.selectorText)
-        except cssselect.ExpressionError:
+        except: # cssselect.ExpressionError, cssselect.SelectorSyntaxError:
           continue
         sel_specificity = sum(selector.specificity)
         if media == 'print':
@@ -208,11 +218,26 @@ def postCleanDoc(doc):
   found_empty = False
   for el in doc.xpath('//*[not(node())]'):
     if el.tag in OK_EMPTY_TAGS: continue
-    found_empty = True
-    el.drop_tree()
+    if el.getparent() is not None:
+      found_empty = True
+      el.drop_tree()
   if found_empty:
     # Recurse in case removed nodes' parents are now empty.
     return postCleanDoc(doc)
+
+  # In case we're finishing training, clear out those nodes.
+  for el in doc.xpath('//*[@train = "remove"]'):
+    if el.getparent() is not None:
+      el.drop_tree()
+
+  # Flatten a tree of nodes with only one child.
+  while len(doc.getchildren()) == 1:
+    doc = doc.getchildren()[0]
+
+  # Selected containers often have fixed widths and float, so drop styles.
+  del doc.attrib['style']
+
+  return doc
 
 
 def _wordFilter(w):
@@ -227,12 +252,13 @@ def _wordMunge(w):
 
 
 def words(s):
-  """Turn camel case and underscore/hyphen separated strings to lists of words.
+  """Turn various strings to lists of words.
 
-  e.g.
-  fooBarBaz -> ['foo', 'bar', 'baz']
-  foo_bar_baz -> ['foo', 'bar', 'baz']
-  foo-bar-baz -> ['foo', 'bar', 'baz']
+  Splits on non-whitespace separators e.g.
+    fooBarBaz -> ['foo', 'bar', 'baz']
+    foo_bar_baz -> ['foo', 'bar', 'baz']
+    foo-bar-baz -> ['foo', 'bar', 'baz']
+  Also, slashes, qmarks, ampersands, etc. (words in URL parts).
 
   Also eliminates stop words.
 
@@ -242,9 +268,10 @@ def words(s):
   Returns:
     set() of of unique strings, as described.
   """
+  if not s: return set()
   s = re.sub('(.)([A-Z][a-z]+)', r'\1 \2', s)
   s = re.sub('([a-z0-9])([A-Z])', r'\1 \2', s)
-  s = re.sub('[-_\s]+', ' ', s)
+  s = re.sub('[-_/?&=.\s]+', ' ', s)
   if not s: return set()
   all_words = s.lower().strip().split(' ')
   all_words = filter(_wordFilter, all_words)
