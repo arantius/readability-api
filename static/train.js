@@ -31,6 +31,11 @@ $(document).keyup(function(event) {
   switch (char) {
   case 'I':
     removeSiblings(gTargetEl);
+    var el = gTargetEl.parentNode;
+    while (el && 'page' != el.id) {
+      el.removeAttribute('style');
+      el = el.parentNode;
+    }
     clearBox();
     break;
   case 'N':
