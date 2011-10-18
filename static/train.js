@@ -5,7 +5,7 @@ var gTargetElHistory = [];
 
 $(document).ready(function() {
   makeEls();
-  gPageEditorEl = $('#page');
+  gPageEditorEl = $('#training_content');
 
   $('form.train').submit(function(event) {
     $('form.train input[name="html"]').val(gPageEditorEl.html());
@@ -31,11 +31,14 @@ $(document).keyup(function(event) {
   switch (char) {
   case 'I':
     removeSiblings(gTargetEl);
-    var el = gTargetEl.parentNode;
-    while (el && 'page' != el.id) {
+
+    // Hide the parents' like training really would do.
+    var el = gTargetEl;
+    while (el && 'training_content' != el.id) {
       el.removeAttribute('style');
       el = el.parentNode;
     }
+
     clearBox();
     break;
   case 'N':
@@ -48,7 +51,7 @@ $(document).keyup(function(event) {
     clearBox();
     break;
   case 'W':
-    if (gTargetEl.parentNode.id == 'page') break;
+    if (gTargetEl.parentNode.id == 'training_content') break;
     gTargetElHistory.unshift(gTargetEl);
     gTargetEl = gTargetEl.parentNode;
     targetChanged();
@@ -73,7 +76,7 @@ function removeSiblings(el) {
     removeEl(s);
     s = s.previousSibling;
   }
-  if (el.parentNode && 'page' != el.parentNode.id) {
+  if (el.parentNode && 'training_content' != el.parentNode.id) {
     removeSiblings(el.parentNode);
   }
 }
