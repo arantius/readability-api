@@ -8,7 +8,6 @@ import util
 
 
 def _gatherFacets(doc):
-
   facets = {}
   def countFacet(kind, data, is_spam):
     k = (kind, data)
@@ -39,6 +38,8 @@ def _gatherFacets(doc):
     for attr in ('class', 'href', 'id', 'src'):
       for word in util.words(el.attrib.get(attr)):
         countFacet(attr + '_word', word, is_spam)
+
+
   return facets
 
 def data(request):
@@ -68,9 +69,12 @@ def data(request):
   # Clean for display.
   doc = util.postCleanDoc(doc)
 
+  facets_display = facets.items()
+  facets_display.sort(key=lambda x: x[1], reverse=True)
+
   return shortcuts.render_to_response('train-data.html', {
       'content': lxml.html.tostring(doc),
-      'facets': facets,
+      'facets': facets_display,
       })
 
 
