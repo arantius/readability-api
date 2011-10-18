@@ -97,6 +97,9 @@ def applyCssRules(rules, doc, base_url, media=None):
 
         # For every element that matches this selector ...
         for el in sel(doc):
+          if el.tag == 'param':
+            continue
+
           try:
             getattr(el, 'style')
           except AttributeError:
@@ -235,7 +238,10 @@ def postCleanDoc(doc):
     doc = doc.getchildren()[0]
 
   # Selected containers often have fixed widths and float, so drop styles.
-  del doc.attrib['style']
+  try:
+    del doc.attrib['style']
+  except KeyError:
+    pass
 
   return doc
 
@@ -271,7 +277,7 @@ def words(s):
   if not s: return set()
   s = re.sub('(.)([A-Z][a-z]+)', r'\1 \2', s)
   s = re.sub('([a-z0-9])([A-Z])', r'\1 \2', s)
-  s = re.sub('[-_/?&=.\s]+', ' ', s)
+  s = re.sub('[-_/?&=.:@\s]+', ' ', s)
   if not s: return set()
   all_words = s.lower().strip().split(' ')
   all_words = filter(_wordFilter, all_words)
