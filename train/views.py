@@ -1,3 +1,5 @@
+import urllib
+
 from django import http
 from django import shortcuts
 import lxml.html
@@ -35,8 +37,8 @@ def _gatherFacets(doc):
       for word in words:
         countFacet('text_word', word, is_spam)
 
-    for attr in ('class', 'href', 'id', 'src'):
-      for word in util.words(el.attrib.get(attr)):
+    for attr in ('alt', 'class', 'href', 'id', 'src'):
+      for word in util.words(urllib.unquote(el.attrib.get(attr, ''))):
         countFacet(attr + '_word', word, is_spam)
 
 
