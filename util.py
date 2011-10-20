@@ -2,6 +2,7 @@ import Cookie
 import hashlib
 import logging
 import re
+import urllib
 import urllib2
 import urlparse
 
@@ -116,6 +117,12 @@ def applyCssRules(rules, doc, base_url, media=None):
     else:
       print 'Unknown rule:', type(rule), rule
   return affected_els
+
+
+def attrWords(el):
+  for attr in ('alt', 'class', 'href', 'id', 'src'):
+    for word in words(urllib.unquote(el.attrib.get(attr, ''))):
+      yield attr, word
 
 
 def cacheKey(key):

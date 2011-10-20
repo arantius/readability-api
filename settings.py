@@ -27,6 +27,7 @@ CACHES = {
 INSTALLED_APPS = (
     'clean',
     'train',
+    'debug_toolbar',
     )
 
 STATIC_ROOT = ''

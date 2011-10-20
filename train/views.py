@@ -1,5 +1,3 @@
-import urllib
-
 from django import http
 from django import shortcuts
 import lxml.html
@@ -16,7 +14,7 @@ def _gatherFacets(doc):
     facets.setdefault(k, {'spam': 0, 'ham': 0})
     facets[k][is_spam and 'spam' or 'ham'] += 1
 
-  for el in doc.xpath('//*'):
+  for el in doc.iter():
     is_spam = False
     status_el = el
     while status_el is not None:
@@ -39,10 +37,8 @@ def _gatherFacets(doc):
 
     countFacet('num_children', len(el.getchildren()), is_spam)
 
-    for attr in ('alt', 'class', 'href', 'id', 'src'):
-      for word in util.words(urllib.unquote(el.attrib.get(attr, ''))):
-        countFacet(attr + '_word', word, is_spam)
-
+    for attr, word in util.attrWords(el):
+      countFacet(attr + '_word', word, is_spam)
 
   return facets
 
