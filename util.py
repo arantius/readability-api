@@ -175,7 +175,10 @@ def getUrl(orig_url):
       logging.info('Fetching: %s', url)
     final_url = url
 
-    response = urllib2.urlopen(url, timeout=5)
+    request = urllib2.Request(url, headers={
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; rv:7.0.1) Gecko/20100101 Firefox/7.0.1',
+        })
+    response = urllib2.urlopen(request, timeout=5)
     content = response.read()
 
     mime_type = response.headers.get('Content-type')
