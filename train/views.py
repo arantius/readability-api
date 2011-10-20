@@ -86,7 +86,7 @@ def form(request):
   url = request.GET['url']
   content, mime_type, final_url = util.getUrl(url)
   if 'text/html' not in mime_type:
-    content = 'Unsupported mime type.'
+    content = 'Unsupported mime type. (%s)' % mime_type
   else:
     doc = lxml.html.fromstring(content)
 
