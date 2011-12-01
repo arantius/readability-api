@@ -168,7 +168,7 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'relatedtopics')),
     ('classid', _ReWord(r'replies')),
     ('classid', _ReWord(r'retweet')),
-    ('classid', _ReWord(r'shopbox')),
+    ('classid', _ReWord(r'shop(box|rotator)')),
     ('classid', _ReWord(r'siteheader')),
     ('classid', _ReWord(r'snap nopreview')),
     ('classid', _ReWord(r'social')),
