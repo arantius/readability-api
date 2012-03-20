@@ -189,11 +189,11 @@ def _Munge(soup, tag, url):
 
   _MungeStripSiteSpecific(tag, url)
   _MungeStripBrsAfterPs(tag)
-  _MungeStripAttrs(tag)
   _MungeStripRules(tag)
   _MungeStripEmpties(tag)
   tag = _MungeStripRootContainers(tag)
   _MungeStripLowScored(tag)
+  _MungeStripAttrs(tag)
 
   _FixUrls(tag, url)
   _MungeImages(tag)
