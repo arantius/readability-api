@@ -1,12 +1,14 @@
 application: readability-api
 version: default
-runtime: python
+runtime: python27
 api_version: 1
+threadsafe: true
 
 default_expiration: 4d
 
 builtins:
 - appstats: on
+- deferred: on
 
 handlers:
 - url: /(embedded_media\.png|favicon\.ico|robots\.txt)
@@ -14,17 +16,13 @@ handlers:
   upload: static/(.*)
 
 - url: /admin.*
-  script: $PYTHON_LIB/google/appengine/ext/admin
+  script: google.appengine.ext.admin.application
   login: admin
   secure: always
 
-- url: /_ah/queue/deferred
-  script: $PYTHON_LIB/google/appengine/ext/deferred/handler.py
-  login: admin
-
 - url: /crons/.*
-  script: crons.py
+  script: crons.application
   login: admin
 
 - url: /.*
-  script: main.py
+  script: main.application

@@ -64,12 +64,14 @@ class UpdateFeeds(webapp.RequestHandler):
         deferred.defer(feed.UpdateFeed, feed_entity.key(), _queue='update')
 
 
+application = webapp.WSGIApplication(
+    [('/crons/clean_stale_entries', CleanStaleEntries),
+     ('/crons/update_feeds', UpdateFeeds),
+    ],
+    debug=util.IS_DEV_APPSERVER)
+
+
 def main():
-  application = webapp.WSGIApplication(
-      [('/crons/clean_stale_entries', CleanStaleEntries),
-       ('/crons/update_feeds', UpdateFeeds),
-      ],
-      debug=util.IS_DEV_APPSERVER)
   run_wsgi_app(application)
 
 

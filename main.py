@@ -104,15 +104,17 @@ class StatsPage(webapp.RequestHandler):
     self.response.out.write(util.RenderTemplate('stats.html', {'stats': stats}))
 
 
+application = webapp.WSGIApplication(
+    [('/', MainPage),
+     ('/stats', StatsPage),
+     ('/page', CleanPage),
+     ('/feed', CleanFeed),
+     ('/clean', CleanPage),  # legacy
+    ],
+    debug=util.IS_DEV_APPSERVER)
+
+
 def main():
-  application = webapp.WSGIApplication(
-      [('/', MainPage),
-       ('/stats', StatsPage),
-       ('/page', CleanPage),
-       ('/feed', CleanFeed),
-       ('/clean', CleanPage),  # legacy
-      ],
-      debug=util.IS_DEV_APPSERVER)
   run_wsgi_app(application)
 
 
