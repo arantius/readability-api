@@ -135,7 +135,7 @@ ATTR_STRIP = (
     ('classid', _ReAny(r'popular')),
     ('classid', _ReAny(r'^post_(\d+_)?info')),
     ('classid', _ReAny(r'reportabuse')),
-    ('classid', _ReAny(r'share(bar|box|this)')),
+    ('classid', _ReAny(r'share(bar|box|Post|this)')),
     ('classid', _ReAny(r'signin')),
     ('classid', _ReAny(r'text ad')),
     ('classid', _ReAny(r'(controls?|tool)(box|s)(?! container)')),
@@ -145,7 +145,7 @@ ATTR_STRIP = (
     # This categories target matches category classes on _the post_ container.
     #('classid', _ReWord(r'(in)?categor(ies|y)')),
     ('classid', _ReWord(r'(left|right)?nav(igation)?(?! wrap)')),
-    ('classid', _ReWord(r'(post)?author|authdesc')),
+    ('classid', _ReWord(r'(post)?author(box)?|authdesc')),
     ('classid', _ReWord(r'ad( ?block|tag)')),
     ('classid', _ReWord(r'archive')),
     ('classid', _ReWord(r'cnn( ftrcntnt|Footer)')),
@@ -188,7 +188,7 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'feedflare')),
     ('classid', _ReWhole(r'more stories')),
     ('classid', _ReWhole(r'pag(es|ination)')),
-    ('classid', _ReWhole(r'post( date| info|ed on|edby)')),
+    ('classid', _ReWhole(r'post( date| info|ed on|edby|s)')),
     ('classid', _ReWhole(r'prevnext')),
     ('classid', _ReWhole(r'previously\d?')),  # boing boing
     ('classid', _ReWhole(r'promoColumn')),
@@ -215,6 +215,8 @@ ATTR_STRIP = (
     # Commonly indicates comments
     ('src', _ReWord(r'smilies')),
 
+    ('id', _ReWhole(r'^[a-z0-9]{37}#[0-9]{16}$')),  # Plus comments
+
     ('style', _ReAny(r'display\s*:\s*none')),
 
     # Feed tracking noise.
@@ -229,6 +231,7 @@ RE_RELATED_HEADER = re.compile(
     r'|more.*(coverage|news|resources)'
     r'|most popular'
     r'|(popular|similar) (articles?|entries|posts?|stories)'
+    r'|read more'
     r'|related'
     r'|see also'
     r'|suggested links'
