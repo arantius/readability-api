@@ -15,7 +15,7 @@ handlers:
   static_files: static/\1
   upload: static/(.*)
 
-- url: /admin.*
+- url: /_ah/admin.*
   script: google.appengine.ext.admin.application
   login: admin
   secure: always
