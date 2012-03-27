@@ -32,7 +32,8 @@ import util
 
 # If one pattern matched this many tags, consider it a false positive, and
 # subtract its points back out.
-FALSE_POSITIVE_THRESHOLD = 5
+FALSE_POSITIVE_THRESHOLD = 15
+
 
 def _ReAny(pattern):
   return re.compile(pattern, re.I)
@@ -304,7 +305,7 @@ def _IsList(tag):
   return False
 
 
-def _Score(tag, url):
+def _Score(tag, url, hit_counter):
   if tag.name == 'body': return
 
   # Point patterns.
@@ -315,6 +316,10 @@ def _Score(tag, url):
           pattern.search(tag.parent[attr]))
       if not parent_match:
         util.ApplyScore(tag, points, name=attr)
+
+      key = (points, attr, pattern.pattern)
+      hit_counter.setdefault(key, [])
+      hit_counter[key].append(tag)
 
   # Links.
   if tag.name == 'a' and tag.has_key('href') and not tag.has_key('score_href'):
@@ -440,7 +445,7 @@ def _TextLen(tag):
   return len(text)
 
 
-def Process(root_tag, url):
+def Process(root_tag, url, hit_counter=None):
   """Process an entire soup, without recursing into stripped nodes."""
   # Make a single "class and id" attribute that everything else can test.
   root_tag['classid'] = '!!!'.join([
@@ -448,7 +453,26 @@ def Process(root_tag, url):
       _SeparateWords(root_tag.get('id', '')).strip()
       ]).strip('!')
 
-  _Score(root_tag, url)
+  top_run = False
+  if hit_counter is None:
+    hit_counter = {}
+    top_run = True
+
+  _Score(root_tag, url, hit_counter)
   if _Strip(root_tag): return
   for tag in root_tag.findAll(True, recursive=False):
-    Process(tag, url)
+    Process(tag, url, hit_counter)
+
+  # Look for too-frequently-matched false-positive patterns.
+  if top_run:
+    for key, tags in hit_counter.iteritems():
+      if len(tags) >= FALSE_POSITIVE_THRESHOLD:
+        points, attr, unused_pattern = key
+        if points < 0:
+          # Only reverse false _positives_.  Negatives probably aren't false.
+          continue
+        logging.info(
+            'Undoing %d points for %d tags, with %s matching %s',
+            points, len(tags), attr, unused_pattern)
+        for tag in tags:
+          util.ApplyScore(tag, -1 * points, name=attr)
