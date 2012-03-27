@@ -285,7 +285,9 @@ def _MungeStripBrsAfterPs(root_tag):
 def _MungeStripEmpties(root_tag):
   strip_tags = (
       'a', 'center', 'div', 'li', 'ol', 'p', 'table', 'td', 'th', 'tr',
-      'span', 'ul')
+      'span', 'ul',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      )
 
   def _StripIfEmpty(tag):
     if not tag or not tag.name or tag.name not in strip_tags:
