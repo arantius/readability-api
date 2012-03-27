@@ -59,6 +59,7 @@ ATTR_POINTS = (
     (-10, 'classid', _ReWord(r'overlay')),
     (-10, 'classid', _ReWord(r'print')),
     (-10, 'classid', _ReWord(r'topics?')),
+    (-7, 'classid', _ReWhole(r'bio box')),
     (-5, 'classid', _ReAny(r'menu')),
     (-5, 'classid', _ReAny(r'social')),
     (-5, 'classid', _ReWord(r'ad')),
@@ -217,6 +218,7 @@ ATTR_STRIP = (
     ('src', _ReWord(r'smilies')),
 
     ('id', _ReWhole(r'^[a-z0-9]{37}#[0-9]{16}$')),  # Plus comments
+    ('classid', _ReWhole(r'vanilla credit|scribol')),  # comment systems
 
     ('style', _ReAny(r'display\s*:\s*none')),
 
