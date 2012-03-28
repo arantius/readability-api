@@ -176,6 +176,7 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'tag(ged|s| cloud)')),
     ('classid', _ReWord(r'talkback')),
     ('classid', _ReWord(r'wdt button')),
+    ('classid', _ReWord(r'widget')),
 
     ('classid', _ReWhole(r'ads?( main)?')),
     ('classid', _ReWhole(r'article break')),
