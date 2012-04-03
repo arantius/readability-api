@@ -47,10 +47,6 @@ def _ReWord(pattern):
   return re.compile(r'\b%s\b' % pattern, re.I)
 
 ATTR_POINTS = (
-    (-20, 'classid', _ReWord(r'delicious')),
-    (-20, 'classid', _ReWord(r'featured?')),
-    (-20, 'classid', _ReWord(r'post (details|label|meta|ratings)')),
-    (-20, 'classid', _ReWord(r'widget')),
     (-15, 'classid', _ReWhole(r'side')),
     (-15, 'classid', _ReWord(r'email')),
     (-15, 'classid', _ReWord(r'twitter')),
@@ -221,6 +217,9 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'vanilla credit|scribol')),  # comment systems
 
     ('style', _ReAny(r'display\s*:\s*none')),
+
+    # QuickMeme filler.
+    ('src', _ReAny(r'/social/qm.gif')),
 
     # Feed tracking noise.
     ('href', _ReWord(r'feedads')),
@@ -399,10 +398,6 @@ def _Strip(tag):
       util.Strip(tag)
       util.Strip(header)
       return True
-
-  if tag.has_key('score') and tag['score'] > 0:
-    # Do not strip positively-scored tags.
-    return False
 
   for attr, pattern in ATTR_STRIP:
     if not tag.has_key(attr): continue
