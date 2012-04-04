@@ -31,6 +31,7 @@ from google.appengine.api import memcache
 from google.appengine.api import urlfetch
 from google.appengine.ext.webapp import template
 
+from third_party import BeautifulSoup
 from third_party import feedparser
 
 EMBED_NAMES = set(('embed', 'object'))
@@ -39,7 +40,6 @@ MAX_SCORE_DEPTH = 5
 RE_CNN_HACK = re.compile(r'<!-- with(out)? htc -->')
 RE_DOCTYPE = re.compile(r'<!DOCTYPE.*?>', re.S)
 RE_HTML_COMMENTS = re.compile(r'<!--.*?-->', re.S)
-RE_SCRIPT_STYLE = re.compile(r'<(script|style)[^>]*>.*?</\1>\s*', re.S)
 TAG_NAMES_BLOCK = set(('blockquote', 'div', 'li', 'p', 'pre', 'td', 'th'))
 TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 
@@ -207,10 +207,13 @@ def PreCleanHtml(html):
 
   html = re.sub(RE_HTML_COMMENTS, '', html)
   html = re.sub(RE_DOCTYPE, '', html)
-  html = re.sub(RE_SCRIPT_STYLE, '', html)
   html = html.replace('&nbsp;', ' ')
 
   return html
+
+
+def PreCleanSoup(soup):
+  SwfObjectFixup(soup)
 
 
 def RenderTemplate(template_name, template_values=None):
@@ -230,6 +233,27 @@ def Strip(tag):
     tag['style'] = 'outline: 2px dotted red'
   else:
     tag.extract()
+
+
+def SwfObjectFixup(soup):
+  # SWFObject 1 style
+  script_txts = soup.findAll(
+      'script_txt', text=re.compile(r'\bnew SWFObject\b'))
+  for script_txt in script_txts:
+    m = re.search(r'new\s+SWFObject.*?\((.*)\)', str(script_txt))
+    src, name, width, height, _, bgcolor = [
+        x for _, x in re.findall(r"""(['"])(.*?)\1""", m.group(1))]
+    embed = BeautifulSoup.Tag(soup, 'embed')
+    embed['src'] = src
+    embed['name'] = name
+    embed['width'] = width
+    embed['height'] = height
+    embed['bgcolor'] = bgcolor
+    for m in re.findall(
+        r"""\.\s*addParam\s*\(\s*(['"])(.*)\1\s*,\s*(['"])(.*)\3\s*\)""",
+        str(script_txt)):
+      embed[m[1]] = m[3]
+    script_txt.parent.replaceWith(embed)
 
 
 def TagSize(tag):

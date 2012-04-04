@@ -83,6 +83,8 @@ def _ExtractFromHtmlGeneric(url, html):
     logging.exception(e)
     return soup, u''
 
+  util.PreCleanSoup(soup)
+
   title = soup.find('title')
   title = title and title.text.lower() or ''
 
