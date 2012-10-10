@@ -89,6 +89,7 @@ ATTR_POINTS = (
     (5, 'classid', _ReWord(r'primary column')),
     (5, 'classid', _ReWord(r'single')),
     (10, 'classid', _ReAny(r'^(article|kona) ?(body|copy)')),
+    (10, 'classid', _ReWhole(r'moreatboingboing')),
     (10, 'classid', _ReWhole(r'story')),
     (10, 'classid', _ReWord(r'player')),
     (10, 'classid', _ReWord(r'post(id)? ?(\d+|body|content)?')),
@@ -146,6 +147,7 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'(post)?author(box)?|authdesc')),
     ('classid', _ReWord(r'ad( ?block|tag)')),
     ('classid', _ReWord(r'archive')),
+    ('classid', _ReWord(r'byline')),
     ('classid', _ReWord(r'cnn( ftrcntnt|Footer)')),
     ('classid', _ReWord(r'cnn stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)')),
     ('classid', _ReWord(r'facebook like')),
@@ -180,7 +182,6 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'a(uthor )?info')),
     ('classid', _ReWhole(r'blippr nobr')),
     ('classid', _ReWhole(r'breadcrumb')),
-    ('classid', _ReWhole(r'byline')),
     ('classid', _ReWhole(r'catsandtags')),
     ('classid', _ReWhole(r'dont print')),
     ('classid', _ReWhole(r'feedflare')),
@@ -188,7 +189,7 @@ ATTR_STRIP = (
     ('classid', _ReWhole(r'pag(es|ination)')),
     ('classid', _ReWhole(r'post( date| info|ed on|edby|s)')),
     ('classid', _ReWhole(r'prevnext')),
-    ('classid', _ReWhole(r'previously\d?')),  # boing boing
+    ('classid', _ReWhole(r'previously\d?|moreatboingboing')),  # boing boing
     ('classid', _ReWhole(r'promoColumn')),
     ('classid', _ReWhole(r'(recent|related) posts')),
     ('classid', _ReWhole(r'respon(d|ses)')),
