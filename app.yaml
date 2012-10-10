@@ -1,4 +1,4 @@
-application: readability-api
+application: readability-api-hrd
 version: default
 runtime: python27
 api_version: 1
