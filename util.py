@@ -130,7 +130,6 @@ def CleanUrl(url):
   return url
 
 
-@Memoize('Fetch_3_%s', 60 * 15)
 def Fetch(orig_url):
   cookie = Cookie.SimpleCookie()
   redirect_limit = 10
@@ -160,6 +159,8 @@ def Fetch(orig_url):
       url = urlparse.urljoin(previous_url, url)
   final_url = urlparse.urljoin(orig_url, final_url)
   return (response, final_url)
+if not IS_DEV_APPSERVER:
+  Fetch = Memoize('Fetch_3_%s', 60 * 15)(Fetch)  # pylint: disable-msg=C6409
 
 
 def FindEmbeds(root_tag):
