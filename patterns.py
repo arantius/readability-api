@@ -210,6 +210,7 @@ ATTR_STRIP = (
     ('src', _ReAny(r'leenks\.com/webmasters')),
     ('src', _ReAny(r'reddit\.com')),
     ('src', _ReAny(r'stumbleupon\.com')),
+    ('src', _ReAny(r'1x1.trans.gif')),
 
     # Commonly indicates comments
     ('src', _ReWord(r'smilies')),
