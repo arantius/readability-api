@@ -16,6 +16,7 @@
       {{ entry.content }}
       {% endautoescape %}
     ]]></content>
+    {% for tag in entry.tags %}<category>{{ tag }}</category>{% endfor %}
   </entry>
   {% endfor %}
 </feed>

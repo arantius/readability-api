@@ -57,5 +57,6 @@ class Entry(db.Model):
   updated = db.DateTimeProperty()
   content = db.TextProperty()
   original_content = db.TextProperty()
+  tags = db.ListProperty(item_type=unicode)
 
   created = db.DateTimeProperty(auto_now_add=True)

@@ -36,7 +36,9 @@ _EMPTY_ENTRY = {
     'key': {'name': ''},
     'title': 'Processing ...',
     'link': 'about:blank',
-    'content': 'Please wait while this feed is fetched and processed.'}
+    'content': 'Please wait while this feed is fetched and processed.',
+    'tags': [],
+    }
 
 
 def _CleanEntryBase(feed_entity, entry_feedparser, content, original_content):
@@ -44,6 +46,12 @@ def _CleanEntryBase(feed_entity, entry_feedparser, content, original_content):
     updated = datetime.datetime(*entry_feedparser.updated_parsed[:6])
   except AttributeError:
     updated = datetime.datetime.now()
+
+  try:
+    tags = [c['term'] for c in entry_feedparser.tags]
+  except (AttributeError, KeyError):
+    tags = []
+
   entry_entity = models.Entry(
       key_name=_EntryId(entry_feedparser),
       feed=feed_entity,
@@ -51,7 +59,8 @@ def _CleanEntryBase(feed_entity, entry_feedparser, content, original_content):
       link=entry_feedparser.link,
       updated=updated,
       content=content,
-      original_content=original_content)
+      original_content=original_content,
+      tags=tags)
   entry_entity.put()
 
 
