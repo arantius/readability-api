@@ -21,7 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from google.appengine.ext import db
-from google.appengine.ext.blobstore import blobstore
 
 
 _MAX_ENTRIES_PER_FEED = 20
