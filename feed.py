@@ -52,11 +52,21 @@ def _CleanEntryBase(feed_entity, entry_feedparser, content, original_content):
   except (AttributeError, KeyError):
     tags = []
 
+  try:
+    title = entry_feedparser.title.replace('\n', '').replace('\r', '')
+  except AttributeError:
+    title = 'Unknown'
+
+  try:
+    link = entry_feedparser.link
+  except AttributeError:
+    link = 'Unknown'
+
   entry_entity = models.Entry(
       key_name=_EntryId(entry_feedparser),
       feed=feed_entity,
-      title=entry_feedparser.title.replace('\n', '').replace('\r', ''),
-      link=entry_feedparser.link,
+      title=title,
+      link=link,
       updated=updated,
       content=content,
       original_content=original_content,
