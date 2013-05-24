@@ -130,7 +130,7 @@ def CleanUrl(url):
   return url
 
 
-def Fetch(orig_url):
+def Fetch(orig_url, deadline=6):
   cookie = Cookie.SimpleCookie()
   redirect_limit = 10
   redirects = 0
@@ -143,7 +143,7 @@ def Fetch(orig_url):
     final_url = url
     try:
       response = urlfetch.fetch(
-          url, allow_truncated=True, follow_redirects=False, deadline=6,
+          url, allow_truncated=True, follow_redirects=False, deadline=deadline,
           headers={'Cookie': cookie.output(attrs=(), header='', sep='; ')})
     except urlfetch.DownloadError, e:
       if 'ApplicationError: 2' in str(e) and '.nyud.net' not in url:
@@ -193,7 +193,7 @@ def GetFeedEntryContent(entry):
 
 def ParseFeedAtUrl(url):
   """Fetch a URL's contents, and parse it as a feed."""
-  response, _ = Fetch(url)
+  response, _ = Fetch(url, deadline=20)
   try:
     feed_feedparser = feedparser.parse(response.content)
   except LookupError:
