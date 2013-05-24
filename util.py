@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import Cookie
+import StringIO
 import functools
 import logging
 import os
@@ -195,7 +196,7 @@ def ParseFeedAtUrl(url):
   """Fetch a URL's contents, and parse it as a feed."""
   response, _ = Fetch(url, deadline=20)
   try:
-    feed_feedparser = feedparser.parse(response.content)
+    feed_feedparser = feedparser.parse(StringIO.StringIO(response.content))
   except LookupError:
     return None
   else:
