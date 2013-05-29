@@ -192,6 +192,18 @@ def GetFeedEntryContent(entry):
   return ''
 
 
+def OEmbedFixup(soup):
+  oembed_links = soup.findAll(
+      'a', {'onclick': re.compile(r'^oEmbedManagerVideoLoader')})
+  logging.info('oembed links? %s', oembed_links)
+  for oembed_link in oembed_links:
+    cont = oembed_link.parent
+    embed = cont.find('iframe')
+    div = BeautifulSoup.Tag(soup, 'div')
+    div.insert(0, embed)
+    cont.replaceWith(div)
+
+
 def ParseFeedAtUrl(url):
   """Fetch a URL's contents, and parse it as a feed."""
   response, _ = Fetch(url, deadline=20)
@@ -216,6 +228,7 @@ def PreCleanHtml(html):
 
 def PreCleanSoup(soup):
   SwfObjectFixup(soup)
+  OEmbedFixup(soup)
 
 
 def RenderTemplate(template_name, template_values=None):
