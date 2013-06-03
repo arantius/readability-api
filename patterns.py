@@ -89,6 +89,7 @@ ATTR_POINTS = (
     (5, 'classid', _ReWord(r'primary column')),
     (5, 'classid', _ReWord(r'single')),
     (10, 'classid', _ReAny(r'^(article|kona) ?(body|copy)')),
+    (10, 'classid', _ReWhole(r'meme image holder')),
     (10, 'classid', _ReWhole(r'moreatboingboing')),
     (10, 'classid', _ReWhole(r'story')),
     (10, 'classid', _ReWord(r'player')),
