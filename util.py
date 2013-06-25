@@ -195,10 +195,15 @@ def GetFeedEntryContent(entry):
 def OEmbedFixup(soup):
   oembed_links = soup.findAll(
       'a', {'onclick': re.compile(r'^oEmbedManagerVideoLoader')})
-  logging.info('oembed links? %s', oembed_links)
   for oembed_link in oembed_links:
     cont = oembed_link.parent
     embed = cont.find('iframe')
+    if not embed:
+      ta = cont.find('textarea')
+      if not ta: return
+      s = BeautifulSoup.BeautifulSoup(ta.text)
+      embed = s.find('iframe')
+    embed['src'] = re.sub(r'\?.*', '', embed['src'])
     div = BeautifulSoup.Tag(soup, 'div')
     div.insert(0, embed)
     cont.replaceWith(div)
