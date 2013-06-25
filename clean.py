@@ -121,7 +121,7 @@ def _Clean(url):
                                                     'url': url})
     return url, html
 
-  if re.search(r'^http://www\.youtube\.com/watch', url, re.I):
+  if re.search(r'^https?://www\.youtube\.com/watch', url, re.I):
     _TrackClean('direct_youtube')
     video_id = re.search(r'v=([^&]+)', url).group(1)
     return url, util.RenderTemplate('youtube.html', {'video_id': video_id})
