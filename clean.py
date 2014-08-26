@@ -151,7 +151,7 @@ def _Clean(url):
     soup = extractor.soup
     tag = soup
     _TrackClean('feed')
-  except extract_feed.RssError, e:
+  except extract_feed.RssError as e:
     note = 'cleaned content, %s, %s' % (e.__class__.__name__, e)
     soup, tag = extract_content.ExtractFromHtml(final_url, response.content)
     _TrackClean('content')
