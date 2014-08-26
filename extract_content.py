@@ -38,13 +38,14 @@ import util
 def ExtractFromHtml(url, html):
   """Given a string of HTML, remove nasty bits, score and pick bit to keep."""
   if re.search(r'^http://(www\.)?reddit\.com/.*/comments/', url, re.I):
-    url = url.replace('reddit.com', 'reddit.com.nyud.net')
-    response, _ = util.Fetch(url)
     strainer = BeautifulSoup.SoupStrainer(
         attrs={'class': re.compile(r'thing.*link|usertext border')})
-    soup = BeautifulSoup.BeautifulSoup(response.content,
-                                       parseOnlyThese=strainer)
-    return soup, soup.find(attrs={'class': 'usertext-body'})
+    soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)
+    body = soup.find(attrs={'class': re.compile(r'\busertext-body\b')})
+    if not body:
+      body = soup.find('a', attrs={'class': re.compile(r'\btitle\b')})
+      body = body and body.text or soup
+    return soup, body
   elif re.search(r'^http://(www\.)?xkcd\.com/\d+', url, re.I):
     soup = BeautifulSoup.BeautifulSoup(html)
     img = soup.find(alt=True, title=True)
