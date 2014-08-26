@@ -145,6 +145,7 @@ def _Clean(url):
 
   note = ''
   try:
+    if 'reddit.com/' in url: raise extract_feed.RssError
     extractor = extract_feed.FeedExtractor(
         url=url, final_url=final_url, html=response.content)
     note = 'cleaned feed'
