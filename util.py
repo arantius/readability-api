@@ -142,17 +142,9 @@ def Fetch(orig_url, deadline=6):
     if IS_DEV_APPSERVER:
       logging.info('Fetching: %s', url)
     final_url = url
-    try:
-      response = urlfetch.fetch(
-          url, allow_truncated=True, follow_redirects=False, deadline=deadline,
-          headers={'Cookie': cookie.output(attrs=(), header='', sep='; ')})
-    except urlfetch.DownloadError, e:
-      if 'ApplicationError: 2' in str(e) and '.nyud.net' not in url:
-        new_url = list(urlparse.urlparse(url))
-        new_url[1] = re.sub(r'$|:.*', '.nyud.net\g<0>', new_url[1])
-        url = urlparse.urlunparse(new_url)
-        continue
-      raise
+    response = urlfetch.fetch(
+        url, allow_truncated=True, follow_redirects=False, deadline=deadline,
+        headers={'Cookie': cookie.output(attrs=(), header='', sep='; ')})
     cookie.load(response.headers.get('Set-Cookie', ''))
     previous_url = url
     url = response.headers.get('Location')
