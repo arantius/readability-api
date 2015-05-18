@@ -75,7 +75,7 @@ def DeferredRetryLimit(max_retries=3, failure_callback=None):
           except Exception, e2:
             logging.exception('failure_callback produced: %s', e2)
         else:
-          logging.error('Permanent failure, no fallback')
+          logging.exception('Permanent failure, no fallback')
     return InnerDecorator
   return Decorator
 

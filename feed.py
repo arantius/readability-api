@@ -83,6 +83,15 @@ def _CleanEntryFailure(feed_entity, entry_feedparser, exception):
 @util.DeferredRetryLimit(failure_callback=_CleanEntryFailure)
 def _CleanEntry(feed_entity, entry_feedparser):
   """Given a parsed feed entry, turn it into a cleaned entry entity."""
+  logging.info(
+      'For feed %r, cleaning entry %r ...',
+      feed_entity.key().id_or_name(),
+      getattr(entry_feedparser, 'link', 'UNKNOWN'))
+
+  if not hasattr(entry_feedparser, 'link'):
+    logging.warn('Missing link attribute!?')
+    return
+
   try:
     _CleanEntryBase(
         feed_entity, entry_feedparser,
@@ -118,6 +127,8 @@ def CreateFeed(url):
 def UpdateFeed(feed_entity, feed_feedparser=None):
   if isinstance(feed_entity, db.Key):
     feed_entity = db.get(feed_entity)
+  logging.info('Updating feed %r ...', feed_entity.key().id_or_name())
+
   if not feed_feedparser:
     feed_feedparser = util.ParseFeedAtUrl(feed_entity.url)
 
