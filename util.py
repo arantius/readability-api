@@ -145,7 +145,10 @@ def Fetch(orig_url, deadline=6):
     response = urlfetch.fetch(
         url, allow_truncated=True, follow_redirects=False, deadline=deadline,
         headers={'Cookie': cookie.output(attrs=(), header='', sep='; ')})
-    cookie.load(response.headers.get('Set-Cookie', ''))
+    try:
+      cookie.load(response.headers.get('Set-Cookie', ''))
+    except cookie.CookieError:
+      logging.exception('Ignoring cookie problem!')
     previous_url = url
     url = response.headers.get('Location')
     if url:
