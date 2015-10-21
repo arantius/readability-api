@@ -42,9 +42,9 @@ _EMPTY_ENTRY = {
 
 
 def _CleanEntryBase(feed_entity, entry_feedparser, content, original_content):
-  try:
+  if entry_feedparser.updated_parsed:
     updated = datetime.datetime(*entry_feedparser.updated_parsed[:6])
-  except AttributeError:
+  else:
     updated = datetime.datetime.now()
 
   try:
