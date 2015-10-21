@@ -40,7 +40,6 @@ IS_DEV_APPSERVER = 'Development' in os.environ.get('SERVER_SOFTWARE', '')
 MAX_SCORE_DEPTH = 5
 RE_CNN_HACK = re.compile(r'<!-- with(out)? htc -->')
 RE_DOCTYPE = re.compile(r'<!DOCTYPE.*?>', re.S)
-RE_HTML_COMMENTS = re.compile(r'<!--.*?-->', re.S)
 TAG_NAMES_BLOCK = set(('blockquote', 'div', 'li', 'p', 'pre', 'td', 'th'))
 TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 
@@ -131,6 +130,12 @@ def CleanUrl(url):
   return url
 
 
+def CommentStrip(soup):
+  comments = soup.findAll(text=lambda t: isinstance(t, BeautifulSoup.Comment))
+  for comment in comments:
+    comment.extract()
+
+
 def Fetch(orig_url, deadline=6):
   cookie = Cookie.SimpleCookie()
   redirect_limit = 10
@@ -216,10 +221,6 @@ def ParseFeedAtUrl(url):
 
 
 def PreCleanHtml(html):
-  # CNN improperly nests comments, this special-case hack removes them.
-  html = re.sub(RE_CNN_HACK, '', html)
-
-  html = re.sub(RE_HTML_COMMENTS, '', html)
   html = re.sub(RE_DOCTYPE, '', html)
   html = html.replace('&nbsp;', ' ')
 
@@ -227,6 +228,7 @@ def PreCleanHtml(html):
 
 
 def PreCleanSoup(soup):
+  CommentStrip(soup)
   SwfObjectFixup(soup)
   OEmbedFixup(soup)
 
