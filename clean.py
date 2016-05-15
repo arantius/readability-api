@@ -88,7 +88,7 @@ if not util.IS_DEV_APPSERVER:
   Clean = util.Memoize('Clean_%s', 60*60*24)(Clean)  # pylint: disable-msg=C6409
 
 
-def _Clean(url):
+def _Clean(url, response=None):
   """Clean the contents of a given URL to only the "readable part".
 
   Handle special cases like YouTube, PDF, images directly.  Delegate out to
@@ -132,12 +132,19 @@ def _Clean(url):
     _TrackClean('direct_image')
     return url, util.RenderTemplate('image.html', {'url': url})
 
-  try:
-    response, final_url = util.Fetch(url)
-  except urlfetch.DownloadError, error:
-    _TrackClean('error')
-    logging.error(error)
-    return url, u'Download error: %s' % error
+  if response is None:
+    try:
+      response, final_url = util.Fetch(url)
+    except urlfetch.DownloadError, error:
+      _TrackClean('error')
+      logging.error(error)
+      return url, u'Download error: %s' % error
+
+    # Handle redirects to special pages.
+    if final_url != url:
+      return _Clean(final_url, response)
+  else:
+    final_url = url
 
   if 'application/pdf' == response.headers.get('content-type', None):
     _TrackClean('direct_pdf')
