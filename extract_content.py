@@ -144,7 +144,9 @@ def _StripBefore(strip_tag):
     if tag in ancestors:
       # Don't strip the tags that contain the strip_tag.
       continue
+    logging.info('Strip for being before title el: %s', util.SoupTagOnly(tag))
     util.Strip(tag)
+  logging.info('Strip for being title el: %s', util.SoupTagOnly(tag))
   util.Strip(strip_tag)
 
 

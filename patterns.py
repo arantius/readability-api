@@ -93,7 +93,7 @@ ATTR_POINTS = (
     (10, 'classid', _ReWhole(r'moreatboingboing')),
     (10, 'classid', _ReWhole(r'story')),
     (10, 'classid', _ReWord(r'(player|video)')),
-    (10, 'classid', _ReWord(r'post(id)? ?(\d+|body|content)?')),
+    (10, 'classid', _ReWord(r'post(id)?[- ]?(\d+|body|content)?')),
     (10, 'classid', _ReWord(r'snap preview')),
     (10, 'classid', _ReWord(r'(?<!ad )wide')),
     (10, 'classid', _ReWhole(r'meat')),
@@ -128,7 +128,7 @@ ATTR_STRIP = (
     # any '^topic' broke cracked.com
     ('classid', _ReAny(r'adsense')),
     ('classid', _ReAny(r'add(this|toany)')),
-    ('classid', _ReAny(r'comment')),
+    ('classid', _ReWord(r'comment')),
     ('classid', _ReAny(r'disqus')),
     ('classid', _ReAny(r'functions')),
     ('classid', _ReAny(r'popular')),
