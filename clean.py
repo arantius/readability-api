@@ -146,9 +146,13 @@ def _Clean(url, response=None):
   else:
     final_url = url
 
-  if 'application/pdf' == response.headers.get('content-type', None):
+  content_type = response.headers.get('content-type', None)
+  if 'application/pdf' == content_type:
     _TrackClean('direct_pdf')
     return url, util.RenderTemplate('pdf.html', {'url': url})
+  elif content_type.startswith('image/'):
+    _TrackClean('direct_image')
+    return url, util.RenderTemplate('image.html', {'url': url})
 
   note = ''
   try:
