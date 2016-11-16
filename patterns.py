@@ -156,7 +156,6 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'horizontal posts')),  # mashable
     ('classid', _ReWord(r'icons')),
     ('classid', _ReWord(r'ilikethis')),
-    ('classid', _ReWord(r'inset')),
     ('classid', _ReWord(r'logo')),
     ('classid', _ReWord(r'metavalue')),
     ('classid', _ReWord(r'more articles')),
