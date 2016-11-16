@@ -285,13 +285,9 @@ def _MungeStripAttrs(root_tag):
 
 def _MungeStripBrsAfterPs(root_tag):
   for tag in root_tag.findAll('p'):
-    while True:
-      next_tag = tag.findNextSibling()
-      if not next_tag: break
-      if next_tag.name == 'br':
-        util.Strip(next_tag)
-      else:
-        break
+    next_tag = tag.findNextSibling()
+    if next_tag and next_tag.name == 'br':
+      util.Strip(next_tag)
 
 
 def _MungeStripEmpties(root_tag):
