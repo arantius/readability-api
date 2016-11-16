@@ -312,6 +312,11 @@ def _IsList(tag):
 def _Score(tag, url, hit_counter):
   if tag.name == 'body': return
 
+  if tag.name == 'article':
+    util.ApplyScore(tag, 10, name='article_tag')
+  elif tag.name == 'section':
+    util.ApplyScore(tag, 1, name='section_tag')
+
   # Point patterns.
   for points, attr, pattern in ATTR_POINTS:
     if not tag.has_key(attr): continue
