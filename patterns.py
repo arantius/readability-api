@@ -152,7 +152,7 @@ ATTR_STRIP = (
     ('classid', _ReWord(r'cnn stry(btmcntnt|btntoolsbottom|cbftrtxt|lctcqrelt)')),
     ('classid', _ReWord(r'facebook like')),
     ('classid', _ReWord(r'(?<!non )foot(er)?(feature)?')),
-    ('classid', _ReWord(r'hid(den|e)')),
+    ('classid', _ReWord(r'(?<!overflow )hid(den|e)')),
     ('classid', _ReWord(r'horizontal posts')),  # mashable
     ('classid', _ReWord(r'icons')),
     ('classid', _ReWord(r'ilikethis')),
