@@ -46,6 +46,12 @@ def ExtractFromHtml(url, html):
       body = soup.find('a', attrs={'class': re.compile(r'\btitle\b')})
       body = body and body.text or soup
     return soup, body
+  elif re.search(r'^https://gfycat.com/[a-zA-Z]+$', url, re.I):
+    soup = BeautifulSoup.BeautifulSoup(html)
+    vid = soup.find('video')
+    del vid['autoplay']
+    vid['controls'] = 'controls'
+    return soup, vid
   elif re.search(r'^http://(www\.)?xkcd\.com/\d+', url, re.I):
     soup = BeautifulSoup.BeautifulSoup(html)
     img = soup.find(alt=True, title=True)
