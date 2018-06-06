@@ -63,15 +63,6 @@ def ExtractFromHtml(url, html):
     strainer = BeautifulSoup.SoupStrainer(attrs={'class': 'maincontbox'})
     soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)
     return _ExtractFromHtmlGeneric(url, unicode(soup))
-  elif re.search(r'^http://(www\.)?nytimes\.com/', url, re.I):
-    soup = BeautifulSoup.BeautifulSoup(html)
-    bodies = soup.findAll(attrs={'class': 'articleBody'})
-    if bodies:
-      # Put the first "article body" contents into the second -- for some
-      # reason NYT splits the lead-in text into its own "body".
-      while bodies[0].contents:
-        bodies[1].insert(0, bodies[0].contents[-1])
-    return _ExtractFromHtmlGeneric(url, unicode(soup))
   elif re.search(r'\.txt(\?|$)', url, re.I):
     soup = BeautifulSoup.BeautifulSoup()
     pre = BeautifulSoup.Tag(soup, 'pre')
