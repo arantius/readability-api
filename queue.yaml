@@ -1,7 +1,0 @@
-queue:
-- name: default
-  rate: 1/s
-- name: fetch
-  rate: 1/s
-- name: update
-  rate: 1/s

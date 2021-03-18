@@ -1,3 +1,0 @@
-* Detect and strip wordpress style tags (<p>Tags: <a href=".../tag/...">...).
-* Encode <object>/<embed> so that Google Reader does not strip them.
-* Handle <base href=""> tags.
