@@ -25,12 +25,10 @@ import datetime
 import hashlib
 import logging
 
-from google.appengine.ext import db
-from google.appengine.ext import deferred
-
 import clean
 import models
 import util
+
 
 _EMPTY_ENTRY = {
     'key': {'name': ''},
@@ -80,7 +78,7 @@ def _CleanEntryFailure(feed_entity, entry_feedparser, exception):
                   original_content='')
 
 
-@util.DeferredRetryLimit(failure_callback=_CleanEntryFailure)
+# TODO: Retry somehow.
 def _CleanEntry(feed_entity, entry_feedparser):
   """Given a parsed feed entry, turn it into a cleaned entry entity."""
   logging.info(
@@ -123,7 +121,6 @@ def CreateFeed(url):
   return feed_entity
 
 
-@util.DeferredRetryLimit()
 def UpdateFeed(feed_entity, feed_feedparser=None):
   if isinstance(feed_entity, db.Key):
     feed_entity = db.get(feed_entity)
@@ -140,9 +137,11 @@ def UpdateFeed(feed_entity, feed_feedparser=None):
   delay = 0
   for entry_feedparser in feed_feedparser.entries:
     if _EntryId(entry_feedparser) not in existing_keys:
-      deferred.defer(_CleanEntry, feed_entity, entry_feedparser,
-                     _countdown=delay, _queue='fetch')
-      delay += 3
+      #deferred.defer(_CleanEntry, feed_entity, entry_feedparser,
+      #               _countdown=delay, _queue='fetch')
+      #delay += 3
+      # TODO: enqueue somehow
+      return
 
   feed_entity.last_fetch_time = datetime.datetime.now()
   feed_entity.put()

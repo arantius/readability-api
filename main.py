@@ -1,8 +1,5 @@
 #!/usr/bin/env python
-"""App Engine request handler for Readability API project.
-
---------------------------------------------------------------------------------
-
+"""
 Readability API - Clean up pages and feeds to be readable.
 Copyright (C) 2010  Anthony Lieuallen
 
@@ -20,21 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# First, munge sys.path to put us first!
-import sys
-for i, path in enumerate(sys.path):
-  if 'readability-api' in path:
-    del sys.path[i]
-    sys.path.insert(0, path)
-
-
-from email import utils as email_utils  # pylint: disable-msg=E0611,C6202,C6204
+import email.utils
 import re
 import time
 
-from google.appengine.api import memcache
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp.util import run_wsgi_app
+from django import http
+from django import template
 
 import clean
 import feed
@@ -42,81 +30,42 @@ import models
 import util
 
 
-class MainPage(webapp.RequestHandler):
-  request = None
-  response = None
-
-  def get(self):
-    self.response.headers['Content-Type'] = 'text/html'
-    self.response.out.write(util.RenderTemplate('main.html'))
+def Main(request):
+  tpl = loader.get_template('main.html')
+  return http.HttpResponse(tpl.render({}, request))
 
 
-class CleanPage(webapp.RequestHandler):
-  request = None
-  response = None
+def CleanPage(request):
+  url = request.GET.get('url')
 
-  def get(self):
-    url = self.request.get('url') or self.request.get('link')
+  if url:
+    output = clean.Clean(url)
+  else:
+    output = 'Provide "url" parameter!'
+    response['Content-Type'] = 'text/plain; charset=UTF-8'
 
-    if url:
-      output = clean.Clean(url)
-    else:
-      output = 'Provide "url" parameter!'
-
-    self.response.headers['Content-Type'] = 'text/html; charset=UTF-8'
-    self.response.headers['Cache-Control'] = 'max-age=3600'
-    self.response.headers['Expires'] = email_utils.formatdate(
-        timeval=time.time() + 3600, usegmt=True)
-    self.response.out.write(output)
+  response = http.HttpResponse(output)
+  response['Content-Type'] = 'text/html; charset=UTF-8'
+  response['Cache-Control'] = 'max-age=3600'
+  response['Expires'] = email.utils.formatdate(
+      timeval=time.time() + 3600, usegmt=True)
+  return response
 
 
-class CleanFeed(webapp.RequestHandler):
-  request = None
-  response = None
+def CleanFeed(request):
+  url = request.GET.get('url')
+  include_original = request.GET.get('include', None) == 'True'
 
-  def get(self):
-    url = self.request.get('url') or self.request.get('link')
-    include_original = self.request.get('include', None) == 'True'
+  if not url:
+    response = http.HttpResponse('Provide "url" parameter!')
+    response['Content-Type'] = 'text/plain; charset=UTF-8'
+    return response
 
-    if not url:
-      self.response.headers['Content-Type'] = 'text/plain; charset=UTF-8'
-      self.response.out.write('Provide "url" parameter!')
-      return
-    else:
-      url = re.sub(r'\?at=[^?&]+', '', url)
-
-    feed_entity = models.Feed.get_by_key_name(url)
-    if not feed_entity:
-      feed_entity = feed.CreateFeed(url)
-    self.response.headers['Content-Type'] = 'application/atom+xml; charset=UTF-8'
-    self.response.out.write(feed.PrintFeed(feed_entity, include_original))
-
-
-class StatsPage(webapp.RequestHandler):
-  request = None
-  response = None
-
-  def get(self):
-    types = ('direct_google_docs', 'direct_youtube',
-             'direct_pdf', 'direct_image', 'error', 'feed', 'content')
-    stats = [(type, memcache.get('cleaned_%s' % type)) for type in types]
-    self.response.headers['Content-Type'] = 'text/html'
-    self.response.out.write(util.RenderTemplate('stats.html', {'stats': stats}))
-
-
-application = webapp.WSGIApplication(
-    [('/', MainPage),
-     ('/stats', StatsPage),
-     ('/page', CleanPage),
-     ('/feed', CleanFeed),
-     ('/clean', CleanPage),  # legacy
-    ],
-    debug=util.IS_DEV_APPSERVER)
-
-
-def main():
-  run_wsgi_app(application)
-
-
-if __name__ == '__main__':
-  main()
+  url = re.sub(r'\?at=[^?&]+', '', url)
+  feed_entity = models.Feed.get_by_key_name(url)
+  if not feed_entity:
+    feed_entity = feed.CreateFeed(url)
+  response = http.HttpResponse(
+      feed.PrintFeed(feed_entity, include_original))
+  response['Content-Type'] = 'application/atom+xml; charset=UTF-8'
+  return response

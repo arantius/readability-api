@@ -9,7 +9,8 @@ try:
     timeoutsocket.setDefaultSocketTimeout(10)
 except ImportError:
     pass
-import urllib, urlparse
+
+import urllib.request, urllib.parse, urllib.error, urllib.parse
 from sgmllib import SGMLParser
 
 BUFFERSIZE = 1024
@@ -18,7 +19,7 @@ class LinkParser(SGMLParser):
     def reset(self):
         SGMLParser.reset(self)
         self.href = ''
-        
+
     def do_link(self, attrs):
         if not ('rel', 'alternate') in attrs: return
         if ((not ('type', 'application/rss+xml') in attrs)
@@ -27,7 +28,7 @@ class LinkParser(SGMLParser):
         if hreflist:
             self.href = hreflist[0]
         self.setnomoretags()
-    
+
     def end_head(self, attrs):
         self.setnomoretags()
     start_body = end_head
@@ -39,10 +40,10 @@ def getRSSLinkFromHTMLSource(htmlSource):
         return parser.href
     except:
         return ''
-    
+
 def getRSSLink(url):
     try:
-        usock = urllib.urlopen(url)
+        usock = urllib.request.urlopen(url)
         parser = LinkParser()
         while 1:
             buffer = usock.read(BUFFERSIZE)
@@ -50,11 +51,10 @@ def getRSSLink(url):
             if parser.nomoretags: break
             if len(buffer) < BUFFERSIZE: break
         usock.close()
-        return urlparse.urljoin(url, parser.href)
+        return urllib.parse.urljoin(url, parser.href)
     except:
         return ''
 
 if __name__ == '__main__':
     import sys
-    print getRSSLink(sys.argv[1])
-    
+    print(getRSSLink(sys.argv[1]))

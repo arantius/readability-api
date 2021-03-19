@@ -24,12 +24,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import HTMLParser
+import html.parser
 import logging
 import re
 import sys
 
-from third_party import BeautifulSoup
+from bs4 import BeautifulSoup
 
 import patterns
 import util
@@ -62,7 +62,7 @@ def ExtractFromHtml(url, html):
   elif re.search(r'^http://groups\.google\.com/', url, re.I):
     strainer = BeautifulSoup.SoupStrainer(attrs={'class': 'maincontbox'})
     soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)
-    return _ExtractFromHtmlGeneric(url, unicode(soup))
+    return _ExtractFromHtmlGeneric(url, str(soup))
   elif re.search(r'\.txt(\?|$)', url, re.I):
     soup = BeautifulSoup.BeautifulSoup()
     pre = BeautifulSoup.Tag(soup, 'pre')
@@ -77,9 +77,9 @@ def _ExtractFromHtmlGeneric(url, html):
   html = util.PreCleanHtml(html)
   try:
     soup = BeautifulSoup.BeautifulSoup(html)
-  except HTMLParser.HTMLParseError, e:
+  except html.parser.HTMLParseError as e:
     logging.exception(e)
-    return soup, u''
+    return soup, ''
 
   util.PreCleanSoup(soup)
 
@@ -101,7 +101,7 @@ def _ExtractFromHtmlGeneric(url, html):
   scored_nodes = sorted(soup.findAll(attrs={'score': True}),
                         key=lambda x: x['score'])[-15:]
   if not scored_nodes:
-    return soup, u'<p>Scoring error.</p>'
+    return soup, '<p>Scoring error.</p>'
   best_node = scored_nodes[-1]
 
   _TransformDivsToPs(best_node)
@@ -164,7 +164,7 @@ def _TransformBrsToParagraphsInner(soup, tag):
       else:
         return
     elif isinstance(next_tag, BeautifulSoup.NavigableString):
-      if not unicode(next_tag).strip():
+      if not str(next_tag).strip():
         continue
       else:
         return
@@ -192,4 +192,4 @@ def _TransformDivsToPs(root_tag):
 
 if __name__ == '__main__':
   # For debugging, assume file on command line.
-  print ExtractFromHtml('http://www.example.com', open(sys.argv[1]).read())
+  print(ExtractFromHtml('http://www.example.com', open(sys.argv[1]).read()))

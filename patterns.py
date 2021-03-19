@@ -25,8 +25,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import re
-import urllib
-import urlparse
+import urllib.error
+import urllib.parse
+import urllib.request
 
 import util
 
@@ -279,7 +280,7 @@ def _FindPreviousHeader(tag):
 
   # First, try the immediately previous sibling node, skipping breaks.
   header = tag.findPreviousSibling(lambda tag: tag.name not in ('br', 'hr'))
-  if header: return (header, header.getText(separator=u' '))
+  if header: return (header, header.getText(separator=' '))
 
   # Otherwise, look for text just before this tag.
   header = tag.findPreviousSiblings(text=True)
@@ -300,7 +301,7 @@ def _IsList(tag):
   if tag.name == 'ul': return True
   if tag.name == 'ol': return True
   if 'blockquote' == tag.name:
-    if re.search(r'(<br.*?> - .*){2,}', unicode(tag)):
+    if re.search(r'(<br.*?> - .*){2,}', str(tag)):
       return True
   if 'center' == tag.name:
     tags_links = tag.findAll(name='a', recursive=False)
@@ -319,9 +320,9 @@ def _Score(tag, url, hit_counter):
 
   # Point patterns.
   for points, attr, pattern in ATTR_POINTS:
-    if not tag.has_key(attr): continue
+    if attr not in tag: continue
     if pattern.search(tag[attr]):
-      parent_match = tag.parent and tag.parent.has_key(attr) and (
+      parent_match = tag.parent and attr in tag.parent and (
           pattern.search(tag.parent[attr]))
       if not parent_match:
         util.ApplyScore(tag, points, name=attr)
@@ -331,15 +332,15 @@ def _Score(tag, url, hit_counter):
       hit_counter[key].append(tag)
 
   # Links.
-  if tag.name == 'a' and tag.has_key('href') and not tag.has_key('score_href'):
-    that_url = urlparse.urljoin(url, tag['href'])
-    if url == that_url or url == urllib.unquote(tag['href']):
+  if tag.name == 'a' and 'href' in tag and 'score_href' not in tag:
+    that_url = urllib.parse.urljoin(url, tag['href'])
+    if url == that_url or url == urllib.parse.unquote(tag['href']):
       # Special case: score down AND strip links to this page.  (Including
       # "social media" links.)
       util.ApplyScore(tag, -1.5, name='self_link')
       util.Strip(tag)
     # TODO: host name -> domain name
-    elif urlparse.urlparse(url)[1] != urlparse.urlparse(that_url)[1]:
+    elif urllib.parse.urlparse(url)[1] != urllib.parse.urlparse(that_url)[1]:
       # Score up links to _other_ domains.
       util.ApplyScore(tag, 1.0, name='out_link')
 
@@ -351,7 +352,7 @@ def _Score(tag, url, hit_counter):
     if text_len == 0:
       anchor = tag.find('a')
       img = tag.find('img')
-      if anchor and not anchor.has_key('score_out_link') and not img:
+      if anchor and 'score_out_link' not in anchor and not img:
         util.ApplyScore(tag, -2, name='only_anchor')
     else:
       if text_len < 20:
@@ -364,7 +365,7 @@ def _Score(tag, url, hit_counter):
   # Images.
   if tag.name == 'img':
     util.ApplyScore(tag, 1.5, name='any_img')
-    if tag.has_key('alt') and len(tag['alt']) > 50:
+    if 'alt' in tag and len(tag['alt']) > 50:
       util.ApplyScore(tag, 2, name='img_alt')
 
     size = _TagSize(tag)
@@ -378,7 +379,7 @@ def _Score(tag, url, hit_counter):
 
   # Embeds.
   if tag.name in util.EMBED_NAMES or (
-      tag.name == 'iframe' and tag.has_key('src') and (
+      tag.name == 'iframe' and 'src' in tag and (
           'youtube.com' in tag['src']
           or 'youtube-nocookie.com' in tag['src']
           or 'vimeo.com' in tag['src']
@@ -396,7 +397,7 @@ def _Strip(tag):
     if tag.name == 'form':
       if 'aspnetForm' in [attr[1] for attr in tag.attrs]: return False
       if tag.find('input', id='__VIEWSTATE'): return False
-    if tag.name == 'iframe' and tag.has_key('score_has_embed'):
+    if tag.name == 'iframe' and 'score_has_embed' in tag:
       return False
     util.Strip(tag)
     return True
@@ -411,7 +412,7 @@ def _Strip(tag):
       return True
 
   for attr, pattern in ATTR_STRIP:
-    if not tag.has_key(attr): continue
+    if attr not in tag: continue
     if pattern.search(tag[attr]):
       if util.IS_DEV_APPSERVER:
         logging.info('Strip for %s: %s', attr, util.SoupTagOnly(tag))
@@ -445,7 +446,7 @@ def _TagSize(tag):
 def _TextLen(tag):
   """Length of this tag's text, without <a> nodes."""
   text_nodes = tag.findAll(text=True)
-  text = [unicode(x).strip() for x in text_nodes
+  text = [str(x).strip() for x in text_nodes
           if not x.findParent('a') and not x.findParent('script')]
   text = ''.join(text)
   text = re.sub(r'[ \t]+', ' ', text)
@@ -473,7 +474,7 @@ def Process(root_tag, url, hit_counter=None):
 
   # Look for too-frequently-matched false-positive patterns.
   if top_run:
-    for key, tags in hit_counter.iteritems():
+    for key, tags in hit_counter.items():
       if len(tags) >= FALSE_POSITIVE_THRESHOLD:
         points, attr, unused_pattern = key
         if points < 0:

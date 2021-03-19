@@ -28,17 +28,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import base64
 import logging
 import re
-import urlparse
+import urllib.parse
 
-from third_party import BeautifulSoup
-from third_party import hyphenate
-
-from google.appengine.api import memcache
-from google.appengine.api import urlfetch
+from bs4 import BeautifulSoup
+import hyphenate
+import requests
 
 import extract_content
 import extract_feed
+import settings
 import util
+
 
 _MAX_URL_DISPLAY_LEN = 60
 
@@ -64,28 +64,22 @@ STRIP_ATTRS = {
     'onsubmit': True,
     'onunload': True,
     }
-if not util.IS_DEV_APPSERVER:
+if not settings.DEBUG:
   STRIP_ATTRS.update({
-      'class': util.IS_DEV_APPSERVER,
-      'id': util.IS_DEV_APPSERVER,
+      'class': settings.DEBUG,
+      'id': settings.DEBUG,
       'classid': True,
-      'score': util.IS_DEV_APPSERVER,
+      'score': settings.DEBUG,
       })
-
-
-def _TrackClean(doc_type):
-  memcache.incr('cleaned_%s' % doc_type, initial_value=0)
 
 
 def Clean(url):
   url, html = _Clean(url)
   truncate_url = url
   if len(url) > _MAX_URL_DISPLAY_LEN:
-    truncate_url = url[0:60] + u'…'
-  return u"Content extracted from: <a href='%s'>%s</a><hr>\n%s" % (
+    truncate_url = url[0:60] + '…'
+  return "Content extracted from: <a href='%s'>%s</a><hr>\n%s" % (
       url, truncate_url, html)
-if not util.IS_DEV_APPSERVER:
-  Clean = util.Memoize('Clean_%s', 60*60*24)(Clean)  # pylint: disable-msg=C6409
 
 
 def _Clean(url, response=None):
@@ -107,8 +101,8 @@ def _Clean(url, response=None):
   # And strip common tracking noise.
   url = re.sub(r'[?&]utm_[^&]+', '', url)
 
-  match = re.search(r'^https?://docs.google.com.*cache:.*?:(.*?\.pdf)',
-                    url, re.I)
+  match = re.search(
+      r'^https?://docs.google.com.*cache:.*?:(.*?\.pdf)', url, re.I)
   if match:
     url = match.group(1)
     if 'http' not in url:
@@ -116,29 +110,24 @@ def _Clean(url, response=None):
 
   match = re.search(r'^https?://docs.google.com.*docid=(.*?)(&|$)', url, re.I)
   if match:
-    _TrackClean('direct_google_docs')
-    html = util.RenderTemplate('google-docs.html', {'docid': match.group(1),
-                                                    'url': url})
+    html = util.RenderTemplate(
+        'google-docs.html', {'docid': match.group(1), 'url': url})
     return url, html
 
   if re.search(r'^https?://www\.youtube\.com/watch', url, re.I):
-    _TrackClean('direct_youtube')
     video_id = re.search(r'v=([^&]+)', url).group(1)
     return url, util.RenderTemplate('youtube.html', {'video_id': video_id})
   elif re.search(r'\.pdf(\?|$)', url, re.I):
-    _TrackClean('direct_pdf')
     return url, util.RenderTemplate('pdf.html', {'url': url})
   elif re.search(r'\.(gif|jpe?g|png)(\?|$)', url, re.I):
-    _TrackClean('direct_image')
     return url, util.RenderTemplate('image.html', {'url': url})
 
   if response is None:
     try:
       response, final_url = util.Fetch(url)
-    except urlfetch.DownloadError, error:
-      _TrackClean('error')
+    except requests.exceptions.RequestException as e:
       logging.error(error)
-      return url, u'Download error: %s' % error
+      return url, 'Download error at %s : %s' % (url, e)
 
     # Handle redirects to special pages.
     if final_url != url:
@@ -148,10 +137,8 @@ def _Clean(url, response=None):
 
   content_type = response.headers.get('content-type', None)
   if 'application/pdf' == content_type:
-    _TrackClean('direct_pdf')
     return url, util.RenderTemplate('pdf.html', {'url': url})
   elif content_type.startswith('image/'):
-    _TrackClean('direct_image')
     return url, util.RenderTemplate('image.html', {'url': url})
 
   note = ''
@@ -162,30 +149,28 @@ def _Clean(url, response=None):
     note = 'cleaned feed'
     soup = extractor.soup
     tag = soup
-    _TrackClean('feed')
   except extract_feed.RssError as e:
     note = 'cleaned content, %s, %s' % (e.__class__.__name__, e)
     soup, tag = extract_content.ExtractFromHtml(final_url, response.content)
-    _TrackClean('content')
 
-  if util.IS_DEV_APPSERVER:
+  if settings.DEBUG:
     logging.info(note)
   return final_url, _Munge(soup, tag, final_url)
 
 
 def _FixUrls(parent, base_url):
   def _FixUrl(tag, attr):
-    tag[attr] = urlparse.urljoin(base_url, tag[attr].strip())
+    tag[attr] = urllib.parse.urljoin(base_url, tag[attr].strip())
 
   # pylint: disable-msg=C6405
   for tag in parent.findAll(href=True): _FixUrl(tag, 'href')
-  if parent.has_key('href'): _FixUrl(parent, 'href')
+  if 'href' in parent: _FixUrl(parent, 'href')
 
   for tag in parent.findAll(src=True): _FixUrl(tag, 'src')
-  if parent.has_key('src'): _FixUrl(parent, 'src')
+  if 'src' in parent: _FixUrl(parent, 'src')
 
   for tag in parent.findAll('object', data=True): _FixUrl(tag, 'data')
-  if parent.name == 'object' and parent.has_key('data'): _FixUrl(parent, 'data')
+  if parent.name == 'object' and 'data' in parent: _FixUrl(parent, 'data')
 
   for tag in parent.findAll('param', attrs={'name': 'movie', 'value': True}):
     _FixUrl(tag, 'value')
@@ -196,7 +181,7 @@ def _FixUrls(parent, base_url):
 def _Munge(soup, tag, url):
   """Given a string of HTML content, munge it to be more pleasing."""
   # In certain failure cases, we'll still get a string.  Just use it.
-  if isinstance(tag, basestring):
+  if isinstance(tag, str):
     return tag
 
   _MungeStripSiteSpecific(tag, url)
@@ -222,7 +207,7 @@ def _Munge(soup, tag, url):
     tag = wrap
   tag['style'] = 'text-align: justify;'
 
-  return unicode(tag)
+  return str(tag)
 
 
 def _MungeHyphenate(root_tag):
@@ -240,7 +225,7 @@ def _MungeHyphenate(root_tag):
         words = re.split(r'\s+', text_part)
         # ­ is a unicode soft hyphen here -- only two UTF-8 bytes, and
         # it doesn't clutter up the source view!
-        words = [u'­'.join(hyphenate.hyphenate_word(word))
+        words = ['­'.join(hyphenate.hyphenate_word(word))
                  for word in words]
         new_text.append(' '.join(words))
     text.replaceWith(BeautifulSoup.NavigableString(''.join(new_text)))
@@ -256,16 +241,16 @@ def _MungeImages(root_tag):
   #  * If they have a style or class that implies floating, apply alignment.
   #  * If they are at the beginning of a paragraph, with text, apply alignment.
   for img in root_tag.findAll('img'):
-    if img.has_key('align'):
+    if 'align' in img:
       continue
 
-    if img.has_key('style'):
+    if 'style' in img:
       match = RE_ALIGNED.search(img['style'])
       if match:
         img['align'] = match.group(1)
         continue
 
-    if img.has_key('class'):
+    if 'class' in img:
       match = RE_ALIGNED.search(img['class'])
       if match:
         img['align'] = match.group(1)
@@ -352,7 +337,7 @@ def _MungeTransformEmbeds(soup, root_tag):
       h = 400
     link = BeautifulSoup.Tag(soup, 'a')
     link['href'] = 'data:text/html;base64,' + base64.b64encode(
-        '<body style="margin:0;">%s</body>' % unicode(tag))
+        '<body style="margin:0;">%s</body>' % str(tag))
     link['rel'] = 'embedded_media'
     link['embed_width'] = w
     link['embed_height'] = h

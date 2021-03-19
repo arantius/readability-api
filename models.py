@@ -20,17 +20,21 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from google.appengine.ext import db
+from django.db import models
 
 
 _MAX_ENTRIES_PER_FEED = 20
 
-class Feed(db.Model):
-  url = db.StringProperty(required=True)
-  title = db.StringProperty(required=True)
-  link = db.StringProperty(required=True)
 
-  last_fetch_time = db.DateTimeProperty()
+class Feed(models.Model):
+  class Meta:
+    app_label = 'readability'
+
+  url = models.CharField(blank=False, default=None)
+  title = models.CharField(blank=False, default=None)
+  link = models.CharField(blank=False, default=None)
+
+  last_fetch_time = models.DateTimeField()
 
   @property
   def entries(self):
@@ -50,13 +54,16 @@ class Feed(db.Model):
       return None
 
 
-class Entry(db.Model):
-  feed = db.ReferenceProperty(Feed)
-  title = db.StringProperty(required=True)
-  link = db.TextProperty(required=True)
-  updated = db.DateTimeProperty()
-  content = db.TextProperty()
-  original_content = db.TextProperty()
-  tags = db.ListProperty(item_type=unicode)
+class Entry(models.Model):
+  class Meta:
+    app_label = 'readability'
 
-  created = db.DateTimeProperty(auto_now_add=True)
+  feed = models.ForeignKey(Feed, on_delete=models.CASCADE)
+  title = models.CharField(blank=False, default=None)
+  link = models.TextField(blank=False, default=None)
+  updated = models.DateTimeField()
+  content = models.TextField()
+  original_content = models.TextField()
+  #tags = db.ListProperty(item_type=str)
+
+  created = models.DateTimeField(auto_now_add=True)

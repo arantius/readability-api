@@ -38,9 +38,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import re
-import urlparse
+import urllib.parse
 
-from third_party import BeautifulSoup
+from bs4 import BeautifulSoup
 from third_party import autorss
 
 import patterns
@@ -126,7 +126,7 @@ class FeedExtractor(object):
     rss_link = autorss.getRSSLinkFromHTMLSource(self.html)
     if not rss_link:
       raise NoRssError('no feed link')
-    return urlparse.urljoin(self.url, rss_link)
+    return urllib.parse.urljoin(self.url, rss_link)
 
   def _FindEntry(self):
     """Find the entry in the feed, if any, which matches this url."""
