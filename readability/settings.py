@@ -1,3 +1,4 @@
+import datetime
 import os
 from pathlib import Path
 
@@ -34,3 +35,10 @@ TEMPLATES = [{
 }]
 
 WSGI_APPLICATION = 'wsgi.application'
+
+
+import requests_cache
+requests_cache.install_cache(
+    backend=requests_cache.backends.sqlite.DbCache(
+        location=str(BASE_DIR / 'db'), extension=''),
+    expire_after=datetime.timedelta(hours=23))

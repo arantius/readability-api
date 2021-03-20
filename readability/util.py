@@ -30,7 +30,6 @@ import urllib.parse
 
 from django import template
 import requests
-import requests_cache
 
 import bs4
 import feedparser
@@ -47,10 +46,6 @@ TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 BR_TO_P_STOP_TAGS = set(list(TAG_NAMES_BLOCK) + list(TAG_NAMES_HEADER) + ['br'])
 
 _DEPTH_SCORE_DECAY = [(1 - d / 12.0) ** 5 for d in range(MAX_SCORE_DEPTH + 1)]
-
-################################################################################
-
-# TODO: install requests_cache
 
 ################################## DECORATORS ##################################
 
