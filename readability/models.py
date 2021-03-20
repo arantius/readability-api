@@ -30,9 +30,9 @@ class Feed(models.Model):
   class Meta:
     app_label = 'readability'
 
-  url = models.CharField(blank=False, default=None)
-  title = models.CharField(blank=False, default=None)
-  link = models.CharField(blank=False, default=None)
+  url = models.TextField(blank=False, default=None)
+  title = models.TextField(blank=False, default=None)
+  link = models.TextField(blank=False, default=None)
 
   last_fetch_time = models.DateTimeField()
 
@@ -59,10 +59,10 @@ class Entry(models.Model):
     app_label = 'readability'
 
   feed = models.ForeignKey(Feed, on_delete=models.CASCADE)
-  title = models.CharField(blank=False, default=None)
+  title = models.TextField(blank=False, default=None)
   link = models.TextField(blank=False, default=None)
-  updated = models.DateTimeField()
-  content = models.TextField()
+  updated = models.DateTimeField(auto_now=True)
+  content = models.TextField(blank=False, default=None)
   original_content = models.TextField()
   #tags = db.ListProperty(item_type=str)
 

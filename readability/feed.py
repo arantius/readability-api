@@ -25,9 +25,9 @@ import datetime
 import hashlib
 import logging
 
-import clean
-import models
-import util
+from readability import clean
+from readability import models
+from readability import util
 
 
 _EMPTY_ENTRY = {

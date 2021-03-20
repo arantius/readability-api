@@ -34,10 +34,10 @@ from bs4 import BeautifulSoup
 import hyphenate
 import requests
 
-import extract_content
-import extract_feed
-import settings
-import util
+from readability import extract_content
+from readability import extract_feed
+from readability import settings
+from readability import util
 
 
 _MAX_URL_DISPLAY_LEN = 60

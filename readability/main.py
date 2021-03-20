@@ -23,15 +23,16 @@ import time
 
 from django import http
 from django import template
+from django.template import loader
 
-import clean
-import feed
-import models
-import util
+from readability import clean
+from readability import feed
+from readability import models
+from readability import util
 
 
 def Main(request):
-  tpl = loader.get_template('main.html')
+  tpl = template.loader.get_template('main.html')
   return http.HttpResponse(tpl.render({}, request))
 
 

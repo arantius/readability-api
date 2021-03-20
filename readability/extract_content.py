@@ -31,8 +31,8 @@ import sys
 
 from bs4 import BeautifulSoup
 
-import patterns
-import util
+from readability import patterns
+from readability import util
 
 
 def ExtractFromHtml(url, html):

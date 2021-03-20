@@ -29,7 +29,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-import util
+from readability import util
 
 # If one pattern matched this many tags, consider it a false positive, and
 # subtract its points back out.

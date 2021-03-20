@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 
-import main
+from readability import main
 
 urlpatterns = [
     path(r'', main.Main),

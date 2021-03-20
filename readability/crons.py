@@ -28,9 +28,9 @@ import logging
 #from google.appengine.ext import webapp
 #from google.appengine.ext.webapp.util import run_wsgi_app
 
-import feed
-import models
-import util
+from readability import feed
+from readability import models
+from readability import util
 
 _MIN_UPDATE_INTERVAL = datetime.timedelta(days=1)
 

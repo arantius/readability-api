@@ -43,8 +43,8 @@ import urllib.parse
 from bs4 import BeautifulSoup
 from third_party import autorss
 
-import patterns
-import util
+from readability import patterns
+from readability import util
 
 
 # Minimum length of text in feed entry content to accept.
