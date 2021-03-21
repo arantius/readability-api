@@ -414,7 +414,7 @@ def _Strip(tag):
   for attr, pattern in ATTR_STRIP:
     if attr not in tag: continue
     if pattern.search(tag[attr]):
-      if util.IS_DEV_APPSERVER:
+      if util.DEBUG:
         logging.info('Strip for %s: %s', attr, util.SoupTagOnly(tag))
         logging.info('  (Match %s against %s)',
                      pattern.search(tag[attr]).group(0), pattern.pattern)
@@ -458,7 +458,7 @@ def Process(root_tag, url, hit_counter=None):
   """Process an entire soup, without recursing into stripped nodes."""
   # Make a single "class and id" attribute that everything else can test.
   root_tag['classid'] = '!!!'.join([
-      _SeparateWords(root_tag.get('class', '')).strip(),
+      _SeparateWords(' '.join(root_tag.get('class', []))).strip(),
       _SeparateWords(root_tag.get('id', '')).strip()
       ]).strip('!')
 

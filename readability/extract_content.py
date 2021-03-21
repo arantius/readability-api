@@ -24,12 +24,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import html.parser
 import logging
 import re
 import sys
 
-from bs4 import BeautifulSoup
+import bs4
 
 from readability import patterns
 from readability import util
@@ -38,35 +37,35 @@ from readability import util
 def ExtractFromHtml(url, html):
   """Given a string of HTML, remove nasty bits, score and pick bit to keep."""
   if re.search(r'^http://(www\.)?reddit\.com/.*/comments/', url, re.I):
-    strainer = BeautifulSoup.SoupStrainer(
+    strainer = bs4.SoupStrainer(
         attrs={'class': re.compile(r'thing.*link|usertext border')})
-    soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)
+    soup = bs4.BeautifulSoup(html, 'html.parser', parseOnlyThese=strainer)
     body = soup.find(attrs={'class': re.compile(r'\busertext-body\b')})
     if not body:
       body = soup.find('a', attrs={'class': re.compile(r'\btitle\b')})
       body = body and body.text or soup
     return soup, body
   elif re.search(r'^https://gfycat.com/[a-zA-Z]+$', url, re.I):
-    soup = BeautifulSoup.BeautifulSoup(html)
+    soup = bs4.BeautifulSoup(html, 'html.parser')
     vid = soup.find('video')
     del vid['autoplay']
     vid['controls'] = 'controls'
     return soup, vid
   elif re.search(r'^http://(www\.)?xkcd\.com/\d+', url, re.I):
-    soup = BeautifulSoup.BeautifulSoup(html)
+    soup = bs4.BeautifulSoup(html, 'html.parser')
     img = soup.find(alt=True, title=True)
     cont = img.parent.parent
     for tag in cont.findAll(('br', 'div')):
       util.Strip(tag)
     return soup, cont
   elif re.search(r'^http://groups\.google\.com/', url, re.I):
-    strainer = BeautifulSoup.SoupStrainer(attrs={'class': 'maincontbox'})
-    soup = BeautifulSoup.BeautifulSoup(html, parseOnlyThese=strainer)
+    strainer = bs4.SoupStrainer(attrs={'class': 'maincontbox'})
+    soup = bs4.BeautifulSoup(html, 'html.parser', parseOnlyThese=strainer)
     return _ExtractFromHtmlGeneric(url, str(soup))
   elif re.search(r'\.txt(\?|$)', url, re.I):
-    soup = BeautifulSoup.BeautifulSoup()
-    pre = BeautifulSoup.Tag(soup, 'pre')
-    pre.insert(0, BeautifulSoup.NavigableString(html))
+    soup = bs4.BeautifulSoup(parser='html.parser')
+    pre = bs4.Tag(soup, 'pre')
+    pre.insert(0, bs4.NavigableString(html))
     soup.insert(0, pre)
     return soup, soup
   else:
@@ -75,12 +74,7 @@ def ExtractFromHtml(url, html):
 
 def _ExtractFromHtmlGeneric(url, html):
   html = util.PreCleanHtml(html)
-  try:
-    soup = BeautifulSoup.BeautifulSoup(html)
-  except html.parser.HTMLParseError as e:
-    logging.exception(e)
-    return soup, ''
-
+  soup = bs4.BeautifulSoup(html, 'html.parser')
   util.PreCleanSoup(soup)
 
   title = soup.find('title')
@@ -107,7 +101,7 @@ def _ExtractFromHtmlGeneric(url, html):
   _TransformDivsToPs(best_node)
 
   # For debugging ...
-  if util.IS_DEV_APPSERVER:
+  if util.DEBUG:
     # Log scored nodes.
     for node in scored_nodes:
       logging.info('%10.2f %s', node['score'], util.SoupTagOnly(node)[0:69])
@@ -134,7 +128,7 @@ def _SiteSpecific(url, root_tag):
 
 
 def _StripBefore(strip_tag):
-  if util.IS_DEV_APPSERVER:
+  if util.DEBUG:
     logging.info('Strip before: %s', util.SoupTagOnly(strip_tag))
   ancestors = strip_tag.findParents(True)
   for tag in strip_tag.findAllPrevious():
@@ -158,12 +152,12 @@ def _TransformBrsToParagraphsInner(soup, tag):
     next_tag = next_tag.next_tagSibling
     if not next_tag:
       return
-    if isinstance(next_tag, BeautifulSoup.Tag):
+    if isinstance(next_tag, bs4.Tag):
       if next_tag.name == 'br':
         break
       else:
         return
-    elif isinstance(next_tag, BeautifulSoup.NavigableString):
+    elif isinstance(next_tag, bs4.NavigableString):
       if not str(next_tag).strip():
         continue
       else:
@@ -177,7 +171,7 @@ def _TransformBrsToParagraphsInner(soup, tag):
     if hasattr(prev, 'name') and prev.name in util.BR_TO_P_STOP_TAGS: break
     contents.insert(0, prev)
 
-  newp = BeautifulSoup.Tag(soup, 'p')
+  newp = bs4.Tag(soup, 'p')
   for i, newtag in enumerate(contents):
     newp.insert(i, newtag)
   util.Strip(next_tag)

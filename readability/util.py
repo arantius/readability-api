@@ -34,9 +34,11 @@ import requests
 import bs4
 import feedparser
 
+from readability import settings
 
+
+DEBUG = settings.DEBUG
 EMBED_NAMES = set(('embed', 'object'))
-IS_DEV_APPSERVER = 'Development' in os.environ.get('SERVER_SOFTWARE', '')
 MAX_SCORE_DEPTH = 5
 RE_CNN_HACK = re.compile(r'<!-- with(out)? htc -->')
 RE_DOCTYPE = re.compile(r'<!DOCTYPE.*?>', re.S)
@@ -46,38 +48,6 @@ TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 BR_TO_P_STOP_TAGS = set(list(TAG_NAMES_BLOCK) + list(TAG_NAMES_HEADER) + ['br'])
 
 _DEPTH_SCORE_DECAY = [(1 - d / 12.0) ** 5 for d in range(MAX_SCORE_DEPTH + 1)]
-
-################################## DECORATORS ##################################
-
-def DeferredRetryLimit(max_retries=3, failure_callback=None):
-  """Catch and log all exceptions, but limit re-raises to force retry."""
-  def Decorator(func):
-    @functools.wraps(func)
-    def InnerDecorator(*args, **kwargs):
-      # (catching Exception) pylint: disable-msg=W0702,W0703
-      try:
-        func(*args, **kwargs)
-      except Exception as e1:
-        try:
-          retry_count = int(os.environ['HTTP_X_APPENGINE_TASKRETRYCOUNT'])
-        except (KeyError, ValueError):
-          logging.error('Could not determine task retry count.')
-          return
-        if retry_count < max_retries:
-          # Reraise this error, so the task queue will rerun us.
-          raise
-        elif failure_callback:
-          logging.error('Permanent failure, falling back; %s', e1)
-          kwargs['exception'] = e1
-          try:
-            failure_callback(*args, **kwargs)
-          except Exception as e2:
-            logging.exception('failure_callback produced: %s', e2)
-        else:
-          logging.exception('Permanent failure, no fallback')
-    return InnerDecorator
-  return Decorator
-
 
 ################################### HELPERS ####################################
 
@@ -95,7 +65,7 @@ def ApplyScore(tag, score, depth=0, name=None):
   if 'score' not in tag: tag['score'] = 0.0
   tag['score'] += decayed_score
 
-  if IS_DEV_APPSERVER and name:
+  if DEBUG and name:
     name_key = 'score_%s' % name
     if name_key not in tag:
       tag[name_key] = 0
@@ -124,8 +94,8 @@ def Fetch(orig_url, deadline=6):
   while url and redirects < redirect_limit:
     redirects += 1
     url = CleanUrl(url)
-    #if IS_DEV_APPSERVER:
-    #  logging.info('Fetching: %s', url)
+    if settings.DEBUG:
+      logging.info('Fetching: %s', url)
     final_url = url
     response = requests.get(
         url
@@ -181,7 +151,7 @@ def OEmbedFixup(soup):
     if not embed:
       ta = cont.find('textarea')
       if not ta: return
-      s = bs4.BeautifulSoup(ta.text)
+      s = bs4.BeautifulSoup(ta.text, 'html.parser')
       embed = s.find('iframe')
     embed['src'] = re.sub(r'\?.*', '', embed['src'])
     div = bs4.Tag(soup, 'div')
@@ -193,7 +163,7 @@ def ParseFeedAtUrl(url):
   """Fetch a URL's contents, and parse it as a feed."""
   response, _ = Fetch(url, deadline=20)
   try:
-    feed_feedparser = feedparser.parse(io.StringIO(response.content))
+    feed_feedparser = feedparser.parse(io.StringIO(response.text))
   except LookupError:
     return None
   else:
@@ -203,7 +173,6 @@ def ParseFeedAtUrl(url):
 def PreCleanHtml(html):
   html = re.sub(RE_DOCTYPE, '', html)
   html = html.replace('&nbsp;', ' ')
-
   return html
 
 

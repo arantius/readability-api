@@ -30,7 +30,7 @@ import logging
 import re
 import urllib.parse
 
-from bs4 import BeautifulSoup
+import bs4
 import hyphenate
 import requests
 
@@ -145,15 +145,15 @@ def _Clean(url, response=None):
   try:
     if 'reddit.com/' in url: raise extract_feed.RssError
     extractor = extract_feed.FeedExtractor(
-        url=url, final_url=final_url, html=response.content)
+        url=url, final_url=final_url, html=response.text)
     note = 'cleaned feed'
     soup = extractor.soup
     tag = soup
   except extract_feed.RssError as e:
     note = 'cleaned content, %s, %s' % (e.__class__.__name__, e)
-    soup, tag = extract_content.ExtractFromHtml(final_url, response.content)
+    soup, tag = extract_content.ExtractFromHtml(final_url, response.text)
 
-  if settings.DEBUG:
+  if util.DEBUG:
     logging.info(note)
   return final_url, _Munge(soup, tag, final_url)
 
@@ -200,12 +200,11 @@ def _Munge(soup, tag, url):
   tag = _MungeTransformEmbeds(soup, tag)
 
   # Serialize the tag, and apply full justification.
-  if isinstance(tag, BeautifulSoup.BeautifulStoneSoup):
+  if isinstance(tag, bs4.BeautifulStoneSoup):
     # Wrap in a div, to have a tag to justify, if necessary.
-    wrap = BeautifulSoup.Tag(soup, 'div')
+    wrap = bs4.Tag(soup, 'div')
     wrap.insert(0, tag)
     tag = wrap
-  tag['style'] = 'text-align: justify;'
 
   return str(tag)
 
@@ -228,7 +227,7 @@ def _MungeHyphenate(root_tag):
         words = ['­'.join(hyphenate.hyphenate_word(word))
                  for word in words]
         new_text.append(' '.join(words))
-    text.replaceWith(BeautifulSoup.NavigableString(''.join(new_text)))
+    text.replaceWith(bs4.NavigableString(''.join(new_text)))
 
 
 def _MungeHeaderDowngrade(root_tag):
@@ -335,13 +334,13 @@ def _MungeTransformEmbeds(soup, root_tag):
     except TypeError:
       w = 600
       h = 400
-    link = BeautifulSoup.Tag(soup, 'a')
+    link = bs4.Tag(soup, 'a')
     link['href'] = 'data:text/html;base64,' + base64.b64encode(
         '<body style="margin:0;">%s</body>' % str(tag))
     link['rel'] = 'embedded_media'
     link['embed_width'] = w
     link['embed_height'] = h
-    img = BeautifulSoup.Tag(soup, 'img')
+    img = bs4.Tag(soup, 'img')
     img['src'] = 'http://readability-api.appspot.com/embedded_media.png'
     img['width'] = '128'
     img['height'] = '128'

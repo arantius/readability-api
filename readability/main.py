@@ -40,13 +40,12 @@ def CleanPage(request):
   url = request.GET.get('url')
 
   if url:
-    output = clean.Clean(url)
+    response = http.HttpResponse(clean.Clean(url))
+    response['Content-Type'] = 'text/html; charset=UTF-8'
   else:
-    output = 'Provide "url" parameter!'
+    response = http.HttpResponse('Provide "url" parameter!')
     response['Content-Type'] = 'text/plain; charset=UTF-8'
 
-  response = http.HttpResponse(output)
-  response['Content-Type'] = 'text/html; charset=UTF-8'
   response['Cache-Control'] = 'max-age=3600'
   response['Expires'] = email.utils.formatdate(
       timeval=time.time() + 3600, usegmt=True)
