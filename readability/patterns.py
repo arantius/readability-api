@@ -355,7 +355,7 @@ def _Score(tag, url, hit_counter):
       if anchor and not anchor.has_attr('score_out_link') and not img:
         util.ApplyScore(tag, -2, name='only_anchor')
     else:
-      if text_len < 20:
+      if text_len < 20 and tag.name != 'td':
         util.ApplyScore(tag, -0.75, name='short_text')
       if text_len > 50:
         util.ApplyScore(tag, 3, name='some_text')
