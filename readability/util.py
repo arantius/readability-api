@@ -166,7 +166,7 @@ def ParseFeedAtUrl(url):
   """Fetch a URL's contents, and parse it as a feed."""
   response, _ = Fetch(url, deadline=20)
   try:
-    feed_feedparser = feedparser.parse(io.StringIO(response.text))
+    feed_feedparser = feedparser.parse(response.text)
   except LookupError:
     return None
   else:
