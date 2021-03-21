@@ -35,7 +35,7 @@ ALLOWED_HOSTS = []
 DATABASES = {
   'default': {
     'ENGINE': 'django.db.backends.sqlite3',
-    'NAME': BASE_DIR / 'db',
+    'NAME': BASE_DIR / 'readability.db',
   }
 }
 
@@ -72,5 +72,5 @@ WSGI_APPLICATION = 'wsgi.application'
 import requests_cache
 requests_cache.install_cache(
     backend=requests_cache.backends.sqlite.DbCache(
-        location=str(BASE_DIR / 'db'), extension=''),
+        location=str(BASE_DIR / 'requests_cache.db'), extension=''),
     expire_after=datetime.timedelta(hours=23))

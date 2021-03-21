@@ -1,4 +1,4 @@
+*.db
 *.pyc
 .*project
-db
 env
