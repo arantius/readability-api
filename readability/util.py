@@ -196,10 +196,11 @@ def SoupTagOnly(tag):
   return str(tag).split('>')[0] + '>'
 
 
-def Strip(tag):
+def Strip(tag, reason=None):
   # Switch this for dev.
   if 1:
     tag['style'] = 'outline: 2px dotted red'
+    if reason: tag['strip_reason'] = reason
   else:
     tag.extract()
 

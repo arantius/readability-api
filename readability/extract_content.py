@@ -98,12 +98,13 @@ def _ExtractFromHtmlGeneric(url, html):
                         key=lambda x: x['score'])[-15:]
   if not scored_nodes:
     return soup, '<p>Scoring error.</p>'
+  best_node = scored_nodes[-1]
   if util.DEBUG:
+    best_node['style'] = 'outline: 2px dotted green'
+    if not best_node.has_attr('class'):
+      best_node['class'] = []
+    best_node['class'].append('best_node')
     best_node = soup
-    scored_nodes[-1]['style'] = 'outline: 2px dotted green'
-    scored_nodes[-1]['class'].append('best_node')
-  else:
-    best_node = scored_nodes[-1]
 
   _TransformDivsToPs(best_node)
 
@@ -148,9 +149,9 @@ def _StripBefore(strip_tag):
       # Don't strip the tags that contain the strip_tag.
       continue
     logging.info('Strip for being before title el: %s', util.SoupTagOnly(tag))
-    util.Strip(tag)
+    util.Strip(tag, 'before title')
   logging.info('Strip for being title el: %s', util.SoupTagOnly(tag))
-  util.Strip(strip_tag)
+  util.Strip(strip_tag, 'before title')
 
 
 def _TransformBrsToParagraphs(soup):
@@ -186,7 +187,7 @@ def _TransformBrsToParagraphsInner(soup, tag):
   newp = bs4.Tag(soup, 'p')
   for i, newtag in enumerate(contents):
     newp.insert(i, newtag)
-  util.Strip(next_tag)
+  util.Strip(next_tag, 'br to p')
   tag.replaceWith(newp)
 
 
