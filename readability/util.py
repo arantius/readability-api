@@ -129,7 +129,7 @@ def FindEmbeds(root_tag):
 def GetFeedEntryContent(entry):
   """Figure out the best content for this entry."""
   # Prefer "content".
-  if entry.has_attr('content'):
+  if 'content' in entry:
     # If there's only one, use it.
     if len(entry.content) == 1:
       return entry.content[0]['value']
@@ -138,9 +138,9 @@ def GetFeedEntryContent(entry):
       if (content.has_attr('type')) and ('text/html' == content.type):
         return content['value']
   # Otherwise try "summary_detail" and "summary".
-  if entry.has_attr('summary_detail'):
+  if 'summary_detail' in entry:
     return entry.summary_detail['value']
-  if entry.has_attr('summary'):
+  if 'summary' in entry:
     return entry.summary
   return ''
 

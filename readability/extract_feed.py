@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import re
 import urllib.parse
 
-from bs4 import BeautifulSoup
+import bs4
 from third_party import autorss
 
 from readability import patterns
@@ -108,7 +108,7 @@ class FeedExtractor(object):
 
     # Now, we've found content.  Check if it's legit.
     html = re.sub(r'<!--.*?-->', '', self.content)
-    self.soup = BeautifulSoup.BeautifulSoup(html)
+    self.soup = bs4.BeautifulSoup(html)
     util.PreCleanSoup(self.soup)
     for tag in self.soup.findAll('script'):
       util.Strip(tag)
