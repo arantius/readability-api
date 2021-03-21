@@ -101,10 +101,12 @@ def Fetch(orig_url, deadline=6):
       logging.info('Fetching: %s', url)
     final_url = url
     response = requests.get(
-        url
+        url,
         #, allow_truncated=True, follow_redirects=False, deadline=deadline,
-        #headers={'Cookie': cookie.output(attrs=(), header='', sep='; ')}
-        )
+        headers={
+          'Cookie': cookie.output(attrs=(), header='', sep='; '),
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
+        })
     try:
       cookie.load(response.headers.get('Set-Cookie', ''))
     except cookie.CookieError:

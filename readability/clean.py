@@ -101,6 +101,8 @@ def _Clean(url, response=None):
   # And strip common tracking noise.
   url = re.sub(r'[?&]utm_[^&]+', '', url)
 
+  url = url.replace('www.reddit.com', 'old.reddit.com')
+
   match = re.search(
       r'^https?://docs.google.com.*cache:.*?:(.*?\.pdf)', url, re.I)
   if match:

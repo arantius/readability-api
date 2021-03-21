@@ -138,6 +138,9 @@ def _SiteSpecific(url, root_tag):
     if tag: util.Strip(tag)
     tag = root_tag.find(attrs={'class': 'userStyled'})
     if tag: util.ApplyScore(tag, 20, name='special')
+  if '.reddit.com' in url:
+    tag = root_tag.find(attrs={'class': 'side'})
+    if tag: util.Strip(tag, 'reddit side')
 
 
 def _StripBefore(strip_tag):
