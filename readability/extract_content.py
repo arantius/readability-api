@@ -87,6 +87,8 @@ def _ExtractFromHtmlGeneric(url, html):
   # If a header repeats the title, strip it and all preceding nodes.
   title_header = _FindTitleHeader(soup, title)
   if title_header:
+    if util.DEBUG:
+      logging.info('Picked title header %s', util.SoupTagOnly(title_header))
     util.ApplyScore(title_header, 11, name='title_header')
     if 'flickr.com' not in url:
       _StripBefore(title_header)
@@ -96,13 +98,18 @@ def _ExtractFromHtmlGeneric(url, html):
                         key=lambda x: x['score'])[-15:]
   if not scored_nodes:
     return soup, '<p>Scoring error.</p>'
-  best_node = scored_nodes[-1]
+  if util.DEBUG:
+    best_node = soup
+    scored_nodes[-1]['style'] = 'outline: 2px dotted green'
+    scored_nodes[-1]['class'].append('best_node')
+  else:
+    best_node = scored_nodes[-1]
 
   _TransformDivsToPs(best_node)
 
   # For debugging ...
   if util.DEBUG:
-    # Log scored nodes.
+    # Log highly scored nodes.
     for node in scored_nodes:
       logging.info('%10.2f %s', node['score'], util.SoupTagOnly(node)[0:69])
 
@@ -110,12 +117,17 @@ def _ExtractFromHtmlGeneric(url, html):
 
 
 def _FindTitleHeader(root_tag, title_text):
+  # Avoid false detection on short titles.
+  if len(title_text) < 10:
+    return
+
   headers = root_tag.findAll(util.TAG_NAMES_HEADER)
   for header in headers:
     header_text = header.text.lower()
     if len(header_text) < 20:
       continue  # avoid false positives thanks to short/empty headers
     if (title_text in header_text) or (header_text in title_text):
+      logging.info('title header? title=%r, header=%r', title_text, header_text)
       return header
 
 

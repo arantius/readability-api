@@ -39,7 +39,6 @@ from readability import settings
 
 DEBUG = settings.DEBUG
 EMBED_NAMES = set(('embed', 'object'))
-MAX_SCORE_DEPTH = 5
 RE_CNN_HACK = re.compile(r'<!-- with(out)? htc -->')
 RE_DOCTYPE = re.compile(r'<!DOCTYPE.*?>', re.S)
 TAG_NAMES_BLOCK = set(('blockquote', 'div', 'li', 'p', 'pre', 'td', 'th'))
@@ -47,6 +46,7 @@ TAG_NAMES_HEADER = set(('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))
 
 BR_TO_P_STOP_TAGS = set(list(TAG_NAMES_BLOCK) + list(TAG_NAMES_HEADER) + ['br'])
 
+MAX_SCORE_DEPTH = 5
 _DEPTH_SCORE_DECAY = [(1 - d / 12.0) ** 5 for d in range(MAX_SCORE_DEPTH + 1)]
 
 ################################### HELPERS ####################################
@@ -62,14 +62,17 @@ def ApplyScore(tag, score, depth=0, name=None):
     return
   decayed_score = score * _DEPTH_SCORE_DECAY[depth]
 
-  if 'score' not in tag: tag['score'] = 0.0
+  if not tag.has_attr('score'): tag['score'] = 0.0
   tag['score'] += decayed_score
 
   if DEBUG and name:
     name_key = 'score_%s' % name
-    if name_key not in tag:
+    if not tag.has_attr(name_key):
       tag[name_key] = 0
     tag[name_key] = float(tag[name_key]) + decayed_score
+    if not tag.has_attr('all_scores'):
+      tag['all_scores'] = ''
+    tag['all_scores'] += '%s=%s ' % (name_key, decayed_score)
 
   ApplyScore(tag.parent, score, depth + 1, name=name)
 
@@ -126,18 +129,18 @@ def FindEmbeds(root_tag):
 def GetFeedEntryContent(entry):
   """Figure out the best content for this entry."""
   # Prefer "content".
-  if 'content' in entry:
+  if entry.has_attr('content'):
     # If there's only one, use it.
     if len(entry.content) == 1:
       return entry.content[0]['value']
     # Or, use the text/html type if there's more than one.
     for content in entry.content:
-      if ('type' in content) and ('text/html' == content.type):
+      if (content.has_attr('type')) and ('text/html' == content.type):
         return content['value']
   # Otherwise try "summary_detail" and "summary".
-  if 'summary_detail' in entry:
+  if entry.has_attr('summary_detail'):
     return entry.summary_detail['value']
-  if 'summary' in entry:
+  if entry.has_attr('summary'):
     return entry.summary
   return ''
 
@@ -195,7 +198,7 @@ def SoupTagOnly(tag):
 
 def Strip(tag):
   # Switch this for dev.
-  if 0:
+  if 1:
     tag['style'] = 'outline: 2px dotted red'
   else:
     tag.extract()
@@ -223,10 +226,10 @@ def SwfObjectFixup(soup):
 
 
 def TagSize(tag):
-  if 'width' in tag and 'height' in tag:
+  if tag.has_attr('width') and tag.has_attr('height'):
     w = tag['width']
     h = tag['height']
-  elif 'style' in tag:
+  elif tag.has_attr('style'):
     try:
       w = re.search(r'width:\s*(\d+)px', tag['style']).group(1)
       h = re.search(r'height:\s*(\d+)px', tag['style']).group(1)

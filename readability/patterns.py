@@ -332,7 +332,7 @@ def _Score(tag, url, hit_counter):
       hit_counter[key].append(tag)
 
   # Links.
-  if tag.name == 'a' and 'href' in tag and 'score_href' not in tag:
+  if tag.name == 'a' and tag.has_attr('href') and not tag.has_attr('score_href'):
     that_url = urllib.parse.urljoin(url, tag['href'])
     if url == that_url or url == urllib.parse.unquote(tag['href']):
       # Special case: score down AND strip links to this page.  (Including
@@ -352,7 +352,7 @@ def _Score(tag, url, hit_counter):
     if text_len == 0:
       anchor = tag.find('a')
       img = tag.find('img')
-      if anchor and 'score_out_link' not in anchor and not img:
+      if anchor and not anchor.has_attr('score_out_link') and not img:
         util.ApplyScore(tag, -2, name='only_anchor')
     else:
       if text_len < 20:
@@ -365,7 +365,7 @@ def _Score(tag, url, hit_counter):
   # Images.
   if tag.name == 'img':
     util.ApplyScore(tag, 1.5, name='any_img')
-    if 'alt' in tag and len(tag['alt']) > 50:
+    if tag.has_attr('alt') and len(tag['alt']) > 50:
       util.ApplyScore(tag, 2, name='img_alt')
 
     size = _TagSize(tag)
@@ -379,7 +379,7 @@ def _Score(tag, url, hit_counter):
 
   # Embeds.
   if tag.name in util.EMBED_NAMES or (
-      tag.name == 'iframe' and 'src' in tag and (
+      tag.name == 'iframe' and tag.has_attr('src') and (
           'youtube.com' in tag['src']
           or 'youtube-nocookie.com' in tag['src']
           or 'vimeo.com' in tag['src']
@@ -397,7 +397,7 @@ def _Strip(tag):
     if tag.name == 'form':
       if 'aspnetForm' in [attr[1] for attr in tag.attrs]: return False
       if tag.find('input', id='__VIEWSTATE'): return False
-    if tag.name == 'iframe' and 'score_has_embed' in tag:
+    if tag.name == 'iframe' and tag.has_attr('score_has_embed'):
       return False
     util.Strip(tag)
     return True

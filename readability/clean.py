@@ -154,7 +154,7 @@ def _Clean(url, response=None):
     soup, tag = extract_content.ExtractFromHtml(final_url, response.text)
 
   if util.DEBUG:
-    logging.info(note)
+    logging.info('_Clean() note: %s', note)
   return final_url, _Munge(soup, tag, final_url)
 
 
@@ -164,13 +164,14 @@ def _FixUrls(parent, base_url):
 
   # pylint: disable-msg=C6405
   for tag in parent.findAll(href=True): _FixUrl(tag, 'href')
-  if 'href' in parent: _FixUrl(parent, 'href')
+  if parent.has_attr('href'): _FixUrl(parent, 'href')
 
   for tag in parent.findAll(src=True): _FixUrl(tag, 'src')
-  if 'src' in parent: _FixUrl(parent, 'src')
+  if parent.has_attr('src'): _FixUrl(parent, 'src')
 
   for tag in parent.findAll('object', data=True): _FixUrl(tag, 'data')
-  if parent.name == 'object' and 'data' in parent: _FixUrl(parent, 'data')
+  if parent.name == 'object' and parent.has_attr('data'):
+    _FixUrl(parent, 'data')
 
   for tag in parent.findAll('param', attrs={'name': 'movie', 'value': True}):
     _FixUrl(tag, 'value')
@@ -240,17 +241,17 @@ def _MungeImages(root_tag):
   #  * If they have a style or class that implies floating, apply alignment.
   #  * If they are at the beginning of a paragraph, with text, apply alignment.
   for img in root_tag.findAll('img'):
-    if 'align' in img:
+    if img.has_attr('align'):
       continue
 
-    if 'style' in img:
+    if img.has_attr('style'):
       match = RE_ALIGNED.search(img['style'])
       if match:
         img['align'] = match.group(1)
         continue
 
-    if 'class' in img:
-      match = RE_ALIGNED.search(img['class'])
+    if img.has_attr('class'):
+      match = RE_ALIGNED.search(' '.join(img['class']))
       if match:
         img['align'] = match.group(1)
         continue
