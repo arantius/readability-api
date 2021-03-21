@@ -102,7 +102,7 @@ def Fetch(orig_url, deadline=6):
     final_url = url
     response = requests.get(
         url,
-        #, allow_truncated=True, follow_redirects=False, deadline=deadline,
+        timeout=deadline,
         headers={
           'Cookie': cookie.output(attrs=(), header='', sep='; '),
           'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
