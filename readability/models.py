@@ -34,6 +34,7 @@ class Feed(models.Model):
   link = models.TextField(blank=False, default=None)
 
   last_fetch_time = models.DateTimeField()
+  fetch_interval_seconds = models.IntegerField(default=4*60*60)
 
   @property
   def entries(self):
@@ -63,6 +64,6 @@ class Entry(models.Model):
   updated = models.DateTimeField(auto_now=True)
   content = models.TextField(blank=False, default=None)
   original_content = models.TextField()
-  #tags = db.ListProperty(item_type=str)
+  tags = models.JSONField(default=list)
 
   created = models.DateTimeField(auto_now_add=True)
