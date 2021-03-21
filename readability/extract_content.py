@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Originally "Hacker News" feed rewriter by Nirmal Patel.
 
 Now: General purpose "page cleaner".  Given the *content* of a page, at a URL,

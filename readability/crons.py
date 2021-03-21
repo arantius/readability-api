@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-"""Views for scheduled tasks for Readability API project.
+"""Scheduled tasks for Readability API project.
 
 --------------------------------------------------------------------------------
 

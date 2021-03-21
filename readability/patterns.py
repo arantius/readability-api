@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Pattern-based heuristics for BeautifulSoup objects.
 
 Applies positive/negative scores to identify content, and completely removes

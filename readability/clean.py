@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Cleaning wrapper.
 
 Given a URL, first apply special cases.  Then try to fetch a feed of the

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Datastore models for Readability API project.
 
 --------------------------------------------------------------------------------

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Readability API - Clean up pages and feeds to be readable.
 Copyright (C) 2010  Anthony Lieuallen

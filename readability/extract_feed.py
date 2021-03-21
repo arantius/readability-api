@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Extract a page's relevant content, via RSS parsing.
 
 Theory: given a URL, likely from a content aggregation site, and the content
@@ -8,11 +7,10 @@ URL, and C) evaluate whether it is a "good" piece of content (i.e. from a
 full feed and not truncated).
 
 Usage example:
-  feed_extractor = FeedExtractor(url='http://....',
-                final_url='http://...',
-                html='<html>...</html>')
+  feed_extractor = FeedExtractor(
+      url='http://....', final_url='http://...', html='<html>...</html>')
   if feed_extractor.FindContents():
-  pass
+    pass
 
 Note that the html argument to the constructor is optional, but can be provided
 to avoid a second URL fetch in the case that it is already known.  If it is
