@@ -32,7 +32,7 @@ class Feed(models.Model):
   url = models.TextField(primary_key=True)
   title = models.TextField(blank=False, default=None)
   link = models.TextField(blank=False, default=None)
-  last_fetch_time = models.DateTimeField()
+  last_fetch_time = models.IntegerField(default=0)  # UTC seconds.
   fetch_interval_seconds = models.IntegerField(default=4*60*60)
 
   @property
