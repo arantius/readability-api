@@ -65,8 +65,6 @@ class Entry(models.Model):
   title = models.TextField(blank=False, default=None)
   link = models.TextField(blank=False, default=None)
   updated = models.DateTimeField(auto_now=True)
-  created = models.DateTimeField(auto_now_add=True)
+  content = models.TextField(blank=False, default=None)
   original_content = models.TextField()
   tags = models.JSONField(default=list)
-
-  content = models.TextField(blank=False, default=None)
