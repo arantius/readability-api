@@ -29,10 +29,9 @@ class Feed(models.Model):
   class Meta:
     app_label = 'readability'
 
-  url = models.TextField(blank=False, default=None)
+  url = models.TextField(primary_key=True)
   title = models.TextField(blank=False, default=None)
   link = models.TextField(blank=False, default=None)
-
   last_fetch_time = models.DateTimeField()
   fetch_interval_seconds = models.IntegerField(default=4*60*60)
 
@@ -58,6 +57,7 @@ class Entry(models.Model):
   class Meta:
     app_label = 'readability'
 
+  key = models.TextField(primary_key=True)
   feed = models.ForeignKey(Feed, on_delete=models.CASCADE)
   title = models.TextField(blank=False, default=None)
   link = models.TextField(blank=False, default=None)
