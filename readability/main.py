@@ -60,9 +60,11 @@ def CleanFeed(request):
     return response
 
   url = re.sub(r'\?at=[^?&]+', '', url)
-  feed_entity = models.Feed.objects.filter(url=url).get()
-  if not feed_entity:
+  try:
+    feed_entity = models.Feed.objects.get(url=url)
+  except models.Feed.DoesNotExist:
     feed_entity = feed.CreateFeed(url)
+
   response = http.HttpResponse(
       feed.RenderFeed(feed_entity, include_original))
   response['Content-Type'] = 'application/atom+xml; charset=UTF-8'

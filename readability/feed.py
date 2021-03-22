@@ -41,8 +41,8 @@ _EMPTY_ENTRY = {
     'tags': [],
     }
 
-_MAX_UPDATE_INTERVAL = datetime.timedelta(days=3)
-_MIN_UPDATE_INTERVAL = datetime.timedelta(hours=1)
+_MAX_UPDATE_INTERVAL = datetime.timedelta(days=3).total_seconds()
+_MIN_UPDATE_INTERVAL = datetime.timedelta(hours=1).total_seconds()
 
 
 def _CleanEntryBase(feed_entity, entry_feedparser, content, original_content):
@@ -123,8 +123,8 @@ def CreateFeed(url):
       url=url,
       title=feed_feedparser.feed.title,
       link=feed_feedparser.feed.link)
-  UpdateFeed(feed_entity.url, feed_feedparser)
   feed_entity.save()
+  UpdateFeed(feed_entity.url, feed_feedparser)
   return feed_entity
 
 
@@ -138,6 +138,7 @@ def RenderFeed(feed_entity, include_original=False):
       'entries': entries,
       'include_original': include_original,
    })
+
 
 def UpdateFeed(feed_url, feed_feedparser=None):
   logging.info('Updating feed %r ...', feed_url)

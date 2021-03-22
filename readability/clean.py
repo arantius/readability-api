@@ -126,7 +126,7 @@ def _Clean(url, response=None):
     try:
       response, final_url = util.Fetch(url)
     except requests.exceptions.RequestException as e:
-      logging.error(error)
+      logging.error(e)
       return url, 'Download error at %s : %s' % (url, e)
 
     # Handle redirects to special pages.
