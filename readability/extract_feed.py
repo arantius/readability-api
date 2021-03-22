@@ -106,7 +106,7 @@ class FeedExtractor(object):
 
     # Now, we've found content.  Check if it's legit.
     html = re.sub(r'<!--.*?-->', '', self.content)
-    self.soup = bs4.BeautifulSoup(html)
+    self.soup = bs4.BeautifulSoup(html, 'html.parser')
     util.PreCleanSoup(self.soup)
     for tag in self.soup.findAll('script'):
       util.Strip(tag)
