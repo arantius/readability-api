@@ -21,12 +21,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
 import logging
+import random
+import time
 
-#from google.appengine.ext import db
-#from google.appengine.ext import deferred
-#from google.appengine.ext import webapp
-#from google.appengine.ext.webapp.util import run_wsgi_app
-
+from django.db.models import F
 from huey import crontab
 from huey.contrib.djhuey import db_periodic_task
 
@@ -34,42 +32,17 @@ from readability import feed
 from readability import models
 from readability import util
 
-_MAX_UPDATE_INTERVAL = datetime.timedelta(days=3)
-_MIN_UPDATE_INTERVAL = datetime.timedelta(hours=1)
-
 
 @db_periodic_task(crontab(minute='*'))
 def ScheduleFeedUpdates():
   """Periodically check for stale feeds, schedule tasks to update them."""
-  logging.info('ScheduleFeedUpdates()')
-  #print('pScheduleFeedUpdates()')
+  for feed_e in models.Feed.objects.order_by(
+      F('last_fetch_time') + F('fetch_interval_seconds')):
+    # TODO: Check within next N seconds (matching crontab), schedule then.
+    update_time = feed_e.last_fetch_time + feed_e.fetch_interval_seconds
+    now = time.time()
+    if update_time > now:
+      print('not yet,', update_time, '>', now, now-update_time)
+      break
 
-#
-#class CleanStaleEntries(webapp.RequestHandler):
-#  request = None
-#  response = None
-#
-#  def get(self):
-#    for feed_entity in models.Feed.all():
-#      db.delete(feed_entity.stale_entries)
-#
-#
-#class UpdateFeeds(webapp.RequestHandler):
-#  request = None
-#  response = None
-#
-#  def get(self):
-#    for feed_entity in models.Feed.all().order('last_fetch_time'):
-#      # Figure the average interval between updates.
-#      entries = feed_entity.entries
-#      do_update = True
-#      if entries:
-#        interval = (entries[0].created - entries[-1].created) / len(entries)
-#        interval = min(_MIN_UPDATE_INTERVAL, interval)
-#        # If the newest update + the update interval > now, skip updating.
-#        if datetime.datetime.now() < entries[0].created + interval:
-#          do_update = False
-#      if do_update:
-#        # Update this feed!
-#        deferred.defer(feed.UpdateFeed, feed_entity.key(), _queue='update')
-#
+    feed.UpdateFeed(feed_e.url)

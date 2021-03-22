@@ -64,6 +64,6 @@ def CleanFeed(request):
   if not feed_entity:
     feed_entity = feed.CreateFeed(url)
   response = http.HttpResponse(
-      feed.PrintFeed(feed_entity, include_original))
+      feed.RenderFeed(feed_entity, include_original))
   response['Content-Type'] = 'application/atom+xml; charset=UTF-8'
   return response

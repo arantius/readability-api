@@ -41,6 +41,9 @@ _EMPTY_ENTRY = {
     'tags': [],
     }
 
+_MAX_UPDATE_INTERVAL = datetime.timedelta(days=3)
+_MIN_UPDATE_INTERVAL = datetime.timedelta(hours=1)
+
 
 def _CleanEntryBase(feed_entity, entry_feedparser, content, original_content):
   if entry_feedparser.updated_parsed:
@@ -83,12 +86,12 @@ def _CleanEntryFailure(feed_entity, entry_feedparser, exception):
       original_content='')
 
 
-@db_task(retries=2, retry_delay=90)
+@db_task(retries=2, retry_delay=90, on_error=_CleanEntryFailure)
 def _CleanEntry(feed_entity, entry_feedparser):
   """Given a parsed feed entry, turn it into a cleaned entry entity."""
   logging.info(
       'For feed %r, cleaning entry %r ...',
-      feed_entity.key().id_or_name(),
+      feed_entity.url,
       getattr(entry_feedparser, 'link', 'UNKNOWN'))
 
   if not hasattr(entry_feedparser, 'link'):
@@ -120,40 +123,12 @@ def CreateFeed(url):
       url=url,
       title=feed_feedparser.feed.title,
       link=feed_feedparser.feed.link)
-  UpdateFeed(feed_entity, feed_feedparser)
+  UpdateFeed(feed_entity.url, feed_feedparser)
   feed_entity.save()
   return feed_entity
 
 
-def UpdateFeed(feed_entity, feed_feedparser=None):
-  #if isinstance(feed_entity, db.Key):
-  #  feed_entity = db.get(feed_entity)
-  logging.info('Updating feed %r ...', feed_entity.url)
-
-  if not feed_feedparser:
-    feed_feedparser = util.ParseFeedAtUrl(feed_entity.url)
-
-  entry_keys = [_EntryId(e) for e in feed_feedparser.entries]
-  #entry_entities = db.get(entry_keys)
-  #existing_keys = [entry.key().name() for entry in entry_entities if entry]
-  existing_keys = models.Entry.objects.filter(key__in=entry_keys).values('key')
-  print('existing_keys =', repr(existing_keys))
-
-  delay = 0
-  for i, entry_feedparser in enumerate(feed_feedparser.entries):
-    if i == models._MAX_ENTRIES_PER_FEED: break
-    if _EntryId(entry_feedparser) in existing_keys:
-      logging.debug('Ignore already-cleaned entry at %s', entry_feedparser.url)
-    _CleanEntry.schedule(
-        (feed_entity, entry_feedparser),
-        delay=delay)
-    delay += 3
-
-  feed_entity.last_fetch_time = time.time()
-  feed_entity.save()
-
-
-def PrintFeed(feed_entity, include_original=False):
+def RenderFeed(feed_entity, include_original=False):
   entries = models.Entry.objects.filter(feed__url=feed_entity.url)
   if not entries:
     entries = [_EMPTY_ENTRY]
@@ -163,3 +138,40 @@ def PrintFeed(feed_entity, include_original=False):
       'entries': entries,
       'include_original': include_original,
    })
+
+def UpdateFeed(feed_url, feed_feedparser=None):
+  logging.info('Updating feed %r ...', feed_url)
+
+  feed_entity = models.Feed.objects.get(url=feed_url)
+  if not feed_feedparser:
+    feed_feedparser = util.ParseFeedAtUrl(feed_entity.url)
+
+  entry_keys = [_EntryId(e) for e in feed_feedparser.entries]
+  #entry_entities = db.get(entry_keys)
+  #existing_keys = [entry.key().name() for entry in entry_entities if entry]
+  existing_keys = models.Entry.objects.filter(key__in=entry_keys).values('key')
+  print('existing_keys =', repr(existing_keys))
+
+  logging.info('Downloaded %d entries ...', len(feed_feedparser.entries))
+  delay = 0
+  new_entries = False
+  for i, entry_feedparser in enumerate(feed_feedparser.entries):
+    if i == models._MAX_ENTRIES_PER_FEED: break
+    if _EntryId(entry_feedparser) in existing_keys:
+      logging.debug('Ignore already-cleaned entry at %s', entry_feedparser.url)
+      continue
+    _CleanEntry.schedule(
+        (feed_entity, entry_feedparser),
+        delay=delay)
+    delay += 3
+    new_entries = True
+
+  feed_entity.last_fetch_time = time.time()
+
+  f = feed_entity.fetch_interval_seconds
+  f *= 0.9 if new_entries else 1.1
+  if f < _MIN_UPDATE_INTERVAL: f = _MIN_UPDATE_INTERVAL
+  if f > _MAX_UPDATE_INTERVAL: f = _MAX_UPDATE_INTERVAL
+  feed_entity.fetch_interval_seconds = f
+
+  feed_entity.save()
