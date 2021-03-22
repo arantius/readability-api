@@ -61,7 +61,7 @@ def CleanFeed(request):
     return response
 
   url = re.sub(r'\?at=[^?&]+', '', url)
-  feed_entity = models.Feed.get_by_key_name(url)
+  feed_entity = models.Feed.objects.filter(url=url)
   if not feed_entity:
     feed_entity = feed.CreateFeed(url)
   response = http.HttpResponse(

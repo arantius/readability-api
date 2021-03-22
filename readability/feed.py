@@ -60,7 +60,7 @@ def _CleanEntryBase(feed_entity, entry_feedparser, content, original_content):
     link = 'Unknown'
 
   entry_entity = models.Entry(
-      key_name=_EntryId(entry_feedparser),
+      key=_EntryId(entry_feedparser),
       feed=feed_entity,
       title=title,
       link=link,
@@ -68,7 +68,7 @@ def _CleanEntryBase(feed_entity, entry_feedparser, content, original_content):
       content=content,
       original_content=original_content,
       tags=tags)
-  entry_entity.put()
+  entry_entity.save()
 
 
 def _CleanEntryFailure(feed_entity, entry_feedparser, exception):
@@ -111,27 +111,27 @@ def _EntryId(entry_feedparser):
 def CreateFeed(url):
   feed_feedparser = util.ParseFeedAtUrl(url)
   feed_entity = models.Feed(
-      key_name=url,
       url=url,
       title=feed_feedparser.feed.title,
       link=feed_feedparser.feed.link)
   UpdateFeed(feed_entity, feed_feedparser)
-  feed_entity.put()
+  feed_entity.save()
   return feed_entity
 
 
 def UpdateFeed(feed_entity, feed_feedparser=None):
-  if isinstance(feed_entity, db.Key):
-    feed_entity = db.get(feed_entity)
-  logging.info('Updating feed %r ...', feed_entity.key().id_or_name())
+  #if isinstance(feed_entity, db.Key):
+  #  feed_entity = db.get(feed_entity)
+  logging.info('Updating feed %r ...', feed_entity.url)
 
   if not feed_feedparser:
     feed_feedparser = util.ParseFeedAtUrl(feed_entity.url)
 
-  entry_keys = [db.Key.from_path('Entry', _EntryId(entry))
-                for entry in feed_feedparser.entries]
-  entry_entities = db.get(entry_keys)
-  existing_keys = [entry.key().name() for entry in entry_entities if entry]
+  entry_keys = [_EntryId(e) for e in feed_feedparser.entries]
+  #entry_entities = db.get(entry_keys)
+  #existing_keys = [entry.key().name() for entry in entry_entities if entry]
+  existing_keys = models.Entry.objects.filter(key__in=entry_keys).values('key')
+  print('existing_keys =', repr(existing_keys))
 
   delay = 0
   for entry_feedparser in feed_feedparser.entries:
@@ -143,7 +143,7 @@ def UpdateFeed(feed_entity, feed_feedparser=None):
       return
 
   feed_entity.last_fetch_time = datetime.datetime.now()
-  feed_entity.put()
+  feed_entity.save()
 
 
 def PrintFeed(feed_entity, include_original=False):
