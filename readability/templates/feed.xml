@@ -4,7 +4,7 @@
   <link href="{{ feed.link|escape }}"/>
   <updated>{{ feed.updated|date:"Y-m-d\TH:i:s\Z" }}</updated>
   <id>{{ feed.key.name }}</id>
-  {% for entry in feed.entries %}
+  {% for entry in entries %}
   <entry>
     <title>{{ entry.title|escape }}</title>
     <link href="{{ entry.link|escape }}"/>

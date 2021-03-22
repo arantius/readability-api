@@ -32,25 +32,27 @@ class Feed(models.Model):
   url = models.TextField(primary_key=True)
   title = models.TextField(blank=False, default=None)
   link = models.TextField(blank=False, default=None)
-  last_fetch_time = models.IntegerField(default=0)  # UTC seconds.
+  last_fetch_time = models.FloatField(default=0)  # UTC seconds.
   fetch_interval_seconds = models.IntegerField(default=4*60*60)
 
   @property
   def entries(self):
     """List of active entries in the feed."""
-    return self.entry_set.order('-updated').fetch(_MAX_ENTRIES_PER_FEED)
+    return self.objects.order_by('-updated')[:_MAX_ENTRIES_PER_FEED]
 
   @property
   def stale_entries(self):
     """List of stale entries that should be removed."""
-    return self.entry_set.order('-updated').fetch(999, _MAX_ENTRIES_PER_FEED)
+    return self.objects.order_by('-updated')[_MAX_ENTRIES_PER_FEED:]
 
   @property
   def updated(self):
-    try:
-      return self.entries[-1].updated
-    except IndexError:
-      return None
+    # TODO!
+    return None
+#    try:
+#      return self.entries[-1].updated
+#    except IndexError:
+#      return None
 
 
 class Entry(models.Model):
@@ -59,11 +61,12 @@ class Entry(models.Model):
 
   key = models.TextField(primary_key=True)
   feed = models.ForeignKey(Feed, on_delete=models.CASCADE)
+
   title = models.TextField(blank=False, default=None)
   link = models.TextField(blank=False, default=None)
   updated = models.DateTimeField(auto_now=True)
-  content = models.TextField(blank=False, default=None)
+  created = models.DateTimeField(auto_now_add=True)
   original_content = models.TextField()
   tags = models.JSONField(default=list)
 
-  created = models.DateTimeField(auto_now_add=True)
+  content = models.TextField(blank=False, default=None)

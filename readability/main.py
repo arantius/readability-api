@@ -21,7 +21,6 @@ import re
 import time
 
 from django import http
-from django import template
 from django.template import loader
 
 from readability import clean
@@ -61,7 +60,7 @@ def CleanFeed(request):
     return response
 
   url = re.sub(r'\?at=[^?&]+', '', url)
-  feed_entity = models.Feed.objects.filter(url=url)
+  feed_entity = models.Feed.objects.filter(url=url).get()
   if not feed_entity:
     feed_entity = feed.CreateFeed(url)
   response = http.HttpResponse(

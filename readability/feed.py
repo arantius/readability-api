@@ -23,6 +23,10 @@ import base64
 import datetime
 import hashlib
 import logging
+import time
+
+from django import template
+from huey.contrib.djhuey import  db_task
 
 from readability import clean
 from readability import models
@@ -72,12 +76,14 @@ def _CleanEntryBase(feed_entity, entry_feedparser, content, original_content):
 
 
 def _CleanEntryFailure(feed_entity, entry_feedparser, exception):
-  _CleanEntryBase(feed_entity, entry_feedparser,
-                  content='Error cleaning entry: %s' % exception,
-                  original_content='')
+  _CleanEntryBase(
+      feed_entity, entry_feedparser,
+      content='Error cleaning entry (for %s ): %s' % (
+          feed_entity.url, exception),
+      original_content='')
 
 
-# TODO: Retry somehow.
+@db_task(retries=2, retry_delay=90)
 def _CleanEntry(feed_entity, entry_feedparser):
   """Given a parsed feed entry, turn it into a cleaned entry entity."""
   logging.info(
@@ -134,24 +140,26 @@ def UpdateFeed(feed_entity, feed_feedparser=None):
   print('existing_keys =', repr(existing_keys))
 
   delay = 0
-  for entry_feedparser in feed_feedparser.entries:
-    if _EntryId(entry_feedparser) not in existing_keys:
-      #deferred.defer(_CleanEntry, feed_entity, entry_feedparser,
-      #               _countdown=delay, _queue='fetch')
-      #delay += 3
-      # TODO: enqueue somehow
-      return
+  for i, entry_feedparser in enumerate(feed_feedparser.entries):
+    if i == models._MAX_ENTRIES_PER_FEED: break
+    if _EntryId(entry_feedparser) in existing_keys:
+      logging.debug('Ignore already-cleaned entry at %s', entry_feedparser.url)
+    _CleanEntry.schedule(
+        (feed_entity, entry_feedparser),
+        delay=delay)
+    delay += 3
 
-  feed_entity.last_fetch_time = datetime.datetime.now()
+  feed_entity.last_fetch_time = time.time()
   feed_entity.save()
 
 
 def PrintFeed(feed_entity, include_original=False):
-  if not feed_entity.entries:
-    feed_entity = {
-        'title': feed_entity.title,
-        'link': feed_entity.title,
-        'entries': [_EMPTY_ENTRY],
-        }
-  return util.RenderTemplate(
-      'feed.xml', {'feed': feed_entity, 'include_original': include_original})
+  entries = models.Entry.objects.filter(feed__url=feed_entity.url)
+  if not entries:
+    entries = [_EMPTY_ENTRY]
+  tpl = template.loader.get_template('feed.xml')
+  return tpl.render({
+      'feed': feed_entity,
+      'entries': entries,
+      'include_original': include_original,
+   })

@@ -39,8 +39,16 @@ DATABASES = {
   }
 }
 
+HUEY = {
+  #'huey_class': 'huey.SqliteHuey',
+  #'filename': BASE_DIR / 'huey.db',
+  # MiniHuey ?
+  'huey_class': 'huey.MemoryHuey',
+}
+
 INSTALLED_APPS = [
-  'readability'
+  'readability',
+  'huey.contrib.djhuey',
 ]
 
 LOGGING = {
