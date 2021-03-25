@@ -22,7 +22,7 @@ import datetime
 import os
 from pathlib import Path
 
-BASE_DIR = Path(__file__).parent.resolve()
+DB_DIR = Path(__file__).parent.parent.resolve()
 
 SECRET_KEY = os.getenv(
   'SECRET_KEY', default='!j9s1*ama_q1e@!fm2cn@*r#^%5aoq&$x-x&swwq3ys$1*ta17')
@@ -35,13 +35,13 @@ ALLOWED_HOSTS = []
 DATABASES = {
   'default': {
     'ENGINE': 'django.db.backends.sqlite3',
-    'NAME': BASE_DIR / 'readability.db',
+    'NAME': DB_DIR / 'readability.db',
   }
 }
 
 HUEY = {
   #'huey_class': 'huey.SqliteHuey',
-  #'filename': BASE_DIR / 'huey.db',
+  #'filename': DB_DIR / 'huey.db',
   # MiniHuey ?
   'huey_class': 'huey.MemoryHuey',
 }
@@ -80,5 +80,5 @@ WSGI_APPLICATION = 'wsgi.application'
 import requests_cache
 requests_cache.install_cache(
     backend=requests_cache.backends.sqlite.DbCache(
-        location=str(BASE_DIR / 'requests_cache.db'), extension=''),
+        location=str(DB_DIR / 'requests_cache.db'), extension=''),
     expire_after=datetime.timedelta(hours=23))
