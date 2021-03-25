@@ -114,7 +114,7 @@ def _EntryId(entry_feedparser):
   except AttributeError:
     entry_id = entry_feedparser.link.encode('utf-8')
   entry_id = hashlib.sha256(entry_id).digest()
-  return base64.b64encode(entry_id)
+  return base64.b64encode(entry_id).decode('ascii')
 
 
 def CreateFeed(url):
@@ -148,10 +148,8 @@ def UpdateFeed(feed_url, feed_feedparser=None):
     feed_feedparser = util.ParseFeedAtUrl(feed_entity.url)
 
   entry_keys = [_EntryId(e) for e in feed_feedparser.entries]
-  #entry_entities = db.get(entry_keys)
-  #existing_keys = [entry.key().name() for entry in entry_entities if entry]
-  existing_keys = models.Entry.objects.filter(key__in=entry_keys).values('key')
-  print('existing_keys =', repr(existing_keys))
+  existing_keys = models.Entry.objects.filter(feed__url=feed_url).values('key')
+  existing_keys = set(x['key'] for x in existing_keys)
 
   logging.info('Downloaded %d entries ...', len(feed_feedparser.entries))
   delay = 0
@@ -159,7 +157,7 @@ def UpdateFeed(feed_url, feed_feedparser=None):
   for i, entry_feedparser in enumerate(feed_feedparser.entries):
     if i == models._MAX_ENTRIES_PER_FEED: break
     if _EntryId(entry_feedparser) in existing_keys:
-      logging.debug('Ignore already-cleaned entry at %s', entry_feedparser.url)
+      logging.debug('Ignore already-cleaned entry at %s', entry_feedparser.link)
       continue
     _CleanEntry.schedule(
         (feed_entity, entry_feedparser),
