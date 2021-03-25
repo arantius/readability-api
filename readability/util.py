@@ -198,8 +198,7 @@ def SoupTagOnly(tag):
 
 
 def Strip(tag, reason=None):
-  # Switch this for dev.
-  if 1:
+  if settings.DEBUG:
     tag['style'] = 'outline: 2px dotted red'
     if reason: tag['strip_reason'] = reason
   else:
