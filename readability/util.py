@@ -126,7 +126,7 @@ def GetFeedEntryContent(entry):
       return entry.content[0]['value']
     # Or, use the text/html type if there's more than one.
     for content in entry.content:
-      if (content.has_attr('type')) and ('text/html' == content.type):
+      if ('type' in content) and ('text/html' == content['type']):
         return content['value']
   # Otherwise try "summary_detail" and "summary".
   if 'summary_detail' in entry:
@@ -148,7 +148,7 @@ def OEmbedFixup(soup):
       s = bs4.BeautifulSoup(ta.text, 'html.parser')
       embed = s.find('iframe')
     embed['src'] = re.sub(r'\?.*', '', embed['src'])
-    div = bs4.Tag(soup, 'div')
+    div = bs4.Tag(soup, name='div')
     div.insert(0, embed)
     cont.replaceWith(div)
 
@@ -203,7 +203,7 @@ def SwfObjectFixup(soup):
     m = re.search(r'new\s+SWFObject.*?\((.*)\)', str(script_txt))
     src, name, width, height, _, bgcolor = [
         x for _, x in re.findall(r"""(['"])(.*?)\1""", m.group(1))]
-    embed = bs4.Tag(soup, 'embed')
+    embed = bs4.Tag(soup, name='embed')
     embed['src'] = src
     embed['name'] = name
     embed['width'] = width

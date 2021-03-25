@@ -408,7 +408,7 @@ def _Strip(tag):
 
   for attr, pattern in ATTR_STRIP:
     if attr not in tag: continue
-    if pattern.search(tag[attr]):
+    if tag.has_attr(attr) and pattern.search(tag[attr]):
       if util.DEBUG:
         logging.info('Strip for %s: %s', attr, util.SoupTagOnly(tag))
         logging.info('  (Match %s against %s)',

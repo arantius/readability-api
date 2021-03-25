@@ -205,7 +205,7 @@ def _Munge(soup, tag, url):
   # Serialize the tag, and apply full justification.
   if isinstance(tag, bs4.BeautifulStoneSoup):
     # Wrap in a div, to have a tag to justify, if necessary.
-    wrap = bs4.Tag(soup, 'div')
+    wrap = bs4.Tag(soup, name='div')
     wrap.insert(0, tag)
     tag = wrap
 

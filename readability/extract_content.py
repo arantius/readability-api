@@ -62,8 +62,8 @@ def ExtractFromHtml(url, html):
     soup = bs4.BeautifulSoup(html, 'html.parser', parseOnlyThese=strainer)
     return _ExtractFromHtmlGeneric(url, str(soup))
   elif re.search(r'\.txt(\?|$)', url, re.I):
-    soup = bs4.BeautifulSoup(parser='html.parser')
-    pre = bs4.Tag(soup, 'pre')
+    soup = bs4.BeautifulSoup(features='html.parser')
+    pre = bs4.Tag(soup, name='pre')
     pre.insert(0, bs4.NavigableString(html))
     soup.insert(0, pre)
     return soup, soup
@@ -184,7 +184,7 @@ def _TransformBrsToParagraphsInner(soup, tag):
     if hasattr(prev, 'name') and prev.name in util.BR_TO_P_STOP_TAGS: break
     contents.insert(0, prev)
 
-  newp = bs4.Tag(soup, 'p')
+  newp = bs4.Tag(soup, name='p')
   for i, newtag in enumerate(contents):
     newp.insert(i, newtag)
   util.Strip(next_tag, 'br to p')
