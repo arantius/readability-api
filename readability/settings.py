@@ -40,9 +40,7 @@ DATABASES = {
 }
 
 HUEY = {
-  #'huey_class': 'huey.SqliteHuey',
-  #'filename': DB_DIR / 'huey.db',
-  # MiniHuey ?
+  # Queue tasks only in memory, they're always based on DB state.
   'huey_class': 'huey.MemoryHuey',
 }
 
