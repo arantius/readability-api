@@ -60,6 +60,8 @@ LOGGING = {
     'level': 'DEBUG',
   }
 }
+import logging
+logging.getLogger('chardet.charsetprober').setLevel(logging.INFO)
 
 MIDDLEWARE = [
 ]
