@@ -37,7 +37,6 @@ from readability import settings
 
 
 DEBUG = settings.DEBUG
-EMBED_NAMES = set(('embed', 'object'))
 RE_CNN_HACK = re.compile(r'<!-- with(out)? htc -->')
 RE_DOCTYPE = re.compile(r'<!DOCTYPE.*?>', re.S)
 TAG_NAMES_BLOCK = set(('blockquote', 'div', 'li', 'p', 'pre', 'td', 'th'))
@@ -116,15 +115,6 @@ def Fetch(orig_url, deadline=6):
       url = urllib.parse.urljoin(previous_url, url)
   final_url = urllib.parse.urljoin(orig_url, final_url)
   return (response, final_url)
-
-
-def FindEmbeds(root_tag):
-  if root_tag.name in EMBED_NAMES:
-    yield root_tag
-  for tag in root_tag.findAll(EMBED_NAMES):
-    if tag.findParent(EMBED_NAMES):
-      continue
-    yield tag
 
 
 def GetFeedEntryContent(entry):

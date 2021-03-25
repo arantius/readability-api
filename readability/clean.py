@@ -198,7 +198,6 @@ def _Munge(soup, tag, url):
   _MungeHeaderDowngrade(tag)
   _MungeHyphenate(tag)
   _MungeNoscript(tag)
-  tag = _MungeTransformEmbeds(soup, tag)
 
   # Serialize the tag, and apply full justification.
   if isinstance(tag, bs4.BeautifulStoneSoup):
@@ -326,27 +325,3 @@ def _MungeStripSiteSpecific(root_tag, url):
   if 'smashingmagazine.com' in url:
     for tag in root_tag.findAll('table', width='650'):
       util.Strip(tag)
-
-
-def _MungeTransformEmbeds(soup, root_tag):
-  for tag in util.FindEmbeds(root_tag):
-    try:
-      w, h = util.TagSize(root_tag)
-    except TypeError:
-      w = 600
-      h = 400
-    link = bs4.Tag(soup, 'a')
-    link['href'] = 'data:text/html;base64,' + base64.b64encode(
-        '<body style="margin:0;">%s</body>' % str(tag))
-    link['rel'] = 'embedded_media'
-    link['embed_width'] = w
-    link['embed_height'] = h
-    img = bs4.Tag(soup, 'img')
-    img['src'] = 'http://readability-api.appspot.com/embedded_media.png'
-    img['width'] = '128'
-    img['height'] = '128'
-    link.insert(0, img)
-    if tag == root_tag:
-      return link
-    tag.replaceWith(link)
-  return root_tag
