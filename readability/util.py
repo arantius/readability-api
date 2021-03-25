@@ -136,23 +136,6 @@ def GetFeedEntryContent(entry):
   return ''
 
 
-def OEmbedFixup(soup):
-  oembed_links = soup.findAll(
-      'a', {'onclick': re.compile(r'^oEmbedManagerVideoLoader')})
-  for oembed_link in oembed_links:
-    cont = oembed_link.parent
-    embed = cont.find('iframe')
-    if not embed:
-      ta = cont.find('textarea')
-      if not ta: return
-      s = bs4.BeautifulSoup(ta.text, 'html.parser')
-      embed = s.find('iframe')
-    embed['src'] = re.sub(r'\?.*', '', embed['src'])
-    div = bs4.Tag(soup, name='div')
-    div.insert(0, embed)
-    cont.replaceWith(div)
-
-
 def ParseFeedAtUrl(url):
   """Fetch a URL's contents, and parse it as a feed."""
   response, _ = Fetch(url, deadline=20)
@@ -168,12 +151,6 @@ def PreCleanHtml(html):
   html = re.sub(RE_DOCTYPE, '', html)
   html = html.replace('&nbsp;', ' ')
   return html
-
-
-def PreCleanSoup(soup):
-  CommentStrip(soup)
-  SwfObjectFixup(soup)
-  OEmbedFixup(soup)
 
 
 def RenderTemplate(template_name, template_values=None):
@@ -193,27 +170,6 @@ def Strip(tag, reason=None):
     if reason: tag['strip_reason'] = reason
   else:
     tag.extract()
-
-
-def SwfObjectFixup(soup):
-  # SWFObject 1 style
-  script_txts = soup.findAll(
-      'script_txt', text=re.compile(r'\bnew SWFObject\b'))
-  for script_txt in script_txts:
-    m = re.search(r'new\s+SWFObject.*?\((.*)\)', str(script_txt))
-    src, name, width, height, _, bgcolor = [
-        x for _, x in re.findall(r"""(['"])(.*?)\1""", m.group(1))]
-    embed = bs4.Tag(soup, name='embed')
-    embed['src'] = src
-    embed['name'] = name
-    embed['width'] = width
-    embed['height'] = height
-    embed['bgcolor'] = bgcolor
-    for m in re.findall(
-        r"""\.\s*addParam\s*\(\s*(['"])(.*)\1\s*,\s*(['"])(.*)\3\s*\)""",
-        str(script_txt)):
-      embed[m[1]] = m[3]
-    script_txt.parent.replaceWith(embed)
 
 
 def TagSize(tag):

@@ -74,7 +74,7 @@ def ExtractFromHtml(url, html):
 def _ExtractFromHtmlGeneric(url, html):
   html = util.PreCleanHtml(html)
   soup = bs4.BeautifulSoup(html, 'html.parser')
-  util.PreCleanSoup(soup)
+  util.CommentStrip(soup)
 
   title = soup.find('title')
   title = title and title.text.lower() or ''
