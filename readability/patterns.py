@@ -333,16 +333,21 @@ def _Score(tag, url, hit_counter):
 
   # Links.
   if tag.name == 'a' and tag.has_attr('href') and not tag.has_attr('score_href'):
-    that_url = urllib.parse.urljoin(url, tag['href'])
-    if url == that_url or url == urllib.parse.unquote(tag['href']):
-      # Special case: score down AND strip links to this page.  (Including
-      # "social media" links.)
-      util.ApplyScore(tag, -1.5, name='self_link')
-      util.Strip(tag, 'self link')
-    # TODO: host name -> domain name
-    elif urllib.parse.urlparse(url)[1] != urllib.parse.urlparse(that_url)[1]:
-      # Score up links to _other_ domains.
-      util.ApplyScore(tag, 1.0, name='out_link')
+    try:
+      that_url = urllib.parse.urljoin(url, tag['href'])
+    except ValueError:
+      # Rare but possible for malformed documents.
+      pass
+    else:
+      if url == that_url or url == urllib.parse.unquote(tag['href']):
+        # Special case: score down AND strip links to this page.  (Including
+        # "social media" links.)
+        util.ApplyScore(tag, -1.5, name='self_link')
+        util.Strip(tag, 'self link')
+      # TODO: host name -> domain name
+      elif urllib.parse.urlparse(url)[1] != urllib.parse.urlparse(that_url)[1]:
+        # Score up links to _other_ domains.
+        util.ApplyScore(tag, 1.0, name='out_link')
 
   # Blocks.
   if _IsLeafBlock(tag):

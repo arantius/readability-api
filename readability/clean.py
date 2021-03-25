@@ -160,7 +160,10 @@ def _Clean(url, response=None):
 
 def _FixUrls(parent, base_url):
   def _FixUrl(tag, attr):
-    tag[attr] = urllib.parse.urljoin(base_url, tag[attr].strip())
+    try:
+      tag[attr] = urllib.parse.urljoin(base_url, tag[attr].strip())
+    except ValueError:
+      pass
 
   # pylint: disable-msg=C6405
   for tag in parent.findAll(href=True): _FixUrl(tag, 'href')
