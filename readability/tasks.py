@@ -38,11 +38,9 @@ def ScheduleFeedUpdates():
   """Periodically check for stale feeds, schedule tasks to update them."""
   for feed_e in models.Feed.objects.order_by(
       F('last_fetch_time') + F('fetch_interval_seconds')):
-    # TODO: Check within next N seconds (matching crontab), schedule then.
+    # TODO: Check for within next N seconds (matching crontab), schedule then.
     update_time = feed_e.last_fetch_time + feed_e.fetch_interval_seconds
     now = time.time()
-    if update_time > now:
-      print('not yet,', update_time, '>', now, now-update_time)
-      break
+    if update_time > now: break
 
     feed.UpdateFeed(feed_e.url)
