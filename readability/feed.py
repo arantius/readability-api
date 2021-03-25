@@ -149,7 +149,7 @@ def UpdateFeed(feed_url, feed_feedparser=None):
   existing_keys = set(x['key'] for x in existing_keys)
 
   logging.info('Downloaded %d entries ...', len(feed_feedparser.entries))
-  delay = 0
+  delay = 1
   new_entries = False
   i = 0
   for entry_feedparser in feed_feedparser.entries:
