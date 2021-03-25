@@ -129,13 +129,10 @@ def CreateFeed(url):
 
 
 def RenderFeed(feed_entity, include_original=False):
-  entries = models.Entry.objects.filter(feed__url=feed_entity.url)
-  if not entries:
-    entries = [_EMPTY_ENTRY]
   tpl = template.loader.get_template('feed.xml')
   return tpl.render({
       'feed': feed_entity,
-      'entries': entries,
+      'entries': feed_entity.entries or [_EMPTY_ENTRY],
       'include_original': include_original,
    })
 

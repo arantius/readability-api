@@ -38,21 +38,21 @@ class Feed(models.Model):
   @property
   def entries(self):
     """List of active entries in the feed."""
-    return self.objects.order_by('-updated')[:_MAX_ENTRIES_PER_FEED]
+    return Entry.objects.filter(feed__url=self.url) \
+        .order_by('-updated')[:_MAX_ENTRIES_PER_FEED]
 
   @property
   def stale_entries(self):
     """List of stale entries that should be removed."""
-    return self.objects.order_by('-updated')[_MAX_ENTRIES_PER_FEED:]
+    return Entry.objects.filter(feed__url=self.url) \
+        .order_by('-updated')[_MAX_ENTRIES_PER_FEED:]
 
   @property
   def updated(self):
-    # TODO!
-    return None
-#    try:
-#      return self.entries[-1].updated
-#    except IndexError:
-#      return None
+    try:
+      return self.entries[0].updated
+    except IndexError:
+      return None
 
 
 class Entry(models.Model):
