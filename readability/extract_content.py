@@ -127,7 +127,6 @@ def _FindTitleHeader(root_tag, title_text):
     if len(header_text) < 20:
       continue  # avoid false positives thanks to short/empty headers
     if (title_text in header_text) or (header_text in title_text):
-      logging.info('title header? title=%r, header=%r', title_text, header_text)
       return header
 
 
@@ -150,7 +149,6 @@ def _StripBefore(strip_tag):
     if tag in ancestors:
       # Don't strip the tags that contain the strip_tag.
       continue
-    logging.info('Strip for being before title el: %s', util.SoupTagOnly(tag))
     util.Strip(tag, 'before title')
   logging.info('Strip for being title el: %s', util.SoupTagOnly(tag))
   util.Strip(strip_tag, 'before title')
