@@ -155,7 +155,6 @@ def UpdateFeed(feed_url, feed_feedparser=None):
   for entry_feedparser in feed_feedparser.entries:
     if i == models._MAX_ENTRIES_PER_FEED: break
     if _EntryId(entry_feedparser) in existing_keys:
-      logging.debug('Ignore already-cleaned entry at %s', entry_feedparser.link)
       continue
     _CleanEntry.schedule(
         (feed_entity, entry_feedparser),
@@ -164,6 +163,7 @@ def UpdateFeed(feed_url, feed_feedparser=None):
     delay += 3
     new_entries = True
 
+  logging.info('Found %d new entries for feed %s', i, feed_url)
   feed_entity.last_fetch_time = time.time()
 
   f = feed_entity.fetch_interval_seconds
