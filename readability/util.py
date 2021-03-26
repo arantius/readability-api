@@ -27,11 +27,11 @@ import os
 import re
 import urllib.parse
 
-from django import template
-import requests
-
 import bs4
+from django import template
 import feedparser
+import requests
+import requests_cache
 
 from readability import settings
 
@@ -87,9 +87,9 @@ def CommentStrip(soup):
     comment.extract()
 
 
-def Fetch(orig_url, deadline=6):
+def Fetch(orig_url, deadline=6, do_cache=True):
   cookie = http.cookies.SimpleCookie()
-  redirect_limit = 10
+  redirect_limit = 5
   redirects = 0
   url = orig_url
   while url and redirects < redirect_limit:
@@ -98,7 +98,11 @@ def Fetch(orig_url, deadline=6):
     if settings.DEBUG:
       logging.info('Fetching: %s', url)
     final_url = url
-    response = requests.get(
+    session = requests
+    if do_cache:
+      session = requests_cache.CachedSession(
+          str(settings.DB_DIR / 'requests_cache.db'), extension='')
+    response = session.get(
         url,
         timeout=deadline,
         headers={
@@ -138,7 +142,7 @@ def GetFeedEntryContent(entry):
 
 def ParseFeedAtUrl(url):
   """Fetch a URL's contents, and parse it as a feed."""
-  response, _ = Fetch(url, deadline=20)
+  response, _ = Fetch(url, deadline=20, do_cache=False)
   try:
     feed_feedparser = feedparser.parse(response.text)
   except LookupError:

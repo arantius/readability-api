@@ -75,10 +75,3 @@ TEMPLATES = [{
 }]
 
 WSGI_APPLICATION = 'wsgi.application'
-
-
-import requests_cache
-requests_cache.install_cache(
-    backend=requests_cache.backends.sqlite.DbCache(
-        location=str(DB_DIR / 'requests_cache.db'), extension=''),
-    expire_after=datetime.timedelta(hours=23))
