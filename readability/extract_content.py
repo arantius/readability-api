@@ -150,7 +150,6 @@ def _StripBefore(strip_tag):
       # Don't strip the tags that contain the strip_tag.
       continue
     util.Strip(tag, 'before title')
-  logging.info('Strip for being title el: %s', util.SoupTagOnly(tag))
   util.Strip(strip_tag, 'before title')
 
 
