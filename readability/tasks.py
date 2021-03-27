@@ -41,6 +41,12 @@ def ScheduleFeedUpdates():
     # TODO: Check for within next N seconds (matching crontab), schedule then.
     update_time = feed_e.last_fetch_time + feed_e.fetch_interval_seconds
     now = time.time()
-    if update_time > now: break
+    d = max(0, update_time - now)
+    if d > 50:
+      logging.info(
+          'Next update too far in the future (%.3f seconds, %.3f minutes)',
+          d, d/60)
+      break
 
-    feed.UpdateFeed(feed_e.url)
+    logging.info('Scheduling update (in %.3f seconds) of %s ...', d, feed_e.url)
+    feed.UpdateFeed.schedule((feed_e.url,), delay=d)

@@ -124,7 +124,7 @@ def CreateFeed(url):
       title=feed_feedparser.feed.title,
       link=feed_feedparser.feed.link)
   feed_entity.save()
-  UpdateFeed(feed_entity.url, feed_feedparser)
+  UpdateFeed(feed_entity.url, feed_feedparser).call_local()
   return feed_entity
 
 
@@ -137,6 +137,7 @@ def RenderFeed(feed_entity, include_original=False):
    })
 
 
+@db_task()
 def UpdateFeed(feed_url, feed_feedparser=None):
   logging.info('Updating feed %r ...', feed_url)
 
@@ -150,26 +151,23 @@ def UpdateFeed(feed_url, feed_feedparser=None):
 
   logging.info('Downloaded %d entries ...', len(feed_feedparser.entries))
   delay = 1
-  new_entries = False
-  i = 0
+  tasks = []
   for entry_feedparser in feed_feedparser.entries:
-    if i == models._MAX_ENTRIES_PER_FEED: break
     if _EntryId(entry_feedparser) in existing_keys:
       continue
-    _CleanEntry.schedule(
-        (feed_entity, entry_feedparser),
-        delay=delay)
-    i += 1
+    tasks.append(
+        _CleanEntry.schedule((feed_entity, entry_feedparser), delay=delay))
     delay += 3
-    new_entries = True
 
-  logging.info('Found %d new entries for feed %s', i, feed_url)
-  feed_entity.last_fetch_time = time.time()
+  logging.info('Found   %d new entries for feed %s', len(tasks), feed_url)
+  for task in tasks:
+    task(blocking=true)
+  logging.info('Cleaned %d new entries for feed %s', len(tasks), feed_url)
 
   f = feed_entity.fetch_interval_seconds
-  f *= 0.9 if new_entries else 1.1
+  f *= 0.9 if tasks else 1.1
   if f < _MIN_UPDATE_INTERVAL: f = _MIN_UPDATE_INTERVAL
   if f > _MAX_UPDATE_INTERVAL: f = _MAX_UPDATE_INTERVAL
   feed_entity.fetch_interval_seconds = f
-
+  feed_entity.last_fetch_time = time.time()
   feed_entity.save()

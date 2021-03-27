@@ -42,6 +42,10 @@ DATABASES = {
 HUEY = {
   # Queue tasks only in memory, they're always based on DB state.
   'huey_class': 'huey.MemoryHuey',
+  'consumer': {
+    'workers': 4,
+    'worker_type': 'thread',
+  },
 }
 
 INSTALLED_APPS = [
