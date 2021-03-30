@@ -21,7 +21,7 @@ import re
 import time
 
 from django import http
-from django.template import loader
+from django import template
 
 from readability import clean
 from readability import feed

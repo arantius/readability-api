@@ -166,9 +166,8 @@ def PreCleanHtml(html):
 
 def RenderTemplate(template_name, template_values=None):
   template_values = template_values or {}
-  template_file = os.path.join(
-      os.path.dirname(__file__), 'templates', template_name)
-  return template.render(template_file, template_values)
+  tpl = template.loader.get_template(template_name)
+  return tpl.render(template_values)
 
 
 def SoupTagOnly(tag):
