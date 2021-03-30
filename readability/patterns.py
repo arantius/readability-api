@@ -22,7 +22,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import logging
 import re
 import urllib.error
 import urllib.parse
@@ -410,8 +409,8 @@ def _Strip(tag):
     if attr not in tag: continue
     if tag.has_attr(attr) and pattern.search(tag[attr]):
       if util.DEBUG:
-        logging.info('Strip for %s: %s', attr, util.SoupTagOnly(tag))
-        logging.info('  (Match %s against %s)',
+        util.log.info('Strip for %s: %s', attr, util.SoupTagOnly(tag))
+        util.log.info('  (Match %s against %s)',
                      pattern.search(tag[attr]).group(0), pattern.pattern)
       util.Strip(tag, 'strip attr ' + attr)
       return True
@@ -475,7 +474,7 @@ def Process(root_tag, url, hit_counter=None):
         if points < 0:
           # Only reverse false _positives_.  Negatives probably aren't false.
           continue
-        logging.info(
+        util.log.info(
             'Undoing %d points for %d tags, with %s matching %s',
             points, len(tags), attr, unused_pattern)
         for tag in tags:

@@ -47,6 +47,13 @@ BR_TO_P_STOP_TAGS = set(list(TAG_NAMES_BLOCK) + list(TAG_NAMES_HEADER) + ['br'])
 MAX_SCORE_DEPTH = 5
 _DEPTH_SCORE_DECAY = [(1 - d / 12.0) ** 5 for d in range(MAX_SCORE_DEPTH + 1)]
 
+################################################################################
+
+log = logging.Logger('readability')
+_lh = logging.StreamHandler()
+_lh.setFormatter(logging.Formatter('%(asctime)s:readability:%(message)s'))
+log.addHandler(_lh)
+
 ################################### HELPERS ####################################
 
 def ApplyScore(tag, score, depth=0, name=None):
@@ -96,7 +103,7 @@ def Fetch(orig_url, deadline=6, do_cache=True):
     redirects += 1
     url = CleanUrl(url)
     if settings.DEBUG:
-      logging.info('Fetching: %s', url)
+      log.info('Fetching: %s', url)
     final_url = url
     session = requests
     if do_cache:
@@ -112,7 +119,7 @@ def Fetch(orig_url, deadline=6, do_cache=True):
     try:
       cookie.load(response.headers.get('Set-Cookie', ''))
     except cookie.CookieError:
-      logging.exception('Ignoring cookie problem!')
+      log.exception('Ignoring cookie problem!')
     previous_url = url
     url = response.headers.get('Location')
     if url:

@@ -24,7 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import base64
-import logging
 import re
 import urllib.parse
 
@@ -126,7 +125,7 @@ def _Clean(url, response=None):
     try:
       response, final_url = util.Fetch(url)
     except requests.exceptions.RequestException as e:
-      logging.error(e)
+      util.log.error(e)
       return url, 'Download error at %s : %s' % (url, e)
 
     # Handle redirects to special pages.
@@ -154,7 +153,7 @@ def _Clean(url, response=None):
     soup, tag = extract_content.ExtractFromHtml(final_url, response.text)
 
   if util.DEBUG:
-    logging.info('_Clean() note: %s', note)
+    util.log.info('_Clean() note: %s', note)
   return final_url, _Munge(soup, tag, final_url)
 
 

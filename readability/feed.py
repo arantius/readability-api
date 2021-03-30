@@ -89,13 +89,13 @@ def _CleanEntryFailure(feed_entity, entry_feedparser, exception):
 @db_task(retries=2, retry_delay=90, on_error=_CleanEntryFailure)
 def _CleanEntry(feed_entity, entry_feedparser):
   """Given a parsed feed entry, turn it into a cleaned entry entity."""
-  logging.info(
+  util.log.info(
       'For feed %r, cleaning entry %r ...',
       feed_entity.url,
       getattr(entry_feedparser, 'link', 'UNKNOWN'))
 
   if not hasattr(entry_feedparser, 'link'):
-    logging.warn('Missing link attribute!?')
+    util.log.warn('Missing link attribute!?')
     return
 
   try:
@@ -104,7 +104,7 @@ def _CleanEntry(feed_entity, entry_feedparser):
         content=clean.Clean(entry_feedparser.link),
         original_content=util.GetFeedEntryContent(entry_feedparser))
   except:
-    logging.info('Got error cleaning: %s', entry_feedparser.link)
+    util.log.info('Got error cleaning: %s', entry_feedparser.link)
     raise
 
 
@@ -139,7 +139,7 @@ def RenderFeed(feed_entity, include_original=False):
 
 @db_task()
 def UpdateFeed(feed_url, feed_feedparser=None):
-  logging.info('Updating feed %r ...', feed_url)
+  util.log.info('Updating feed %r ...', feed_url)
 
   feed_entity = models.Feed.objects.get(url=feed_url)
   if not feed_feedparser:
@@ -149,7 +149,9 @@ def UpdateFeed(feed_url, feed_feedparser=None):
   existing_keys = models.Entry.objects.filter(feed__url=feed_url).values('key')
   existing_keys = set(x['key'] for x in existing_keys)
 
-  logging.info('Downloaded %d entries ...', len(feed_feedparser.entries))
+  util.log.info(
+      'Downloaded %d entries, already have %d ...',
+      len(feed_feedparser.entries), len(existing_keys))
   delay = 1
   tasks = []
   for entry_feedparser in feed_feedparser.entries:
@@ -159,10 +161,11 @@ def UpdateFeed(feed_url, feed_feedparser=None):
         _CleanEntry.schedule((feed_entity, entry_feedparser), delay=delay))
     delay += 3
 
-  logging.info('Found   %d new entries for feed %s', len(tasks), feed_url)
+  util.log.info('Found   %d new entries for feed %s', len(tasks), feed_url)
   for task in tasks:
     task(blocking=true)
   logging.info('Cleaned %d new entries for feed %s', len(tasks), feed_url)
+  util.log.info('Cleaned %d new entries for feed %s', len(tasks), feed_url)
 
   f = feed_entity.fetch_interval_seconds
   f *= 0.9 if tasks else 1.1

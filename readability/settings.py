@@ -53,23 +53,6 @@ INSTALLED_APPS = [
   'huey.contrib.djhuey',
 ]
 
-LOGGING = {
-  'version': 1,
-  'disable_existing_loggers': False,
-  'handlers': {
-    'console': {'class': 'logging.StreamHandler'},
-  },
-  'root': {
-    'handlers': ['console'],
-    'level': 'DEBUG',
-  }
-}
-import logging
-logging.getLogger('chardet.charsetprober').setLevel(logging.INFO)
-
-MIDDLEWARE = [
-]
-
 ROOT_URLCONF = 'readability.urls'
 
 TEMPLATES = [{

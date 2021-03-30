@@ -23,7 +23,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import logging
 import re
 import sys
 
@@ -87,7 +86,7 @@ def _ExtractFromHtmlGeneric(url, html):
   title_header = _FindTitleHeader(soup, title)
   if title_header:
     if util.DEBUG:
-      logging.info('Picked title header %s', util.SoupTagOnly(title_header))
+      util.log.info('Picked title header %s', util.SoupTagOnly(title_header))
     util.ApplyScore(title_header, 11, name='title_header')
     if 'flickr.com' not in url:
       _StripBefore(title_header)
@@ -111,7 +110,7 @@ def _ExtractFromHtmlGeneric(url, html):
   if util.DEBUG:
     # Log highly scored nodes.
     for node in scored_nodes:
-      logging.info('%10.2f %s', node['score'], util.SoupTagOnly(node)[0:69])
+      util.log.info('%10.2f %s', node['score'], util.SoupTagOnly(node)[0:69])
 
   return soup, best_node
 
@@ -143,7 +142,7 @@ def _SiteSpecific(url, root_tag):
 
 def _StripBefore(strip_tag):
   if util.DEBUG:
-    logging.info('Strip before: %s', util.SoupTagOnly(strip_tag))
+    util.log.info('Strip before: %s', util.SoupTagOnly(strip_tag))
   ancestors = strip_tag.findParents(True)
   for tag in strip_tag.findAllPrevious():
     if tag in ancestors:

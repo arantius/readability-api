@@ -20,7 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import datetime
-import logging
 import random
 import time
 
@@ -43,10 +42,10 @@ def ScheduleFeedUpdates():
     now = time.time()
     d = max(0, update_time - now)
     if d > 50:
-      logging.info(
+      util.log.info(
           'Next update too far in the future (%.3f seconds, %.3f minutes)',
           d, d/60)
       break
 
-    logging.info('Scheduling update (in %.3f seconds) of %s ...', d, feed_e.url)
+    util.log.info('Scheduling update (in %.3f seconds) of %s ...', d, feed_e.url)
     feed.UpdateFeed.schedule((feed_e.url,), delay=d)
