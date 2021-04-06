@@ -32,7 +32,7 @@ from readability import models
 from readability import util
 
 
-@db_periodic_task(crontab(minute='*'))
+@db_periodic_task(crontab(minute='*/10'))
 def ScheduleFeedUpdates():
   """Periodically check for stale feeds, schedule tasks to update them."""
   for feed_e in models.Feed.objects.order_by(
