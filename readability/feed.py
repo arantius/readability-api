@@ -153,28 +153,21 @@ def UpdateFeed(feed_url, feed_feedparser=None, local=False):
       'Downloaded %d entries, already have %d ...',
       len(feed_feedparser.entries), len(existing_keys))
   delay = 1
-  tasks = []
+  new_entries = False
   for entry_feedparser in feed_feedparser.entries:
     if _EntryId(entry_feedparser) in existing_keys:
       continue
+    new_entries = True
     args = (feed_entity, entry_feedparser)
     if local:
       _CleanEntry.call_local(*args)
       time.sleep(1)
     else:
-      tasks.append(
-          _CleanEntry.schedule(args, delay=delay))
+      _CleanEntry.schedule(args, delay=delay)
     delay += 3
 
-  if not local:
-    util.log.info('Found   %d new entries for feed %s', len(tasks), feed_url)
-    for task in tasks:
-      r = task(blocking=True)
-      util.log.info('Finished task %s / %s', task, r)
-    util.log.info('Cleaned %d new entries for feed %s', len(tasks), feed_url)
-
   f = feed_entity.fetch_interval_seconds
-  f *= 0.9 if tasks else 1.1
+  f *= 0.9 if new_entries else 1.1
   if f < _MIN_UPDATE_INTERVAL: f = _MIN_UPDATE_INTERVAL
   if f > _MAX_UPDATE_INTERVAL: f = _MAX_UPDATE_INTERVAL
 
