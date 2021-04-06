@@ -122,12 +122,7 @@ def _Clean(url, response=None):
     return url, util.RenderTemplate('image.html', {'url': url})
 
   if response is None:
-    try:
-      response, final_url = util.Fetch(url)
-    except requests.exceptions.RequestException as e:
-      util.log.error(e)
-      return url, 'Download error at %s : %s' % (url, e)
-
+    response, final_url = util.Fetch(url)
     # Handle redirects to special pages.
     if final_url != url:
       return _Clean(final_url, response)

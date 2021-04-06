@@ -78,34 +78,48 @@ def _CleanEntryBase(feed_entity, entry_feedparser, content, original_content):
   entry_entity.save()
 
 
-def _CleanEntryFailure(feed_entity, entry_feedparser, exception):
+def _CleanEntryFailure(feed_entity, entry_feedparser, ex):
+  truncate_url = feed_entity.url
+  if len(url) > _MAX_URL_DISPLAY_LEN:
+    truncate_url = url[0:60] + '…'
+  content = '''
+<p>Error cleaning entry at <a href="%s">%s</a>:</p>
+<pre style="pre-wrap'>%s</pre>
+''' % (feed_entity.url, truncate_url, ex)
   _CleanEntryBase(
       feed_entity, entry_feedparser,
-      content='Error cleaning entry (for %s ): %s' % (
-          feed_entity.url, exception),
-      original_content='')
+      content=content, original_content='')
 
 
-@db_task(retries=2, retry_delay=90, on_error=_CleanEntryFailure)
+@db_task()
 def _CleanEntry(feed_entity, entry_feedparser):
   """Given a parsed feed entry, turn it into a cleaned entry entity."""
   util.log.info(
       'For feed %r, cleaning entry %r ...',
       feed_entity.url,
       getattr(entry_feedparser, 'link', 'UNKNOWN'))
-
   if not hasattr(entry_feedparser, 'link'):
     util.log.warn('Missing link attribute!?')
     return
 
-  try:
-    _CleanEntryBase(
-        feed_entity, entry_feedparser,
-        content=clean.Clean(entry_feedparser.link),
-        original_content=util.GetFeedEntryContent(entry_feedparser))
-  except:
-    util.log.info('Got error cleaning: %s', entry_feedparser.link)
-    raise
+  i = 0
+  while True:
+    try:
+      content = clean.Clean(entry_feedparser.link)
+      _CleanEntryBase(
+          feed_entity, entry_feedparser,
+          content=content,
+          original_content=util.GetFeedEntryContent(entry_feedparser))
+    except Exception as ex:
+      util.log.info(
+          'Got error %d cleaning %s: %s', i, entry_feedparser.link, ex)
+      time.sleep(15)
+      i += 1
+      if i < 3:
+        continue
+      else:
+        _CleanEntryFailure(feed_entity, entry_feedparser, ex)
+    break
 
 
 def _EntryId(entry_feedparser):
