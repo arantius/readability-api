@@ -55,20 +55,29 @@ def period(period):
     minutes=1 if util.DEBUG else 10)))
 def ScheduleFeedUpdates():
   """Periodically check for stale feeds, schedule tasks to update them."""
+  # Don't schedule for this many seconds, to avoid double-scheduling. E.g.
+  # we run every N minutes, the next check is in N minutes plus one MS.
+  # We schedule a check now, and then in N minutes we check and the next
+  # fetch is still in the future -- that scheduled check hasn't completed
+  # -- so we schedule a second!  Pick a duration that should be longer
+  # than any `feed.UpdateFeed()` execution, so it's always updated the
+  # feed before we check again.
+  jitter_sec = 15
+
+  now = time.time()
   for feed_e in models.Feed.objects.order_by(
       F('last_fetch_time') + F('fetch_interval_seconds')):
-    # TODO: Check for within next N seconds (matching crontab), schedule then.
     update_time = feed_e.last_fetch_time + feed_e.fetch_interval_seconds
-    now = time.time()
-    d = max(0, update_time - now)
-    if d > 50:
+    delay = max(0, update_time - now)
+    if delay > ((1 if util.DEBUG else 10) * 60 - jitter_sec):  # as period above
       util.log.info(
           'Next update too far in the future (%.3f seconds, %.3f minutes)',
-          d, d/60)
+          delay, delay/60)
       break
 
-    util.log.info('Scheduling update (in %.3f seconds) of %s ...', d, feed_e.url)
-    feed.UpdateFeed.schedule((feed_e.url,), delay=d)
+    util.log.info(
+        'Scheduling update (in %.3f seconds) of %s ...', delay, feed_e.url)
+    feed.UpdateFeed.schedule((feed_e.url,), delay=delay)
 
 
 @db_periodic_task(period(datetime.timedelta(hours=1)))
