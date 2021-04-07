@@ -31,8 +31,28 @@ from readability import feed
 from readability import models
 from readability import util
 
+def period(period):
+  """A Huey validator to run periodic tasks with a minimum period.
 
-@db_periodic_task(crontab(minute='*' if util.DEBUG else '*/10'))
+  Unlike `crontab()` you need not specify wall-clock times.  The task will run
+  once immediately at (interpreter) start up, then no more often than once per
+  `period`, which is a `datetime.Timedelta`.
+
+  Due to how Huey implements periodic tasks, any period below 60 seconds will
+  effectively be 60 seconds.
+  """
+  previous_dt = None
+  def validator(dt):
+    nonlocal previous_dt
+    if not previous_dt or previous_dt + period < datetime.datetime.now():
+      previous_dt = dt
+      return True
+    return False
+  return validator
+
+
+@db_periodic_task(period(datetime.timedelta(
+    minutes=1 if util.DEBUG else 10)))
 def ScheduleFeedUpdates():
   """Periodically check for stale feeds, schedule tasks to update them."""
   for feed_e in models.Feed.objects.order_by(
@@ -51,7 +71,7 @@ def ScheduleFeedUpdates():
     feed.UpdateFeed.schedule((feed_e.url,), delay=d)
 
 
-@db_periodic_task(crontab(minute=11))
+@db_periodic_task(period(datetime.timedelta(hours=1)))
 def StaleEntryCleanup():
   """Delete stale entries older than those that will be served."""
   for feed_e in models.Feed.objects.all():
