@@ -44,7 +44,8 @@ def period(period):
   previous_dt = None
   def validator(dt):
     nonlocal previous_dt
-    if not previous_dt or previous_dt + period < datetime.datetime.now():
+    if not previous_dt or \
+        (previous_dt + period - datetime.timedelta(seconds=1)) < dt:
       previous_dt = dt
       return True
     return False
