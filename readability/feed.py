@@ -46,8 +46,9 @@ _MIN_UPDATE_INTERVAL = datetime.timedelta(hours=1).total_seconds()
 
 
 def _CleanEntryBase(feed_entity, entry_feedparser, content, original_content):
-  if entry_feedparser.updated_parsed:
-    updated = datetime.datetime(*entry_feedparser.updated_parsed[:6])
+  dt = entry_feedparser.updated_parsed or entry_feedparser.published_parsed
+  if dt:
+    updated = datetime.datetime(*dt[:6])
   else:
     updated = datetime.datetime.now()
 
