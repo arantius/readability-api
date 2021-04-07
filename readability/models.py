@@ -45,7 +45,7 @@ class Feed(models.Model):
   def stale_entries(self):
     """List of stale entries that should be removed."""
     return Entry.objects.filter(feed__url=self.url) \
-        .order_by('-updated')[_MAX_ENTRIES_PER_FEED:]
+        .order_by('-updated')[_MAX_ENTRIES_PER_FEED*2:]
 
   @property
   def updated(self):
