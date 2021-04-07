@@ -32,7 +32,7 @@ from readability import models
 from readability import util
 
 
-@db_periodic_task(crontab(minute='*/10'))
+@db_periodic_task(crontab(minute='*' if util.DEBUG else '*/10'))
 def ScheduleFeedUpdates():
   """Periodically check for stale feeds, schedule tasks to update them."""
   for feed_e in models.Feed.objects.order_by(
@@ -49,3 +49,11 @@ def ScheduleFeedUpdates():
 
     util.log.info('Scheduling update (in %.3f seconds) of %s ...', d, feed_e.url)
     feed.UpdateFeed.schedule((feed_e.url,), delay=d)
+
+
+@db_periodic_task(crontab(minute=11))
+def StaleEntryCleanup():
+  """Delete stale entries older than those that will be served."""
+  for feed_e in models.Feed.objects.all():
+    stale_keys = feed_e.stale_entries.values_list('pk', flat=True)
+    models.Entry.objects.filter(pk__in=stale_keys).delete()
