@@ -81,7 +81,7 @@ def _CleanEntryBase(feed_entity, entry_feedparser, content, original_content):
 
 def _CleanEntryFailure(feed_entity, entry_feedparser, ex):
   truncate_url = feed_entity.url
-  if len(feed_entity.url) > _MAX_URL_DISPLAY_LEN:
+  if len(feed_entity.url) > clean._MAX_URL_DISPLAY_LEN:
     truncate_url = url[0:60] + '…'
   content = '''
 <p>Error cleaning entry at <a href="%s">%s</a>:</p>
