@@ -54,11 +54,11 @@ INSTALLED_APPS = [
 ]
 
 ROOT_URLCONF = 'readability.urls'
-
+TIME_ZONE= 'America/New_York'
 TEMPLATES = [{
   'BACKEND': 'django.template.backends.django.DjangoTemplates',
   'DIRS': [],
   'APP_DIRS': True,
 }]
-
+USE_TZ = False
 WSGI_APPLICATION = 'wsgi.application'
