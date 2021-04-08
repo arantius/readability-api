@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import datetime
 import http.cookies
 import io
 import functools
@@ -107,8 +108,7 @@ def Fetch(orig_url, deadline=6, do_cache=True):
     final_url = url
     session = requests
     if do_cache:
-      session = requests_cache.CachedSession(
-          str(settings.DB_DIR / 'requests_cache.db'), extension='')
+      session = RequestsCacheSession()
     response = session.get(
         url,
         timeout=deadline,
@@ -168,6 +168,12 @@ def RenderTemplate(template_name, template_values=None):
   template_values = template_values or {}
   tpl = template.loader.get_template(template_name)
   return tpl.render(template_values)
+
+
+def RequestsCacheSession():
+  return requests_cache.CachedSession(
+      str(settings.DB_DIR / 'requests_cache'), extension='.db',
+      expire_after=datetime.timedelta(days=2))
 
 
 def SoupTagOnly(tag):

@@ -87,3 +87,4 @@ def StaleEntryCleanup():
   for feed_e in models.Feed.objects.all():
     stale_keys = feed_e.stale_entries.values_list('pk', flat=True)
     models.Entry.objects.filter(pk__in=stale_keys).delete()
+  util.RequestsCacheSession().remove_expired_responses()
