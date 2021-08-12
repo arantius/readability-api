@@ -169,7 +169,8 @@ def UpdateFeed(feed_url, feed_feedparser=None, local=False):
       len(feed_feedparser.entries), len(existing_keys))
   delay = 1
   new_entries = False
-  for entry_feedparser in feed_feedparser.entries:
+  for i, entry_feedparser in enumerate(feed_feedparser.entries):
+    if i >= models._MAX_ENTRIES_PER_FEED: break
     if _EntryId(entry_feedparser) in existing_keys:
       continue
     new_entries = True
