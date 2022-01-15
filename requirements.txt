@@ -14,4 +14,4 @@ requests-cache==0.5.2
 sgmllib3k==1.0.0
 soupsieve==2.2
 sqlparse==0.4.1
-urllib3==1.26.4
+urllib3==1.26.5
