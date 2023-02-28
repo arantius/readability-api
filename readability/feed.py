@@ -160,6 +160,9 @@ def UpdateFeed(feed_url, feed_feedparser=None, local=False):
   feed_entity = models.Feed.objects.get(url=feed_url)
   if not feed_feedparser:
     feed_feedparser = util.ParseFeedAtUrl(feed_entity.url)
+  if not feed_feedparser:
+    # Bad fetch, ignore.
+    return
 
   entry_keys = [_EntryId(e) for e in feed_feedparser.entries]
   existing_keys = models.Entry.objects.filter(feed__url=feed_url).values('key')

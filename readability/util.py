@@ -32,6 +32,7 @@ import bs4
 from django import template
 import feedparser
 import requests
+import requests.exceptions
 import requests_cache
 
 from readability import settings
@@ -104,7 +105,7 @@ def Fetch(orig_url, deadline=6, do_cache=True):
     redirects += 1
     url = CleanUrl(url)
     if settings.DEBUG:
-      log.info('Fetching: %s', url)
+      log.info('Fetching %r after %d redirects', url, redirects - 1)
     final_url = url
     session = requests
     if do_cache:
@@ -149,7 +150,11 @@ def GetFeedEntryContent(entry):
 
 def ParseFeedAtUrl(url):
   """Fetch a URL's contents, and parse it as a feed."""
-  response, _ = Fetch(url, deadline=20, do_cache=False)
+  try:
+    response, _ = Fetch(url, deadline=20, do_cache=False)
+  except requests.exceptions.ConnectionError as e:
+    print('Remote disconnected while fetching %r!' % url)
+    return None
   try:
     feed_feedparser = feedparser.parse(response.content)
   except LookupError:
