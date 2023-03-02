@@ -70,11 +70,13 @@ def ScheduleFeedUpdates():
       F('last_fetch_time') + F('fetch_interval_seconds')):
     update_time = feed_e.last_fetch_time + feed_e.fetch_interval_seconds
     delay = max(0, update_time - now)
-    if delay > ((1 if util.DEBUG else 10) * 60 - jitter_sec):  # as period above
+    update_freq_limit = ((1 if util.DEBUG else 10) * 60 - jitter_sec)
+    if delay > update_freq_limit:  # as period above
       util.log.info(
-          'Next update too far in the future (%.3f seconds, %.3f minutes)',
-          delay, delay/60)
-      break
+          'Skip feed update for %r: (%.3f seconds, %.3f minutes) '
+          '> limit (%.3f seconds)',
+          feed_e.url, delay, delay/60, update_freq_limit)
+      continue
 
     util.log.info(
         'Scheduling update (in %.3f seconds) of %s ...', delay, feed_e.url)
