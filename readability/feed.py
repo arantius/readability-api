@@ -23,6 +23,7 @@ import base64
 import datetime
 import hashlib
 import logging
+import operator
 import time
 
 from django import template
@@ -164,16 +165,22 @@ def UpdateFeed(feed_url, feed_feedparser=None, local=False):
     # Bad fetch, ignore.
     return
 
-  entry_keys = [_EntryId(e) for e in feed_feedparser.entries]
+  entries = sorted(
+      feed_feedparser.entries,
+      key=operator.attrgetter('published_parsed'),
+      reverse=True)
+  entries = entries[:models.MAX_ENTRIES_PER_FEED]
+
+  entry_keys = [_EntryId(e) for e in entries]
   existing_keys = models.Entry.objects.filter(feed__url=feed_url).values('key')
   existing_keys = set(x['key'] for x in existing_keys)
 
   util.log.info(
       'Downloaded %d entries, already have %d ...',
-      len(feed_feedparser.entries), len(existing_keys))
+      len(entries), len(existing_keys))
   delay = 1
   new_entries = False
-  for entry_feedparser in feed_feedparser.entries:
+  for entry_feedparser in entries:
     if _EntryId(entry_feedparser) in existing_keys:
       continue
     new_entries = True

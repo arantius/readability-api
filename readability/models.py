@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from django.db import models
 
 
-_MAX_ENTRIES_PER_FEED = 20
+MAX_ENTRIES_PER_FEED = 50
 
 
 class Feed(models.Model):
@@ -39,13 +39,13 @@ class Feed(models.Model):
   def entries(self):
     """List of active entries in the feed."""
     return Entry.objects.filter(feed__url=self.url) \
-        .order_by('-updated')[:_MAX_ENTRIES_PER_FEED]
+        .order_by('-updated')[:MAX_ENTRIES_PER_FEED]
 
   @property
   def stale_entries(self):
     """List of stale entries that should be removed."""
     return Entry.objects.filter(feed__url=self.url) \
-        .order_by('-updated')[_MAX_ENTRIES_PER_FEED*2:]
+        .order_by('-updated')[MAX_ENTRIES_PER_FEED:]
 
   @property
   def updated(self):
