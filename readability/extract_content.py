@@ -92,8 +92,9 @@ def _ExtractFromHtmlGeneric(url, html):
       _StripBefore(title_header)
 
   # Get the highest scored nodes.
-  scored_nodes = sorted(soup.findAll(attrs={'score': True}),
-                        key=lambda x: x['score'])[-15:]
+  nodes = soup.findAll(attrs={'score': True})
+  nodes = filter(lambda x: type(x['score']) is float, nodes)
+  scored_nodes = sorted(nodes, key=lambda x: x['score'])[-15:]
   if not scored_nodes:
     return soup, '<p>Scoring error.</p>'
   best_node = scored_nodes[-1]

@@ -297,7 +297,7 @@ def _MungeStripEmpties(root_tag):
 
 def _MungeStripLowScored(root_tag):
   for tag in root_tag.findAll(score=True):
-    if tag['score'] <= -2:
+    if type(tag['score']) is float and tag['score'] <= -2:
       util.Strip(tag)
 
 
