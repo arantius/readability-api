@@ -69,7 +69,8 @@ def ApplyScore(tag, score, depth=0, name=None):
     return
   decayed_score = score * _DEPTH_SCORE_DECAY[depth]
 
-  if not tag.has_attr('score'): tag['score'] = 0.0
+  if not tag.has_attr('score') or not type(tag['score']) is float:
+    tag['score'] = 0.0
   tag['score'] += decayed_score
 
   if DEBUG and name:
