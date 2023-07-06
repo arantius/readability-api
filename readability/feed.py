@@ -154,6 +154,17 @@ def RenderFeed(feed_entity, include_original=False):
    })
 
 
+def _UpdateFeedInterval(feed_entity, had_new_items):
+  f = feed_entity.fetch_interval_seconds
+  f *= 0.9 if had_new_items else 1.1
+  if f < _MIN_UPDATE_INTERVAL: f = _MIN_UPDATE_INTERVAL
+  if f > _MAX_UPDATE_INTERVAL: f = _MAX_UPDATE_INTERVAL
+
+  feed_entity.fetch_interval_seconds = f
+  feed_entity.last_fetch_time = time.time()
+  feed_entity.save()
+
+
 @db_task()
 def UpdateFeed(feed_url, feed_feedparser=None, local=False):
   util.log.info('Updating feed %r ...', feed_url)
@@ -163,6 +174,7 @@ def UpdateFeed(feed_url, feed_feedparser=None, local=False):
     feed_feedparser = util.ParseFeedAtUrl(feed_entity.url)
   if not feed_feedparser:
     # Bad fetch, ignore.
+    _UpdateFeedInterval(feed_entity, False)
     return
 
   entries = sorted(
@@ -192,11 +204,4 @@ def UpdateFeed(feed_url, feed_feedparser=None, local=False):
       _CleanEntry.schedule(args, delay=delay)
     delay += 3
 
-  f = feed_entity.fetch_interval_seconds
-  f *= 0.9 if new_entries else 1.1
-  if f < _MIN_UPDATE_INTERVAL: f = _MIN_UPDATE_INTERVAL
-  if f > _MAX_UPDATE_INTERVAL: f = _MAX_UPDATE_INTERVAL
-
-  feed_entity.fetch_interval_seconds = f
-  feed_entity.last_fetch_time = time.time()
-  feed_entity.save()
+  _UpdateFeedInterval(feed_entity, new_entries)

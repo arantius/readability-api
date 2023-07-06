@@ -72,10 +72,11 @@ def ScheduleFeedUpdates():
     delay = max(0, update_time - now)
     update_freq_limit = ((1 if util.DEBUG else 10) * 60 - jitter_sec)
     if delay > update_freq_limit:  # as period above
-      util.log.info(
-          'Skip feed update for %r: (%.3f seconds, %.3f minutes) '
-          '> limit (%.3f seconds)',
-          feed_e.url, delay, delay/60, update_freq_limit)
+      # 2022-03-07 Very noisy to logs!
+      #util.log.info(
+      #    'Skip feed update for %r: (%.3f seconds, %.3f minutes) '
+      #    '> limit (%.3f seconds)',
+      #    feed_e.url, delay, delay/60, update_freq_limit)
       continue
 
     util.log.info(
