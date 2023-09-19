@@ -28,9 +28,9 @@ SECRET_KEY = os.getenv(
   'SECRET_KEY', default='!j9s1*ama_q1e@!fm2cn@*r#^%5aoq&$x-x&swwq3ys$1*ta17')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(os.getenv('DEBUG'))
+DEBUG = bool(os.getenv('DEBUG', default=False))
 
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = [os.getenv('ALLOWED_HOST', default='localhost')]
 
 DATABASES = {
   'default': {

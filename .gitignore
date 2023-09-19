@@ -1,5 +1,6 @@
 *.db
 *.pyc
+.well-known
 env
 readability.fcgi
-.well-known
+wsgi_local.py
