@@ -123,6 +123,10 @@ def _Clean(url, response=None):
 
   if response is None:
     response, final_url = util.Fetch(url)
+
+    # https://stackoverflow.com/a/52615216/91238
+    response.encoding = response.apparent_encoding
+
     # Handle redirects to special pages.
     if final_url != url:
       return _Clean(final_url, response)
