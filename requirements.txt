@@ -23,4 +23,4 @@ six==1.16.0
 soupsieve==2.4.1
 sqlparse==0.4.4
 url-normalize==1.4.3
-urllib3==1.26.15
+urllib3==1.26.17
