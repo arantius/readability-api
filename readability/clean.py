@@ -70,6 +70,16 @@ if not settings.DEBUG:
       })
 
 
+def _BestEncoding(response):
+  m = re.search(
+      # https://stackoverflow.com/a/10769573/91238
+      r'''<meta(?!\s*(?:name|value)\s*=)[^>]*?charset\s*=[\s"']*([^\s"'/>]*)''',
+      response.text)
+  if m:
+    return(m.group(1))
+  return response.apparent_encoding
+
+
 def Clean(url):
   url, html = _Clean(url)
   truncate_url = url
@@ -125,7 +135,7 @@ def _Clean(url, response=None):
     response, final_url = util.Fetch(url)
 
     # https://stackoverflow.com/a/52615216/91238
-    response.encoding = response.apparent_encoding
+    response.encoding = _BestEncoding(response)
 
     # Handle redirects to special pages.
     if final_url != url:
