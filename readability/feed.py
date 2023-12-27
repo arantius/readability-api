@@ -80,7 +80,7 @@ def _CleanEntryBase(feed_entity, entry_feedparser, content, original_content):
   entry_entity.save()
 
 
-def _CleanEntryFailure(feed_entity, entry_feedparser, ex):
+def _CleanEntryFailure(feed_entity, entry_feedparser, ex, original_content):
   url = entry_feedparser.link
   truncate_url = url
   if len(url) > clean._MAX_URL_DISPLAY_LEN:
@@ -91,7 +91,7 @@ def _CleanEntryFailure(feed_entity, entry_feedparser, ex):
 ''' % (url, truncate_url, ex)
   _CleanEntryBase(
       feed_entity, entry_feedparser,
-      content=content, original_content='')
+      content=content, original_content=original_content)
 
 
 @db_task()
@@ -105,14 +105,15 @@ def _CleanEntry(feed_entity, entry_feedparser):
     util.log.warn('Missing link attribute!?')
     return
 
+  original_content = util.GetFeedEntryContent(entry_feedparser)
+
   i = 0
   while True:
     try:
       content = clean.Clean(entry_feedparser.link)
       _CleanEntryBase(
           feed_entity, entry_feedparser,
-          content=content,
-          original_content=util.GetFeedEntryContent(entry_feedparser))
+          content=content, original_content=original_content)
     except Exception as ex:
       util.log.info(
           'Got error %d cleaning %s: %s', i, entry_feedparser.link, ex)
@@ -121,7 +122,9 @@ def _CleanEntry(feed_entity, entry_feedparser):
       if i < 3:
         continue
       else:
-        _CleanEntryFailure(feed_entity, entry_feedparser, ex)
+        _CleanEntryFailure(
+            feed_entity, entry_feedparser, ex,
+            original_content=original_content)
     break
 
 
