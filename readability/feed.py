@@ -107,6 +107,17 @@ def _CleanEntry(feed_entity, entry_feedparser):
 
   original_content = util.GetFeedEntryContent(entry_feedparser)
 
+  if any((
+      '.reddit.com/' in entry_feedparser.link,
+      '.redd.it/' in entry_feedparser.link,
+      )):
+    # Don't hammer reddit's servers, original feed content instead.
+    # (Otherwise our IP gets banned and we can't fetch anyway.)
+    _CleanEntryBase(
+        feed_entity, entry_feedparser,
+        content=original_content, original_content='')
+    return
+
   i = 0
   while True:
     try:

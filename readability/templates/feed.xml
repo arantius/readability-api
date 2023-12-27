@@ -12,7 +12,7 @@
     <updated>{{ entry.updated|date:"Y-m-d\TH:i:s\Z" }}</updated>
     <content type="html"><![CDATA[
       {% autoescape off %}
-      {% if include_original %}{{ entry.original_content}}<hr>{% endif %}
+      {% if include_original and entry.original_content %}{{ entry.original_content}}<hr>{% endif %}
       {{ entry.content }}
       {% endautoescape %}
     ]]></content>
